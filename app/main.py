@@ -60,6 +60,10 @@ app.add_middleware(
 #  Routers
 # ─────────────────────────────────────────
 # esta seccion esta destinada a los routers de la aplicacion
+from app.colonias.api.v1.router import router as colonia_router
+from app.colonias.models.colonia_model import Colonia
+
+app.include_router(colonia_router, prefix="/api/v1")
 
 
 # ─────────────────────────────────────────
