@@ -5,7 +5,8 @@ import logging
 
 from app.core.config import get_settings
 from app.core.database import check_db_connection, create_tables
-
+from app.colonias.models.colonia import Colonia  
+from app.usuarios.models.usuario import Usuario, Rol
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s — %(name)s — %(levelname)s — %(message)s",
