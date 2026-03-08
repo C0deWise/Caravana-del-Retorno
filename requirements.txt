@@ -6,7 +6,7 @@ pytest
 # Database
 sqlalchemy==2.0.39
 psycopg2-binary==2.9.10
-
+asyncpg==0.30.0
 # Configuracion
 pydantic==2.11.1
 pydantic-settings==2.8.1
