@@ -1,1 +1,1 @@
-from .colonia_schemas import ColoniaCreate, ColoniaResponse
+from .colonia_schemas import ColoniaCrear, ColoniaRespuesta

@@ -1,1 +1,1 @@
-from .colonia_services import service_crear_colonia
+from .colonia_services import servicio_crear_colonia

@@ -1,9 +1,26 @@
+"""
+Módulo que contiene la lógica de negocio para la entidad Colonia.
+Coordina la validación de reglas de negocio y la interacción con el
+repositorio de colonias, garantizando la integridad de los datos antes 
+de su persistencia en la base de datos.
+"""
 from sqlalchemy.orm import Session
-from app.colonias.schemas.colonia_schemas import ColoniaCreate, ColoniaResponse
+from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta
 from app.colonias.repositories.colonia_repository import (crear_colonia, obtener_colonia_por_ubicacion,)
 from fastapi import HTTPException, status
 
-def service_crear_colonia(db: Session, datos: ColoniaCreate) -> ColoniaResponse:
+def servicio_crear_colonia(db: Session, datos: ColoniaCrear) -> ColoniaRespuesta:
+    """
+    Crear una nueva colonia aplicando reglas de negocio.
+    Parámetros:
+        db (Session): Sesión activa de SQLAlchemy.
+        datos (ColoniaCrear): Datos validados de la colonia a crear.
+    Retorna:
+        ColoniaRespuesta: Datos de la colonia creada.
+    Excepciones:
+        HTTPException 409: Si ya existe una colonia con la misma ubicación.
+    """
+    #Verificar si ya existe una colonia con la misma ubicación.
     colonia_existente = obtener_colonia_por_ubicacion(
         db,
         pais=datos.pais,
@@ -17,5 +34,6 @@ def service_crear_colonia(db: Session, datos: ColoniaCreate) -> ColoniaResponse:
             detail=f"Ya existe una colonia en {datos.ciudad}, {datos.departamento}, {datos.pais}.",
             )
     
+    #Crear la colonia sino existe duplicado
     nueva_colonia = crear_colonia(db, datos)
-    return ColoniaResponse.model_validate(nueva_colonia)
+    return ColoniaRespuesta.model_validate(nueva_colonia)
