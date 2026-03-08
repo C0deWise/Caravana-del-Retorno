@@ -12,12 +12,12 @@ build/
 # Virtual environments
 venv/
 .venv/
-env/
-.env/
+
 
 # Environment variables
-.env
-.env.*
+.env.encrypted
+env.example
+
 
 # Tests
 .pytest_cache/
