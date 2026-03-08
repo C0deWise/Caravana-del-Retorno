@@ -26,6 +26,7 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting %s v%s...", settings.APP_NAME, settings.APP_VERSION)
     check_db_connection()
+    print(">>> lifespan ejecutándose")
     create_tables()
     logger.info("Scheduler started.")
     scheduler.start()
@@ -71,7 +72,9 @@ app.add_middleware(
 from app.colonias.api.v1.router import router as colonia_router
 
 app.include_router(colonia_router, prefix="/api/v1")
+from app.usuarios.api.v1.usuario_router import router as usuario_router
 
+app.include_router(usuario_router)
 
 # ─────────────────────────────────────────
 #  Core endpoints
