@@ -15,5 +15,5 @@ class UsuarioServicio:
 
     async def registrar(self, schema: UsuarioSchema) -> Usuario:
         """Cifra la contraseña y delega el registro al repositorio."""
-        schema.us_contrasena = pwd_context.hash(schema.us_contrasena)
+        schema.us_contrasenia = pwd_context.hash(schema.us_contrasenia)
         return await self.repositorio.registrar(schema)

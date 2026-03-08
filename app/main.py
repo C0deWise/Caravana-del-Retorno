@@ -6,7 +6,9 @@ import logging
 from app.core.config import get_settings
 from app.core.database import check_db_connection, create_tables
 from app.colonias.models.colonia import Colonia  
-from app.usuarios.models.usuario import Usuario, Rol
+from app.usuarios.models.usuario import Rol
+from app.usuarios.models.usuario import Usuario
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s — %(name)s — %(levelname)s — %(message)s",
@@ -23,6 +25,7 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting %s v%s...", settings.APP_NAME, settings.APP_VERSION)
     check_db_connection()
+    print(">>> lifespan ejecutándose")
     create_tables()
     logger.info("Application ready.")
 
@@ -61,7 +64,9 @@ app.add_middleware(
 #  Routers
 # ─────────────────────────────────────────
 # esta seccion esta destinada a los routers de la aplicacion
+from app.usuarios.api.v1.usuario_router import router as usuario_router
 
+app.include_router(usuario_router)
 
 # ─────────────────────────────────────────
 #  Core endpoints
