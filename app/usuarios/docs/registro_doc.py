@@ -27,7 +27,7 @@ Crea un nuevo usuario en el sistema.
             "description": "Usuario registrado exitosamente.",
             "content": {
                 "application/json": {
-                    "example": {"mensaje": "Usuario registrado exitosamente.", "id": 1}
+                    "example": {"mensaje": "Usuario registrado exitosamente.", "nombre": "Nombre Completo"}
                 }
             },
         },
