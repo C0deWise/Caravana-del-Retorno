@@ -17,7 +17,7 @@ class RetornoRepository:
     def create(self, data: RetornoCreate) -> Retorno:
         """Crea y persiste un nuevo registro de retorno en la base de datos."""
         retorno = Retorno(
-            re_fecha_creacion=datetime.date.today(),
+            re_fecha_creacion=datetime.datetime.now(),
             re_anio=data.re_anio,
             re_estado=data.re_estado,
         )

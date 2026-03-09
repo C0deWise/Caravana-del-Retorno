@@ -17,7 +17,7 @@ class RetornoCreate(BaseModel):
 class RetornoResponse(BaseModel):
     """Datos retornados tras crear o consultar un retorno."""
     re_codigo: int
-    re_fecha_creacion: datetime.date
+    re_fecha_creacion: datetime.datetime
     re_anio: int
     re_estado: str
 
