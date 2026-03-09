@@ -5,6 +5,7 @@ import logging
 
 from app.core.config import get_settings
 from app.core.database import check_db_connection, create_tables
+from app.retornos.api.v1.endpoints.retorno_router import router as retornos_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -60,6 +61,7 @@ app.add_middleware(
 #  Routers
 # ─────────────────────────────────────────
 # esta seccion esta destinada a los routers de la aplicacion
+app.include_router(retornos_router)
 
 
 # ─────────────────────────────────────────

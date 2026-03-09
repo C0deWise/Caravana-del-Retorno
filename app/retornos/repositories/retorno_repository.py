@@ -3,7 +3,6 @@ Repositorio de acceso a datos para Retorno.
 Encapsula operaciones de persistencia como creación y consulta,
 sin incluir lógica de negocio.
 """
-
 from sqlalchemy.orm import Session
 from app.retornos.models.retorno_model import Retorno
 from app.retornos.schemas.retorno_schemas import RetornoCreate
@@ -19,7 +18,7 @@ class RetornoRepository:
         """Crea y persiste un nuevo registro de retorno en la base de datos."""
         retorno = Retorno(
             re_fecha_creacion=datetime.date.today(),
-            re_año=data.re_año,
+            re_anio=data.re_anio,
             re_estado=data.re_estado,
         )
         self.db.add(retorno)
@@ -34,3 +33,11 @@ class RetornoRepository:
     def get_by_codigo(self, codigo: int) -> Retorno | None:
         """Obtiene un retorno por su código primario."""
         return self.db.query(Retorno).filter(Retorno.re_codigo == codigo).first()
+    
+    def get_by_fecha(self, fecha: datetime.date) -> Retorno | None:
+        """Busca un retorno existente por fecha de creación."""
+        return self.db.query(Retorno).filter(Retorno.re_fecha_creacion == fecha).first()
+
+    def get_by_anio(self, anio: int) -> Retorno | None:
+        """Busca un retorno existente por año."""
+        return self.db.query(Retorno).filter(Retorno.re_anio == anio).first()

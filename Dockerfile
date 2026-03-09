@@ -25,6 +25,7 @@ WORKDIR /app
 COPY --from=builder /install /usr/local
 
 # Copy application source code
+COPY . .ss
 COPY . .
 
 # Set ownership
@@ -35,7 +36,8 @@ USER appuser
 # Runtime environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PORT=8000
+    PORT=8000 \
+    PYTHONPATH=/app
 
 EXPOSE 8000
 
@@ -44,4 +46,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
 # Start the application with Uvicorn
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --workers 2"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --workers 1"]
