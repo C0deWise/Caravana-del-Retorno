@@ -10,9 +10,7 @@ import logging
 
 from app.core.config import get_settings
 from app.core.database import check_db_connection, create_tables
-from app.colonias.models.colonia import Colonia  
-from app.usuarios.models.usuario import Rol
-from app.usuarios.models.usuario import Usuario
+from app.retornos.api.v1.endpoints.retorno_router import router as retornos_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -69,9 +67,7 @@ app.add_middleware(
 #  Routers
 # ─────────────────────────────────────────
 # esta seccion esta destinada a los routers de la aplicacion
-from app.usuarios.api.v1.usuario_router import router as usuario_router
-
-app.include_router(usuario_router)
+app.include_router(retornos_router)
 
 # ─────────────────────────────────────────
 #  Core endpoints

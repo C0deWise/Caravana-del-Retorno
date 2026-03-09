@@ -22,14 +22,21 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED,
     summary="Crear un nuevo retorno",
     description=(
-        "Crea un nuevo registro de retorno con el año y estado especificados. "
-        "La fecha de creación se asigna automáticamente al momento de la operación."
+        "Crea un nuevo registro de retorno. "
+        "El año no puede ser anterior al actual ni estar ya asociado a otro retorno."
     ),
+    responses={
+        409: {
+            "description": "Ya existe un evento de El Retorno para el año seleccionado.",
+            "content": {"application/json": {"example": {"detail": "Ya existe un evento de El Retorno para el año seleccionado: 2024."}}},
+        },
+        422: {
+            "description": "Año anterior al año actual del sistema.",
+            "content": {"application/json": {"example": {"detail": "No es posible crear un evento de El Retorno en un año anterior al actual."}}},
+        },
+    },
 )
-def crear_retorno(
-    data: RetornoCreate,
-    db: Session = Depends(get_db),
-):
+def crear_retorno(data: RetornoCreate, db: Session = Depends(get_db)):
     service = RetornoService(db)
     return service.crear_retorno(data)
 
