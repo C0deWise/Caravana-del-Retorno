@@ -10,3 +10,5 @@ psycopg2-binary==2.9.10
 # Configuracion
 pydantic==2.11.1
 pydantic-settings==2.8.1
+passlib[bcrypt]==1.7.4
+apscheduler==3.11.2
