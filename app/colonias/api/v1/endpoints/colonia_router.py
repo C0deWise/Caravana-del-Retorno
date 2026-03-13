@@ -1,4 +1,4 @@
-from fastapt import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.colonias.schemas.colonia_schemas import ColoniaCreate, ColoniaResponse
