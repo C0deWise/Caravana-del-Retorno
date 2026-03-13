@@ -1,3 +1,7 @@
+"""
+    usuario_esquemas.py define los esquemas de validación para los datos de los usuarios.
+"""
+
 from pydantic import BaseModel, field_validator
 from datetime import date
 from typing import Optional

@@ -1,3 +1,8 @@
+"""
+    registro_doc.py contiene la documentación para el endpoint de registro de usuarios.
+    Aquí se definen los resúmenes, descripciones, ejemplos y respuestas.
+"""
+
 from fastapi import Body
 from typing import Annotated
 from app.usuarios.schemas.usuario_esquemas import UsuarioSchema

@@ -1,3 +1,7 @@
+"""
+    usuario.py define el modelo de datos para los usuarios, incluyendo sus atributos y relaciones.
+"""
+
 import enum
 from sqlalchemy import Integer, String, Date, ForeignKey, Enum, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship

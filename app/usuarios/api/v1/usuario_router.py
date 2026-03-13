@@ -1,3 +1,8 @@
+"""
+    usuario_router.py define el router para las operaciones relacionadas con los usuarios.
+    Aquí se implementan los endpoints para registrar.
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 

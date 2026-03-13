@@ -1,3 +1,7 @@
+"""
+    usuario_servicio.py contiene la lógica de negocio para la gestión de usuarios.
+"""
+
 from passlib.context import CryptContext
 
 from app.usuarios.models.usuario import Usuario

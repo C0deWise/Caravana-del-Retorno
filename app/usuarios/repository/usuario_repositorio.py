@@ -1,3 +1,7 @@
+"""
+    usuario_repositorio.py contiene la lógica de acceso a datos para los usuarios.
+"""
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
