@@ -16,12 +16,13 @@ def crear_colonia(db: Session, datos: ColoniaCrear) -> Colonia:
         db (Session): Sesión activa de SQLAlchemy.
         datos (ColoniaCrear): Datos validados de la colonia a crear.
     Retorna:
-        Colonia: Objeto de la colonia recién creado con si id generado.
+        Colonia: Objeto de la colonia recién creado con su id generado.
     """
     colonia = Colonia(
-        pais = datos.pais,
-        departamento = datos.departamento,
-        ciudad = datos.ciudad,
+        co_pais = datos.pais,
+        co_departamento = datos.departamento,
+        co_ciudad = datos.ciudad,
+        lider_id = datos.lider_id,
     )
     db.add(colonia)
     db.commit()
@@ -41,8 +42,8 @@ def obtener_colonia_por_ubicacion(db: Session, pais: str, departamento: str, ciu
     """
     return (
         db.query(Colonia).filter(
-            Colonia.pais == pais,
-            Colonia.departamento == departamento,
-            Colonia.ciudad == ciudad
+            Colonia.co_pais == pais,
+            Colonia.co_departamento == departamento,
+            Colonia.co_ciudad == ciudad
         ).first()
     )

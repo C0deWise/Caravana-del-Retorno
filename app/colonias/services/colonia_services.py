@@ -36,4 +36,4 @@ def servicio_crear_colonia(db: Session, datos: ColoniaCrear) -> ColoniaRespuesta
     
     #Crear la colonia sino existe duplicado
     nueva_colonia = crear_colonia(db, datos)
-    return ColoniaRespuesta.model_validate(nueva_colonia)
+    return ColoniaRespuesta.model_validate(nueva_colonia, from_attributes=True)
