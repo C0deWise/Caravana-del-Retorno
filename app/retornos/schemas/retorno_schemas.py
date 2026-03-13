@@ -4,7 +4,7 @@ Define la estructura de entrada y salida de la API,
 separando la representación HTTP del modelo de base de datos.
 """
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, ConfigDict
 import datetime
 
 
@@ -21,5 +21,4 @@ class RetornoResponse(BaseModel):
     re_anio: int
     re_estado: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
