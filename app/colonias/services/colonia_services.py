@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.colonias.schemas.colonia_schemas import ColoniaCreate, ColoniaResponse
-from app.colonias.repositories.colonia_repository import (crear_colonia, obtener_colonia_por_ubicacion,)
+from app.colonias.repositories.colonia_repository import (crear_colonia, obtener_colonia_por_ubicacion,obtener_colonias)
 from fastapi import HTTPException, status
 
 def service_crear_colonia(db: Session, datos: ColoniaCreate) -> ColoniaResponse:
@@ -19,3 +19,7 @@ def service_crear_colonia(db: Session, datos: ColoniaCreate) -> ColoniaResponse:
     
     nueva_colonia = crear_colonia(db, datos)
     return ColoniaResponse.model_validate(nueva_colonia)
+
+def service_obtener_colonias(db: Session) -> list[ColoniaResponse]:
+    colonias = obtener_colonias(db)
+    return [ColoniaResponse.model_validate(colonia) for colonia in colonias]

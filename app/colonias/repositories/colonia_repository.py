@@ -21,3 +21,6 @@ def obtener_colonia_por_ubicacion(db: Session, pais: str, departamento: str, ciu
             Colonia.co_ciudad == ciudad
         ).first()
     )
+
+def obtener_colonias(db: Session) -> list[Colonia]:
+    return db.query(Colonia).all()

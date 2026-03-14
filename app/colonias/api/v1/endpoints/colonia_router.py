@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.colonias.schemas.colonia_schemas import ColoniaCreate, ColoniaResponse
-from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear
-from app.colonias.services.colonia_services import service_crear_colonia
-from app.colonias.services.solicitud_colonis_services import SolicitudColoniaService
+from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear, SolicitudColoniaRespuesta
+from app.colonias.services.colonia_services import service_crear_colonia, service_obtener_colonias
+from app.colonias.services.solicitud_colonias_services import SolicitudColoniaService
 router = APIRouter()
 
 @router.post(
@@ -17,6 +17,15 @@ router = APIRouter()
 def crear_colonia(datos: ColoniaCreate, db: Session = Depends(get_db)):
     return service_crear_colonia(db, datos)
 
+@router.get(
+    "/",
+    response_model = list[ColoniaResponse],
+    status_code = status.HTTP_200_OK,
+    summary = "Obtener todas las colonias",
+    description = "Obtiene una lista de todas las colonias registradas en el sistema",
+)
+def obtener_colonias(db: Session = Depends(get_db)):
+    return service_obtener_colonias(db)
 
 @router.post(
     "/crear-solicitud",
@@ -27,3 +36,33 @@ def crear_colonia(datos: ColoniaCreate, db: Session = Depends(get_db)):
 )
 def crear_solicitud_colonia(datos: SolicitudColoniaCrear, db: Session = Depends(get_db)):
     return SolicitudColoniaService().crear_solicitud(db, datos)
+
+@router.get(
+    "/solicitudes-pendientes/{cod_colonia}",
+    response_model = list[SolicitudColoniaRespuesta],
+    status_code = status.HTTP_200_OK,
+    summary = "Obtener solicitudes de ingreso pendientes",
+    description = "Obtiene una lista de todas las solicitudes de ingreso a colonias que están pendientes de revisión",
+)
+def obtener_solicitudes_pendientes_colonia(cod_colonia: int, db: Session = Depends(get_db)):
+    return SolicitudColoniaService().obtener_solicitudes_pendientes_colonia(db, cod_colonia)
+
+
+@router.get("/solicitudes-recientes/{cod_colonia}",
+            response_model = list[SolicitudColoniaRespuesta],
+    status_code = status.HTTP_200_OK,
+    summary = "Obtener solicitudes de ingreso recientes",
+    description = "Obtiene una lista de las solicitudes de ingreso a colonias que han sido creadas en los últimos 30 días",
+)
+def obtener_solicitudes_recientes_colonia(cod_colonia: int, db: Session = Depends(get_db)):
+    return SolicitudColoniaService().obtener_solicitudes_recientes_colonia(db, cod_colonia)
+
+
+@router.get("/solicitudes-recientes-usuario/{cod_usuario}",
+            response_model = list[SolicitudColoniaRespuesta],
+    status_code = status.HTTP_200_OK,
+    summary = "Obtener solicitudes de ingreso recientes por usuario",
+    description = "Obtiene una lista de las solicitudes de ingreso a colonias que han sido creadas en los últimos 30 días por un usuario específico",
+)
+def obtener_solicitudes_recientes_usuario(cod_usuario: int, db: Session = Depends(get_db)):
+    return SolicitudColoniaService().obtener_solicitudes_recientes_usuario(db, cod_usuario)
