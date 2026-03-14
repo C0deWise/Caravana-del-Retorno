@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_async_db
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.services.usuario_servicio import UsuarioServicio
-from app.usuarios.schemas.usuario_esquemas import UsuarioSchema
-
+from app.usuarios.schemas.usuario_esquemas import UsuarioCrear
+from app.usuarios.docs.registro_doc import registrar_docs, registrar_body
 router = APIRouter(prefix="/usuario", tags=["Usuario"])
 
 
