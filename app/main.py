@@ -5,8 +5,11 @@ import logging
 
 from app.core.config import get_settings
 from app.core.database import check_db_connection, create_tables
-from app.colonias.models.colonia import Colonia  
+from app.colonias.models.colonia_model import Colonia  
+from app.colonias.models.solicitud_colonia import SolicitudColonia
 from app.usuarios.models.usuario import Usuario, Rol
+import app.core.scheduler as scheduler
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s — %(name)s — %(levelname)s — %(message)s",
@@ -24,12 +27,16 @@ async def lifespan(app: FastAPI):
     logger.info("Starting %s v%s...", settings.APP_NAME, settings.APP_VERSION)
     check_db_connection()
     create_tables()
+    logger.info("Scheduler started.")
+    scheduler.start()
+
     logger.info("Application ready.")
 
     yield
 
     # Shutdown
     logger.info("Shutting down %s...", settings.APP_NAME)
+    scheduler.shutdown()
 
 
 # ─────────────────────────────────────────
@@ -62,7 +69,6 @@ app.add_middleware(
 # ─────────────────────────────────────────
 # esta seccion esta destinada a los routers de la aplicacion
 from app.colonias.api.v1.router import router as colonia_router
-from app.colonias.models.colonia_model import Colonia
 
 app.include_router(colonia_router, prefix="/api/v1")
 

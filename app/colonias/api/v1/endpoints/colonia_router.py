@@ -19,7 +19,7 @@ def crear_colonia(datos: ColoniaCreate, db: Session = Depends(get_db)):
 
 
 @router.post(
-    "/",
+    "/crear-solicitud",
     response_model = ColoniaResponse,
     status_code = status.HTTP_201_CREATED,
     summary = "Crear una solicitud de ingreso a una colonia",

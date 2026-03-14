@@ -1,24 +1,3 @@
-"""
-Scheduler de tareas periódicas.
-
-Usa APScheduler para ejecutar jobs en segundo plano.
-Instala la dependencia con:
-    pip install apscheduler
-
-Registra el scheduler en tu main.py:
-
-    from app.scheduler import scheduler
-    from contextlib import asynccontextmanager
-    from fastapi import FastAPI
-
-    @asynccontextmanager
-    async def lifespan(app: FastAPI):
-        scheduler.start()
-        yield
-        scheduler.shutdown()
-
-    app = FastAPI(lifespan=lifespan)
-"""
 
 import logging
 
@@ -29,8 +8,10 @@ from app.colonias.services.solicitud_colonis_services import SolicitudColoniaSer
 
 logger = logging.getLogger(__name__)
 
+_scheduler = BackgroundScheduler()
 
-def job_expirar_solicitudes() -> None:
+
+def _job_expirar_solicitudes() -> None:
     """Job diario: expira solicitudes pendientes con más de 30 días."""
     db = SessionLocal()
     try:
@@ -42,14 +23,22 @@ def job_expirar_solicitudes() -> None:
         db.close()
 
 
-scheduler = BackgroundScheduler()
+def start() -> None:
+    """Registra los jobs e inicia el scheduler. Llamar en el lifespan startup."""
+    _scheduler.add_job(
+        _job_expirar_solicitudes,
+        trigger="cron",
+        hour=0,
+        minute=0,
+        id="expirar_solicitudes_colonia",
+        replace_existing=True,
+    )
+    _scheduler.start()
+    logger.info("[Scheduler] Iniciado.")
 
-# Se ejecuta todos los días a las 00:00
-scheduler.add_job(
-    job_expirar_solicitudes,
-    trigger="cron",
-    hour=0,
-    minute=0,
-    id="expirar_solicitudes_colonia",
-    replace_existing=True,
-)
+
+def shutdown() -> None:
+    """Detiene el scheduler. Llamar en el lifespan shutdown."""
+    if _scheduler.running:
+        _scheduler.shutdown()
+        logger.info("[Scheduler] Detenido.")
