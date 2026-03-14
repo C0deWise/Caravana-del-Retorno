@@ -10,30 +10,30 @@ from app.usuarios.models.usuario import TipoDoc, Genero
 
 import re
 
-class UsuarioSchema(BaseModel):
-    us_tipo_doc: TipoDoc
-    us_documento: str
-    us_celular: str
-    co_codigo: Optional[int] = None
-    ro_codigo: int = 1
-    us_nombre: str
-    us_apellido: str
-    us_genero: Genero
-    us_fecha_nacimiento: date
-    us_pais: str
-    us_departamento: Optional[str] = None
-    us_ciudad: Optional[str] = None
-    us_correo: str
-    us_contrasenia: str
+class UsuarioCrear(BaseModel):
+    tipo_doc: TipoDoc
+    documento: str
+    celular: str
+    codigo_colonia: Optional[int] = None
+    codigo_rol: int = 1
+    nombre: str
+    apellido: str
+    genero: Genero
+    fecha_nacimiento: date
+    pais: str
+    departamento: Optional[str] = None
+    ciudad: Optional[str] = None
+    correo: str
+    contrasenia: str
 
-    @field_validator("us_documento")
+    @field_validator("documento")
     @classmethod
     def documento_no_vacio(cls, v: str) -> str:
         if not v.strip():
             raise ValueError("El documento no puede estar vacío.")
         return v
 
-    @field_validator("us_celular")
+    @field_validator("celular")
     @classmethod
     def celular_valido(cls, v: str) -> str:
         digits = v.replace("+", "").replace(" ", "")
@@ -43,14 +43,14 @@ class UsuarioSchema(BaseModel):
             raise ValueError("El celular debe tener entre 7 y 15 dígitos.")
         return v
 
-    @field_validator("us_nombre", "us_apellido")
+    @field_validator("nombre", "apellido")
     @classmethod
     def solo_letras(cls, v: str) -> str:
         if not v.replace(" ", "").isalpha():
             raise ValueError("El campo solo puede contener letras.")
         return v.strip()
 
-    @field_validator("us_tipo_doc")
+    @field_validator("tipo_doc")
     @classmethod
     def validar_tipo_doc(cls, v: TipoDoc) -> TipoDoc:
         valores = [e.value for e in TipoDoc]
@@ -58,7 +58,7 @@ class UsuarioSchema(BaseModel):
             raise ValueError(f"Tipo de documento inválido. Valores permitidos: {valores}")
         return v
 
-    @field_validator("us_genero")
+    @field_validator("genero")
     @classmethod
     def validar_genero(cls, v: Genero) -> Genero:
         valores = [e.value for e in Genero]
@@ -67,7 +67,7 @@ class UsuarioSchema(BaseModel):
         return v
     model_config = {"from_attributes": True}
 
-    @field_validator("us_correo")
+    @field_validator("correo")
     @classmethod
     def correo_valido(cls, v: str) -> str:
         patron = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
