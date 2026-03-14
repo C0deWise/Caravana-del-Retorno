@@ -30,4 +30,4 @@ class SolicitudColonia(Base):
     #  Relaciones
     # ─────────────────────────────────────────)
     usuario = relationship("Usuario")
-    colonia = relationship("Colonias")
+    colonia = relationship("Colonia")
