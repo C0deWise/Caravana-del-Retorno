@@ -15,7 +15,7 @@ class ColoniaCrear (BaseModel):
     pais: str
     departamento: Optional[str] = None
     ciudad: Optional[str] = None
-    lider_id: Optional[int] = None
+    lider: Optional[int] = None
 
     @field_validator("pais", "departamento", "ciudad")
     @classmethod
@@ -74,10 +74,10 @@ class ColoniaCrear (BaseModel):
 class ColoniaRespuesta (BaseModel):
     """Esquema de respúesta para una colonia creada."""
 
-    id: int = Field(alias="co_codigo")
-    pais: str = Field(alias="co_pais")
-    departamento: Optional[str] = Field(alias="co_departamento")
-    ciudad: Optional[str] = Field(alias="co_ciudad")
-    lider_id: Optional[int]
+    codigo: int 
+    pais: str 
+    departamento: Optional[str] = None
+    ciudad: Optional[str] = None
+    lider: Optional[int] = None
 
     model_config = {"from_attributes": True, "populate_by_name": True}

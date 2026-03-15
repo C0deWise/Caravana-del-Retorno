@@ -19,10 +19,10 @@ def crear_colonia(db: Session, datos: ColoniaCrear) -> Colonia:
         Colonia: Objeto de la colonia recién creado con su id generado.
     """
     colonia = Colonia(
-        co_pais = datos.pais,
-        co_departamento = datos.departamento,
-        co_ciudad = datos.ciudad,
-        lider_id = datos.lider_id,
+        pais = datos.pais,
+        departamento = datos.departamento,
+        ciudad = datos.ciudad,
+        lider = datos.lider,
     )
     db.add(colonia)
     db.commit()
@@ -42,8 +42,8 @@ def obtener_colonia_por_ubicacion(db: Session, pais: str, departamento: str, ciu
     """
     return (
         db.query(Colonia).filter(
-            Colonia.co_pais == pais,
-            Colonia.co_departamento == departamento,
-            Colonia.co_ciudad == ciudad
+            Colonia.pais == pais,
+            Colonia.departamento == departamento,
+            Colonia.ciudad == ciudad
         ).first()
     )

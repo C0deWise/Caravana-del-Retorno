@@ -28,7 +28,12 @@ def servicio_crear_colonia(db: Session, datos: ColoniaCrear) -> ColoniaRespuesta
         ciudad=datos.ciudad,
     )
 
-    if colonia_existente: 
+    if colonia_existente and (not datos.departamento or not datos.ciudad): 
+        raise HTTPException (
+            status_code = status.HTTP_409_CONFLICT,
+            detail=f"Ya existe una colonia en {datos.pais}.",
+            )
+    elif colonia_existente:
         raise HTTPException (
             status_code = status.HTTP_409_CONFLICT,
             detail=f"Ya existe una colonia en {datos.ciudad}, {datos.departamento}, {datos.pais}.",

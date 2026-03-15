@@ -12,8 +12,8 @@ class Colonia(Base):
     """Modelo SQLAlchemy que representa una colonia colombiana."""
     __tablename__ = "colonias"
 
-    co_codigo = Column(Integer, primary_key = True, index=True, autoincrement=True)
-    co_pais = Column(String(100), nullable=False)
-    co_departamento = Column(String(100), nullable=True)
-    co_ciudad = Column(String(100), nullable=True)
-    lider_id = Column(Integer, nullable=True)
+    codigo = Column("co_codigo", Integer, primary_key = True, index=True, autoincrement=True)
+    pais = Column("co_pais", String(100), nullable=False)
+    departamento = Column("co_departamento", String(100), nullable=True)
+    ciudad = Column("co_ciudad", String(100), nullable=True)
+    lider = Column("lider_id", Integer, nullable=True)
