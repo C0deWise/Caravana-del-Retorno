@@ -50,14 +50,6 @@ class UsuarioCrear(BaseModel):
             raise ValueError("El campo solo puede contener letras.")
         return v.strip()
 
-    @field_validator("tipo_doc")
-    @classmethod
-    def validar_tipo_doc(cls, v: TipoDoc) -> TipoDoc:
-        valores = [e.value for e in TipoDoc]
-        if v not in TipoDoc.__members__.values():
-            raise ValueError(f"Tipo de documento inválido. Valores permitidos: {valores}")
-        return v
-
     @field_validator("genero")
     @classmethod
     def validar_genero(cls, v: Genero) -> Genero:
