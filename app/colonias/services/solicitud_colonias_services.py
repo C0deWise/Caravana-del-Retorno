@@ -5,9 +5,10 @@ from app.colonias.models.solicitud_colonia import SolicitudColonia
 from app.colonias.repositories.solicitud_colonia_repository import SolicitudColoniaRepository 
 from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear, SolicitudColoniaRespuesta
 
-
-
 class SolicitudColoniaService:
+
+    def __init__(self, repositorio: SolicitudColoniaRepository):
+        self.repositorio = repositorio
 
     def _mapear_solicitud(self, solicitud: SolicitudColonia) -> SolicitudColoniaRespuesta:
         return SolicitudColoniaRespuesta(
@@ -20,24 +21,21 @@ class SolicitudColoniaService:
             apellido_usuario=solicitud.usuario.us_apellido,
         )
 
-    def crear_solicitud(self, db: Session, data: SolicitudColoniaCrear) -> SolicitudColoniaRespuesta:
-        solicitud = SolicitudColoniaRepository().crear_solicitud_colonia(db, data)
+    async def crear_solicitud(self, data: SolicitudColoniaCrear) -> SolicitudColoniaRespuesta:
+        solicitud = await self.repositorio.crear_solicitud_colonia(data)
         return self._mapear_solicitud(solicitud)
 
-    def obtener_solicitudes_pendientes_colonia(self, db: Session, cod_colonia: int) -> list[SolicitudColoniaRespuesta]:
-        solicitudes = SolicitudColoniaRepository().obtener_solicitudes_pendientes_por_colonia(db, cod_colonia)
+    async def obtener_solicitudes_pendientes_colonia(self, cod_colonia: int) -> list[SolicitudColoniaRespuesta]:
+        solicitudes = await self.repositorio.obtener_solicitudes_pendientes_por_colonia(cod_colonia)
         return [self._mapear_solicitud(s) for s in solicitudes]
 
-    def obtener_solicitudes_recientes_colonia(self, db: Session, cod_colonia: int) -> list[SolicitudColoniaRespuesta]:
-        solicitudes = SolicitudColoniaRepository().obtener_solicitudes_recientes_por_colonia(db, cod_colonia)
+    async def obtener_solicitudes_recientes_colonia(self, cod_colonia: int) -> list[SolicitudColoniaRespuesta]:
+        solicitudes = await self.repositorio.obtener_solicitudes_recientes_por_colonia(cod_colonia)
         return [self._mapear_solicitud(s) for s in solicitudes]
 
-    def obtener_solicitudes_recientes_usuario(self, db: Session, cod_usuario: int) -> list[SolicitudColoniaRespuesta]:
-        solicitudes = SolicitudColoniaRepository().obtener_solicitudes_recientes_por_usuario(db, cod_usuario)
+    async def obtener_solicitudes_recientes_usuario(self, cod_usuario: int) -> list[SolicitudColoniaRespuesta]:
+        solicitudes = await self.repositorio.obtener_solicitudes_recientes_por_usuario(cod_usuario)
         return [self._mapear_solicitud(s) for s in solicitudes]
 
-    def expirar_solicitudes_vencidas(self, db: Session) -> int:
-        """Expira todas las solicitudes pendientes con más de 30 días.
-        Retorna la cantidad de registros afectados."""
-        return SolicitudColoniaRepository().expirar_pendientes(db)
-
+    async def expirar_solicitudes_vencidas(self) -> int:
+        return await self.repositorio.expirar_pendientes()

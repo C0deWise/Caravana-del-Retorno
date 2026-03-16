@@ -1,12 +1,26 @@
 from fastapi import APIRouter, Depends, status
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
-from app.core.database import get_db
+from app.colonias.repositories.solicitud_colonia_repository import SolicitudColoniaRepository
+from app.core.database import get_async_db, get_db
 from app.usuarios.api.v1.usuario_router import get_usuario_servicio
 from app.colonias.schemas.colonia_schemas import ColoniaCreate, ColoniaResponse
 from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear, SolicitudColoniaRespuesta
 from app.colonias.services.colonia_services import service_crear_colonia, service_obtener_colonias
 from app.colonias.services.solicitud_colonias_services import SolicitudColoniaService
 from app.usuarios.services.usuario_servicio import UsuarioServicio
+
+from app.colonias.docs.docs_solicitud_colonia import (
+    crear_solicitud_docs,
+    obtener_solicitudes_pendientes_docs,
+    obtener_solicitudes_recientes_colonia_docs,
+    obtener_solicitudes_recientes_usuario_docs,
+)
+
+def get_solicitud_colonia_servicio(db: AsyncSession = Depends(get_async_db)) -> SolicitudColoniaRepository:
+    repositorio = SolicitudColoniaRepository(db)
+    return SolicitudColoniaService(repositorio)
+
 router = APIRouter()
 
 @router.post(
@@ -31,42 +45,46 @@ def obtener_colonias(db: Session = Depends(get_db)):
 
 @router.post(
     "/crear-solicitud",
-    response_model = SolicitudColoniaRespuesta,
-    status_code = status.HTTP_201_CREATED,
-    summary = "Crear una solicitud de ingreso a una colonia",
-    description = "Crea una nueva solicitud de ingreso a una colonia con el código de usuario y el código de colonia",
+    response_model=SolicitudColoniaRespuesta, **crear_solicitud_docs
 )
-def crear_solicitud_colonia(datos: SolicitudColoniaCrear, db: Session = Depends(get_db),  servicio: UsuarioServicio = Depends(get_usuario_servicio)):
-    if not servicio.existe_usuario("us_codigo", datos.codigo_usuario):
-            raise ValueError(f"El usuario con código {datos.codigo_usuario} no existe.")
-    return SolicitudColoniaService().crear_solicitud(db, datos)
+async def crear_solicitud_colonia(
+    datos: SolicitudColoniaCrear,
+    servicio_usuario: UsuarioServicio = Depends(get_usuario_servicio),
+    servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio),
+):
+    if not servicio_usuario.existe_usuario("us_codigo", datos.codigo_usuario):
+        raise ValueError(f"El usuario con código {datos.codigo_usuario} no existe.")
+    return await servicio.crear_solicitud(datos)
+
 
 @router.get(
     "/solicitudes-pendientes/{cod_colonia}",
-    response_model = list[SolicitudColoniaRespuesta],
-    status_code = status.HTTP_200_OK,
-    summary = "Obtener solicitudes de ingreso pendientes",
-    description = "Obtiene una lista de todas las solicitudes de ingreso a colonias que están pendientes de revisión",
+    response_model=list[SolicitudColoniaRespuesta], **obtener_solicitudes_pendientes_docs
 )
-def obtener_solicitudes_pendientes_colonia(cod_colonia: int, db: Session = Depends(get_db)):
-    return SolicitudColoniaService().obtener_solicitudes_pendientes_colonia(db, cod_colonia)
+async def obtener_solicitudes_pendientes_colonia(
+    cod_colonia: int,
+    servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio),
+):
+    return await servicio.obtener_solicitudes_pendientes_colonia(cod_colonia)
 
 
-@router.get("/solicitudes-recientes/{cod_colonia}",
-            response_model = list[SolicitudColoniaRespuesta],
-    status_code = status.HTTP_200_OK,
-    summary = "Obtener solicitudes de ingreso recientes",
-    description = "Obtiene una lista de las solicitudes de ingreso a colonias que han sido creadas en los últimos 30 días",
+@router.get(
+    "/solicitudes-recientes/{cod_colonia}",
+    response_model=list[SolicitudColoniaRespuesta], **obtener_solicitudes_recientes_colonia_docs
 )
-def obtener_solicitudes_recientes_colonia(cod_colonia: int, db: Session = Depends(get_db)):
-    return SolicitudColoniaService().obtener_solicitudes_recientes_colonia(db, cod_colonia)
+async def obtener_solicitudes_recientes_colonia(
+    cod_colonia: int,
+    servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio),
+):
+    return await servicio.obtener_solicitudes_recientes_colonia(cod_colonia)
 
 
-@router.get("/solicitudes-recientes-usuario/{cod_usuario}",
-            response_model = list[SolicitudColoniaRespuesta],
-    status_code = status.HTTP_200_OK,
-    summary = "Obtener solicitudes de ingreso recientes por usuario",
-    description = "Obtiene una lista de las solicitudes de ingreso a colonias que han sido creadas en los últimos 30 días por un usuario específico",
+@router.get(
+    "/solicitudes-recientes-usuario/{cod_usuario}",
+    response_model=list[SolicitudColoniaRespuesta], **obtener_solicitudes_recientes_usuario_docs
 )
-def obtener_solicitudes_recientes_usuario(cod_usuario: int, db: Session = Depends(get_db)):
-    return SolicitudColoniaService().obtener_solicitudes_recientes_usuario(db, cod_usuario)
+async def obtener_solicitudes_recientes_usuario(
+    cod_usuario: int,
+    servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio),
+):
+    return await servicio.obtener_solicitudes_recientes_usuario(cod_usuario)
