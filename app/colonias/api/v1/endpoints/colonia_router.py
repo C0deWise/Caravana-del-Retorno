@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
+from app.usuarios.api.v1.usuario_router import get_usuario_servicio
 from app.colonias.schemas.colonia_schemas import ColoniaCreate, ColoniaResponse
 from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear, SolicitudColoniaRespuesta
 from app.colonias.services.colonia_services import service_crear_colonia, service_obtener_colonias
 from app.colonias.services.solicitud_colonias_services import SolicitudColoniaService
+from app.usuarios.services.usuario_servicio import UsuarioServicio
 router = APIRouter()
 
 @router.post(
@@ -29,12 +31,14 @@ def obtener_colonias(db: Session = Depends(get_db)):
 
 @router.post(
     "/crear-solicitud",
-    response_model = ColoniaResponse,
+    response_model = SolicitudColoniaRespuesta,
     status_code = status.HTTP_201_CREATED,
     summary = "Crear una solicitud de ingreso a una colonia",
     description = "Crea una nueva solicitud de ingreso a una colonia con el código de usuario y el código de colonia",
 )
-def crear_solicitud_colonia(datos: SolicitudColoniaCrear, db: Session = Depends(get_db)):
+def crear_solicitud_colonia(datos: SolicitudColoniaCrear, db: Session = Depends(get_db),  servicio: UsuarioServicio = Depends(get_usuario_servicio)):
+    if not servicio.existe_usuario("us_codigo", datos.codigo_usuario):
+            raise ValueError(f"El usuario con código {datos.codigo_usuario} no existe.")
     return SolicitudColoniaService().crear_solicitud(db, datos)
 
 @router.get(

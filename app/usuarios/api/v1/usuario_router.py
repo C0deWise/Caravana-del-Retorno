@@ -19,7 +19,7 @@ def get_usuario_servicio(db: AsyncSession = Depends(get_async_db)) -> UsuarioSer
     status_code=status.HTTP_201_CREATED,
 )
 async def registrar_usuario(
-    schema: UsuarioSchema,
+    schema: UsuarioCrear,
     servicio: UsuarioServicio = Depends(get_usuario_servicio),
 ):
     try:
