@@ -5,9 +5,9 @@ independiente del framework web.
 """
 
 from sqlalchemy.orm import Session
-from app.retornos.repositories.retorno_repository import RetornoRepository
-from app.retornos.schemas.retorno_schemas import RetornoCreate, RetornoResponse
-from app.retornos.exceptions.retorno_exceptions import (
+from app.retornos.repositorios.retorno_repositorio import RetornoRepository
+from app.retornos.esquemas.retorno_esquemas import RetornoCreate, RetornoResponse
+from app.retornos.excepciones.retorno_excepciones import (
     RetornoNotFoundError,
     RetornoAnioDuplicadoError,
     RetornoAnioPasadoError,
@@ -25,13 +25,13 @@ class RetornoService:
         luego delega la creación al repositorio.
         """
         # Restricción 1: año no puede ser anterior al actual
-        if data.re_anio < datetime.date.today().year:
+        if data.anio < datetime.date.today().year:
             raise RetornoAnioPasadoError()
 
         # Restricción 2: no puede existir otro retorno con el mismo año
-        existente = self.repo.get_by_anio(data.re_anio)
+        existente = self.repo.get_by_anio(data.anio)
         if existente:
-            raise RetornoAnioDuplicadoError(data.re_anio)
+            raise RetornoAnioDuplicadoError(data.anio)
 
         retorno = self.repo.create(data)
         return RetornoResponse.model_validate(retorno)
