@@ -24,7 +24,7 @@ async def registrar_usuario(
 ):
     try:
         usuario = await servicio.registrar(schema)
-        return {"mensaje": "Usuario registrado exitosamente.", "nombre": usuario.us_nombre + " " + usuario.us_apellido}
+        return {"mensaje": "Usuario registrado exitosamente.", "id": usuario.id}
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

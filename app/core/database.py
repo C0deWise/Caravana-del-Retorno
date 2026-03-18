@@ -57,7 +57,6 @@ class Base(DeclarativeBase):
 def create_tables() -> None:
     """Crear todas las tablas registradas en Base.metadata."""
     try:
-        logger.info("Tablas registradas: %s", list(Base.metadata.tables.keys()))
         Base.metadata.create_all(bind=engine)
         logger.info("Tables created successfully.")
     except OperationalError as e:
