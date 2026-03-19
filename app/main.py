@@ -10,7 +10,6 @@ import logging
 
 from app.core.config import get_settings
 from app.core.database import check_db_connection, create_tables
-from app.colonias.models.colonia import Colonia  
 from app.usuarios.models.usuario import Rol
 from app.usuarios.models.usuario import Usuario
 
@@ -71,7 +70,6 @@ app.add_middleware(
 # esta seccion esta destinada a los routers de la aplicacion
 from app.usuarios.api.v1.usuario_router import router as usuario_router
 from app.colonias.api.v1.router import router as colonia_router
-from app.colonias.models.colonia_model import Colonia
 
 app.include_router(colonia_router, prefix="/api/v1")
 
