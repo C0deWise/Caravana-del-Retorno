@@ -34,6 +34,18 @@ class UsuarioServicio:
         schema.contrasenia = pwd_context.hash(schema.contrasenia)
         return await self.repositorio.registrar(schema)
     
+    async def obtener_todos(self) -> list[Usuario]:
+        """Recupera todos los usuarios del sistema."""
+        return await self.repositorio.obtener_todos()
+
+    async def buscar_por_nombre(self, nombre: str) -> list[Usuario]:
+        """Busca usuarios por nombre."""
+        return await self.repositorio.buscar_por_nombre(nombre)
+
+    async def buscar_por_documento(self, documento: str) -> Usuario:
+        """Busca un usuario por documento."""
+        return await self.repositorio.buscar_por_documento(documento)
+
     async def existe_usuario(self, campo: str, valor: str) -> bool:
         """Verifica si un usuario con el tipo de documento y número de documento ya existe."""
         return await self.repositorio.existe_usuario(campo, valor)

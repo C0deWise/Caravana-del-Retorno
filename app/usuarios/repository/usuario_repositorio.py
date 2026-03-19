@@ -27,6 +27,24 @@ class UsuarioRepositorio:
         await self.db.refresh(usuario)
         return usuario
 
+    async def obtener_todos(self) -> list[Usuario]:
+        """Obtiene todos los usuarios registrados."""
+        result = await self.db.execute(select(Usuario))
+        return list(result.scalars().all())
+
+    async def buscar_por_nombre(self, nombre: str) -> list[Usuario]:
+        """Busca usuarios que contengan el nombre especificado."""
+        result = await self.db.execute(
+            select(Usuario).where(Usuario.us_nombre.ilike(f"%{nombre}%"))
+        )
+        return list(result.scalars().all())
+
+    async def buscar_por_documento(self, documento: str) -> Usuario:
+        """Busca un usuario por su número de documento."""
+        result = await self.db.execute(
+            select(Usuario).where(Usuario.us_documento == documento)
+        )
+        return result.scalar_one_or_none()
 
     async def existe_usuario(self, campo: str, valor: str) -> bool:
         """Verifica si existe un usuario con el valor especificado en el campo dado."""

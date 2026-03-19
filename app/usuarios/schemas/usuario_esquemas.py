@@ -2,7 +2,7 @@
     usuario_esquemas.py define los esquemas de validación para los datos de los usuarios.
 """
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, Field
 from datetime import date
 from typing import Optional
 
@@ -66,3 +66,13 @@ class UsuarioCrear(BaseModel):
         if not re.match(patron, v):
             raise ValueError("El correo ingresado no es válido.")
         return v.strip().lower()
+
+
+class UsuarioSalida(BaseModel):
+    id: int = Field(validation_alias="us_codigo")
+    nombre: str = Field(validation_alias="us_nombre")
+    apellido: str = Field(validation_alias="us_apellido")
+    correo: str = Field(validation_alias="us_correo")
+    documento: str = Field(validation_alias="us_documento")
+
+    model_config = {"from_attributes": True}
