@@ -28,5 +28,5 @@ class SolicitudColonia(Base):
     fecha_creacion = Column("so_fecha_creacion", DateTime, nullable=False, default=datetime.utcnow)
 
     # Relaciones (opcionales, ajusta según tus modelos)
-    usuario = relationship("Usuario", back_populates="solicitudes_colonia")
-    colonia = relationship("Colonia", back_populates="solicitudes")
+    usuario = relationship("Usuario")
+    colonia = relationship("Colonia")

@@ -1,5 +1,7 @@
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.colonias.excepciones.excepciones import SolicitudEstadoInvalido, SolicitudNoEncontrada
 from app.colonias.models.solicitud_colonia import SolicitudColonia
 from app.colonias.repositories.solicitud_colonia_repository import SolicitudColoniaRepository 
 from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear
@@ -23,8 +25,20 @@ class SolicitudColoniaService:
     
     def aceptar_solicitud (self, db: Session, codigo: int) -> SolicitudColonia:
         """Acepta una solicitud pendiente, cambiando su estado a 'aceptada'."""
-        return SolicitudColoniaRepository().aceptar_solicitud_colonia(db, codigo)
+        try:
+            return SolicitudColoniaRepository().aceptar_solicitud_colonia(db, codigo)
+        except SolicitudNoEncontrada as e:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        except SolicitudEstadoInvalido as e:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+        
     
     def rechazar_solicitud (self, db: Session, codigo: int) -> SolicitudColonia:
         """Rechaza una solicitud pendiente, cambiando su estado a 'rechazada'."""
-        return SolicitudColoniaRepository().rechazar_solicitud_colonia(db, codigo)
+        try:
+            return SolicitudColoniaRepository().rechazar_solicitud_colonia(db, codigo)
+        except SolicitudNoEncontrada as e:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        except SolicitudEstadoInvalido as e:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+        

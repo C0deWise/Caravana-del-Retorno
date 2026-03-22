@@ -3,7 +3,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Importar todos los modelos para registrarlos en Base.metadata
-from app.colonias.models.colonia import Colonia
+from app.colonias.models.colonia_model import Colonia
 from app.usuarios.models.usuario import Rol
 from app.usuarios.models.usuario import Usuario
 

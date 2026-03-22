@@ -1,5 +1,6 @@
 from typing import Optional
 from datetime import datetime, timedelta
+from app.colonias.excepciones.excepciones import SolicitudEstadoInvalido, SolicitudNoEncontrada
 from sqlalchemy.orm import Session
 
 from app.colonias.models.solicitud_colonia import SolicitudColonia, EstadoSolicitud
@@ -47,10 +48,10 @@ class SolicitudColoniaRepository:
         solicitud = self.obtener_solicitud_por_id(db, codigo)
 
         if not solicitud:
-            raise ValueError(f"Solicitud con código {codigo} no encontrada.")
+            raise SolicitudNoEncontrada(f"Solicitud con código {codigo} no encontrada.")
         
         if solicitud.estado != EstadoSolicitud.pendiente:
-            raise ValueError(f"Solo se pueden aceptar solicitudes pendientes. Solicitud {codigo} está en estado {solicitud.estado}.")
+            raise SolicitudEstadoInvalido(f"Solo se pueden aceptar solicitudes pendientes. Solicitud {codigo} está en estado {solicitud.estado.value}.")
         
         solicitud.estado = EstadoSolicitud.aceptada
         db.commit()
@@ -58,15 +59,15 @@ class SolicitudColoniaRepository:
 
         return solicitud
 
-    def rechazar_solicitud_colonia(self, db: Session, codigo: int):
+    def rechazar_solicitud_colonia(self, db: Session, codigo: int) -> SolicitudColonia:
         """Cambia el estado de una solicitud a rechazada"""
         solicitud = self.obtener_solicitud_por_id(db, codigo)
 
         if not solicitud:
-            raise ValueError(f"Solicitud con código {codigo} no encontrada.")
+            raise SolicitudNoEncontrada(f"Solicitud con código {codigo} no encontrada.")
         
-        if solicitud.estado != EstadoSolicitud.rechazada:
-            raise ValueError(f"Solo se pueden rechazar solicitudes pendientes. Solicitud {codigo} está en estado {solicitud.estado}.")
+        if solicitud.estado != EstadoSolicitud.pendiente:
+            raise SolicitudEstadoInvalido(f"Solo se pueden rechazar solicitudes pendientes. Solicitud {codigo} está en estado {solicitud.estado.value}.")
         
         solicitud.estado = EstadoSolicitud.rechazada
         db.commit()
