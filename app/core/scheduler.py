@@ -25,7 +25,7 @@ import logging
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from app.core.database import SessionLocal  # ajusta según tu proyecto
-from app.colonias.services.solicitud_colonis_services import SolicitudColoniaService
+from app.colonias.services.solicitud_colonia_services import SolicitudColoniaService
 
 logger = logging.getLogger(__name__)
 

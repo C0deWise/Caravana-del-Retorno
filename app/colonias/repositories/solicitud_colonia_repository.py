@@ -10,18 +10,18 @@ class SolicitudColoniaRepository:
 
     def crear_solicitud_colonia(self, db: Session, data: SolicitudColoniaCrear) -> SolicitudColonia:
         solicitud = SolicitudColonia(
-            us_codigo=data.us_codigo,
-            co_codigo=data.co_codigo,
-            so_estado=EstadoSolicitud.pendiente,
+            usuario_id=data.usuario_id,
+            colonia_id=data.colonia_id,
+            estado=EstadoSolicitud.pendiente,
         )
         db.add(solicitud)
         db.commit()
         db.refresh(solicitud)
         return solicitud
 
-    def obtener_solicitud_por_id(self, db: Session, so_codigo: int) -> Optional[SolicitudColonia]:
+    def obtener_solicitud_por_id(self, db: Session, codigo: int) -> Optional[SolicitudColonia]:
         return db.query(SolicitudColonia).filter(
-            SolicitudColonia.so_codigo == so_codigo
+            SolicitudColonia.codigo == codigo
         ).first()
 
     def get_all(self, db: Session) -> list[SolicitudColonia]:
@@ -34,12 +34,42 @@ class SolicitudColoniaRepository:
         actualizadas = (
             db.query(SolicitudColonia)
             .filter(
-                SolicitudColonia.so_estado == EstadoSolicitud.pendiente,
-                SolicitudColonia.so_fecha_creacion <= limite,
+                SolicitudColonia.estado == EstadoSolicitud.pendiente,
+                SolicitudColonia.fecha_creacion <= limite,
             )
-            .update({"so_estado": EstadoSolicitud.expirada}, synchronize_session="fetch")
+            .update({"estado": EstadoSolicitud.expirada}, synchronize_session="fetch")
         )
         db.commit()
         return actualizadas
     
+    def aceptar_solicitud_colonia(self, db: Session, codigo: int) -> SolicitudColonia:
+        """Cambia el estado de una solicitud a aceptada"""
+        solicitud = self.obtener_solicitud_por_id(db, codigo)
 
+        if not solicitud:
+            raise ValueError(f"Solicitud con código {codigo} no encontrada.")
+        
+        if solicitud.estado != EstadoSolicitud.pendiente:
+            raise ValueError(f"Solo se pueden aceptar solicitudes pendientes. Solicitud {codigo} está en estado {solicitud.estado}.")
+        
+        solicitud.estado = EstadoSolicitud.aceptada
+        db.commit()
+        db.refresh(solicitud)
+
+        return solicitud
+
+    def rechazar_solicitud_colonia(self, db: Session, codigo: int):
+        """Cambia el estado de una solicitud a rechazada"""
+        solicitud = self.obtener_solicitud_por_id(db, codigo)
+
+        if not solicitud:
+            raise ValueError(f"Solicitud con código {codigo} no encontrada.")
+        
+        if solicitud.estado != EstadoSolicitud.rechazada:
+            raise ValueError(f"Solo se pueden rechazar solicitudes pendientes. Solicitud {codigo} está en estado {solicitud.estado}.")
+        
+        solicitud.estado = EstadoSolicitud.rechazada
+        db.commit()
+        db.refresh(solicitud)
+
+        return solicitud

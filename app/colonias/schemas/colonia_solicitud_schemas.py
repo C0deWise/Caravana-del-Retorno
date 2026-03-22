@@ -12,8 +12,8 @@ class EstadoSolicitudSchema(str, enum.Enum):
     rechazada = "rechazada"
 
 class SolicitudColoniaBase(BaseModel):
-    us_codigo: int
-    co_codigo: int
+    usuario_id: int
+    colonia_id: int
 
 
 class SolicitudColoniaCrear(SolicitudColoniaBase):
@@ -23,12 +23,12 @@ class SolicitudColoniaCrear(SolicitudColoniaBase):
 
 
 class SolicitudColoniaUpdate(BaseModel):
-    so_estado: Optional[EstadoSolicitudSchema] = None
+    estado: Optional[EstadoSolicitudSchema] = None
 
 
 class SolicitudColoniaResponse(SolicitudColoniaBase):
-    so_codigo: int
-    so_estado: EstadoSolicitud
-    so_fecha_creacion: datetime
+    codigo: int
+    estado: EstadoSolicitud
+    fecha_creacion: datetime
 
     model_config = {"from_attributes": True}

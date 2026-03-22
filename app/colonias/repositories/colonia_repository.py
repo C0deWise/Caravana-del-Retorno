@@ -38,7 +38,7 @@ def obtener_colonia_por_ubicacion(db: Session, pais: str, departamento: str, ciu
         departamento (str): Departamento de la colonia.
         ciudad (str): Ciudad de la colonia.
     Retorna:
-        Colonia | None: La colonia encontrada o None si no existe.
+        Colonia | None: La colonia encontrawda o None si no existe.
     """
     return (
         db.query(Colonia).filter(

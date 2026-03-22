@@ -16,15 +16,16 @@ class EstadoSolicitud(str, enum.Enum):
 class SolicitudColonia(Base):
     __tablename__ = "solicitud_colonia"
 
-    so_codigo = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    us_codigo = Column(Integer, ForeignKey("usuario.us_codigo"), nullable=False)
-    co_codigo = Column(Integer, ForeignKey("colonia.co_codigo"), nullable=False)
-    so_estado = Column(
+    codigo = Column("so_codigo", Integer, primary_key=True, index=True, autoincrement=True)
+    usuario_id = Column("us_codigo", Integer, ForeignKey("usuario.us_codigo"), nullable=False)
+    colonia_id = Column("co_codigo", Integer, ForeignKey("colonia.co_codigo"), nullable=False)
+    estado = Column(
+        "so_estado",
         Enum(EstadoSolicitud),
         nullable=False,
         default=EstadoSolicitud.pendiente,
     )
-    so_fecha_creacion = Column(DateTime, nullable=False, default=datetime.utcnow)
+    fecha_creacion = Column("so_fecha_creacion", DateTime, nullable=False, default=datetime.utcnow)
 
     # Relaciones (opcionales, ajusta según tus modelos)
     usuario = relationship("Usuario", back_populates="solicitudes_colonia")

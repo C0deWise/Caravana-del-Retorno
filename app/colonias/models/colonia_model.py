@@ -10,7 +10,7 @@ from app.core.database import Base
 
 class Colonia(Base):
     """Modelo SQLAlchemy que representa una colonia colombiana."""
-    __tablename__ = "colonias"
+    __tablename__ = "colonia"
 
     codigo = Column("co_codigo", Integer, primary_key = True, index=True, autoincrement=True)
     pais = Column("co_pais", String(100), nullable=False)
