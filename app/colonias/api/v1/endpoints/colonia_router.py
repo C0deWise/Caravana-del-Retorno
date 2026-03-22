@@ -4,11 +4,17 @@ Expone las rutas de la API relacionadas con la gesti+on de colonias
 colombianas, conectando las solicitudes HTTP con la capa de servicios
 y documentando cada endpoint en Swagger.
 """
+from app.colonias.repositories.colonia_repository import ColoniaRepository
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta
-from app.colonias.services.colonia_services import servicio_crear_colonia
+from app.colonias.services.colonia_services import ColoniaService
+
+def get_colonia_service(db: Session = Depends(get_db)) -> ColoniaService:
+    """Dependencia para obtener una instancia de ColoniaService con el repositorio inyectado."""
+    repositorio = ColoniaRepository(db)
+    return ColoniaService(repositorio)
 
 router = APIRouter()
 
@@ -55,6 +61,6 @@ router = APIRouter()
         }
     }
 )
-def crear_colonia(datos: ColoniaCrear, db: Session = Depends(get_db)):
+def crear_colonia(datos: ColoniaCrear, servicio: ColoniaService = Depends(get_colonia_service)):
     """Endpoint para crear una nueva colonia"""
-    return servicio_crear_colonia(db, datos)
+    return servicio.servicio_crear_colonia(datos)

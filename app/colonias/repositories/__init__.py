@@ -1,1 +1,1 @@
-from .colonia_repository import crear_colonia, obtener_colonia_por_ubicacion
+from .colonia_repository import ColoniaRepository
