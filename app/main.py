@@ -13,6 +13,7 @@ from app.core.database import check_db_connection, create_tables
 from app.colonias.models.colonia import Colonia  
 from app.usuarios.models.usuario import Rol
 from app.usuarios.models.usuario import Usuario
+from app.usuarios.models.parentesco import Parentesco
 
 logging.basicConfig(
     level=logging.INFO,
