@@ -6,7 +6,7 @@ y documentando cada endpoint en Swagger.
 """
 from app.colonias.repositories.colonia_repository import ColoniaRepository
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta, ColoniaEstablecerLider
 from app.colonias.services.colonia_services import ColoniaService
@@ -61,51 +61,6 @@ router = APIRouter()
         }
     }
 )
-def crear_colonia(datos: ColoniaCrear, servicio: ColoniaService = Depends(get_colonia_service)):
+async def crear_colonia(datos: ColoniaCrear, db: AsyncSession = Depends(get_db)):
     """Endpoint para crear una nueva colonia"""
-    return servicio.servicio_crear_colonia(datos)
-
-@router.patch(
-    "/establecer_lider/{colonia_codigo}/",
-    response_model = ColoniaRespuesta,
-    status_code = status.HTTP_200_OK,
-    summary = "Asignar líder a una colonia",
-    description = """
-    Asigna un líder a una colonia existente.
-
-    **Parámetros de ruta:**
-    - **colonia_codigo** (int, obligatorio): Código único de la colonia a la que se le asignará el líder.
-    - **lider_id** (int, obligatorio): ID del líder que se asignará a la colonia.
-
-    **Restricciones:**
-    - La colonia debe existir en la base de datos.
-    - El líder debe existir en la base de datos.
-
-    **Autenticación:** Este endpoint no requiere autenticación.
-    """,
-    responses = {
-        200: {
-            "description": "Líder asignado exitosamente.",
-            "model": ColoniaRespuesta
-        },
-        404: {
-            "description": "Colonia o líder no encontrado.",
-            "content": {
-
-            }
-        },
-        422: {
-            "description": "Datos inválidos o campos faltantes.",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Colonia con código 123 no encontrada."
-                    }
-                }
-            },
-        }
-    }
-)
-def asignar_lider(colonia_codigo: int, datos: ColoniaEstablecerLider, servicio: ColoniaService = Depends(get_colonia_service)):
-    """Endpoint para asignar un líder a una colonia existente"""
-    return servicio.servicio_establecer_lider(colonia_codigo, datos.lider_id)
+    return await servicio_crear_colonia(db, datos)
