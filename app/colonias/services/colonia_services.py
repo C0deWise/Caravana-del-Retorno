@@ -4,16 +4,16 @@ Coordina la validación de reglas de negocio y la interacción con el
 repositorio de colonias, garantizando la integridad de los datos antes 
 de su persistencia en la base de datos.
 """
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta
 from app.colonias.repositories.colonia_repository import (crear_colonia, obtener_colonia_por_ubicacion,)
 from fastapi import HTTPException, status
 
-def servicio_crear_colonia(db: Session, datos: ColoniaCrear) -> ColoniaRespuesta:
+async def servicio_crear_colonia(db: AsyncSession, datos: ColoniaCrear) -> ColoniaRespuesta:
     """
     Crear una nueva colonia aplicando reglas de negocio.
     Parámetros:
-        db (Session): Sesión activa de SQLAlchemy.
+        db (AsyncSession): Sesión activa de SQLAlchemy.
         datos (ColoniaCrear): Datos validados de la colonia a crear.
     Retorna:
         ColoniaRespuesta: Datos de la colonia creada.
@@ -21,7 +21,7 @@ def servicio_crear_colonia(db: Session, datos: ColoniaCrear) -> ColoniaRespuesta
         HTTPException 409: Si ya existe una colonia con la misma ubicación.
     """
     #Verificar si ya existe una colonia con la misma ubicación.
-    colonia_existente = obtener_colonia_por_ubicacion(
+    colonia_existente = await obtener_colonia_por_ubicacion(
         db,
         pais=datos.pais,
         departamento=datos.departamento,
@@ -40,5 +40,5 @@ def servicio_crear_colonia(db: Session, datos: ColoniaCrear) -> ColoniaRespuesta
             )
     
     #Crear la colonia sino existe duplicado
-    nueva_colonia = crear_colonia(db, datos)
+    nueva_colonia = await crear_colonia(db, datos)
     return ColoniaRespuesta.model_validate(nueva_colonia, from_attributes=True)

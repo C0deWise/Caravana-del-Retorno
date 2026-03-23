@@ -7,7 +7,7 @@ tipos de datos, relaciones y constraints para garantizar la integridad de los da
 import enum
 from sqlalchemy import Integer, String, Date, ForeignKey, Enum, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.colonias.models.colonia import Colonia
+from app.colonias.models.colonia_model import Colonia
 from app.core.database import Base
 
 
@@ -58,7 +58,7 @@ class Usuario(Base):
     us_correo: Mapped[str] = mapped_column(String, nullable=False,unique=True)
     us_contrasenia: Mapped[str] = mapped_column(String, nullable=False)
     co_codigo: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("colonia.co_codigo"), nullable=True
+        Integer, ForeignKey("colonia.codigo"), nullable=True
     )
     ro_codigo: Mapped[int] = mapped_column(
         Integer, ForeignKey("rol.ro_codigo"), nullable=False, default=1

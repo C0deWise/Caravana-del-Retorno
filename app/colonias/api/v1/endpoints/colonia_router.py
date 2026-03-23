@@ -5,7 +5,7 @@ colombianas, conectando las solicitudes HTTP con la capa de servicios
 y documentando cada endpoint en Swagger.
 """
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta
 from app.colonias.services.colonia_services import servicio_crear_colonia
@@ -55,6 +55,6 @@ router = APIRouter()
         }
     }
 )
-def crear_colonia(datos: ColoniaCrear, db: Session = Depends(get_db)):
+async def crear_colonia(datos: ColoniaCrear, db: AsyncSession = Depends(get_db)):
     """Endpoint para crear una nueva colonia"""
-    return servicio_crear_colonia(db, datos)
+    return await servicio_crear_colonia(db, datos)

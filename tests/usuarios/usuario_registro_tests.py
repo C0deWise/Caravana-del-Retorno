@@ -59,12 +59,12 @@ class TestRegistrar:
     @pytest.mark.asyncio
     async def test_contrasenia_es_hasheada(self, servicio, mock_repositorio, schema_valido):
         mock_repositorio.registrar.return_value = MagicMock(id=1)
-        contrasenia_plana = schema_valido.us_contrasenia
+        contrasenia_plana = schema_valido.contrasenia
         await servicio.registrar(schema_valido)
 
         schema_enviado = mock_repositorio.registrar.call_args[0][0]
-        assert schema_enviado.us_contrasenia != contrasenia_plana
-        assert schema_enviado.us_contrasenia.startswith("$2b$")
+        assert schema_enviado.contrasenia != contrasenia_plana
+        assert schema_enviado.contrasenia.startswith("$2b$")
 
 
 # ─────────────────────────────────────────
