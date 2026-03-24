@@ -5,7 +5,7 @@ con documentación Swagger integrada.
 """
 
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.retornos.esquemas.retorno_esquemas import RetornoCreate, RetornoResponse
 from app.retornos.servicios.retorno_servicio import RetornoService
@@ -36,9 +36,9 @@ router = APIRouter(
         },
     },
 )
-def crear_retorno(data: RetornoCreate, db: Session = Depends(get_db)):
+async def crear_retorno(data: RetornoCreate, db: AsyncSession = Depends(get_db)):
     service = RetornoService(db)
-    return service.crear_retorno(data)
+    return await service.crear_retorno(data)
 
 
 @router.get(
@@ -47,9 +47,9 @@ def crear_retorno(data: RetornoCreate, db: Session = Depends(get_db)):
     summary="Listar todos los retornos",
     description="Obtiene el listado completo de retornos registrados en el sistema.",
 )
-def listar_retornos(db: Session = Depends(get_db)):
+async def listar_retornos(db: AsyncSession = Depends(get_db)):
     service = RetornoService(db)
-    return service.listar_retornos()
+    return await service.listar_retornos()
 
 
 @router.get(
@@ -58,6 +58,6 @@ def listar_retornos(db: Session = Depends(get_db)):
     summary="Obtener retorno por código",
     description="Busca y retorna un retorno específico usando su código primario. Retorna 404 si no existe.",
 )
-def obtener_retorno(codigo: int, db: Session = Depends(get_db)):
+async def obtener_retorno(codigo: int, db: AsyncSession = Depends(get_db)):
     service = RetornoService(db)
-    return service.obtener_retorno(codigo)
+    return await service.obtener_retorno(codigo)
