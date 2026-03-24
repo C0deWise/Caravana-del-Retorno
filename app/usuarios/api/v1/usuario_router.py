@@ -8,7 +8,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_async_db
+from app.core.database import get_db
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.usuarios.schemas.usuario_esquemas import UsuarioCrear, UsuarioSalida, UsuarioNombre, UsuarioDetallado
@@ -16,7 +16,7 @@ from app.usuarios.schemas.usuario_esquemas import UsuarioCrear, UsuarioSalida, U
 router = APIRouter(prefix="/usuario", tags=["Usuario"])
 
 
-def get_usuario_servicio(db: AsyncSession = Depends(get_async_db)) -> UsuarioServicio:
+def get_usuario_servicio(db: AsyncSession = Depends(get_db)) -> UsuarioServicio:
     """
     Función de dependencia para obtener una instancia del servicio de usuarios.
     Inyecta la sesión de base de datos en el repositorio y luego en el servicio.

@@ -10,8 +10,12 @@ import logging
 
 from app.core.config import get_settings
 from app.core.database import check_db_connection, create_tables
-from app.usuarios.models.usuario import Rol
-from app.usuarios.models.usuario import Usuario
+
+# IMPORTANTE: Importamos los modelos aquí para asegurar que se registren
+# en Base.metadata antes de iniciar la aplicación.
+# Esto previene el error "relation does not exist" al crear tablas.
+from app.usuarios.models.usuario import Usuario, Rol
+# Al importar Usuario, se importa indirectamente Colonia, pero si falla, agrégalo explícitamente.
 
 logging.basicConfig(
     level=logging.INFO,
@@ -28,9 +32,9 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting %s v%s...", settings.APP_NAME, settings.APP_VERSION)
-    check_db_connection()
+    await check_db_connection()
     print(">>> lifespan ejecutándose")
-    create_tables()
+    await create_tables()
     logger.info("Application ready.")
 
     yield
@@ -79,8 +83,8 @@ app.include_router(usuario_router)
 #  Core endpoints
 # ─────────────────────────────────────────
 @app.get("/health", tags=["Health"])
-def health_check():
-    db_ok = check_db_connection()
+async def health_check():
+    db_ok = await check_db_connection()
     return {
         "status": "ok" if db_ok else "degraded",
         "app": settings.APP_NAME,
@@ -90,7 +94,7 @@ def health_check():
 
 
 @app.get("/", tags=["Root"])
-def root():
+async def root():
     return {
         "app": settings.APP_NAME,
         "version": settings.APP_VERSION,

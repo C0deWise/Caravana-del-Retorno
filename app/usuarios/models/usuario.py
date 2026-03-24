@@ -23,7 +23,7 @@ class Rol(Base):
 
     def __repr__(self) -> str:
         """Representación en cadena del objeto Rol."""
-        return f"Rol(id={self.id!r}, ro_nombre={self.ro_nombre!r})"
+        return f"Rol(ro_codigo={self.ro_codigo!r}, ro_nombre={self.ro_nombre!r})"
 
 
 class TipoDoc(str, enum.Enum):
@@ -82,6 +82,6 @@ class Usuario(Base):
     def __repr__(self) -> str:
         """Representación en cadena del objeto Usuario."""
         return (
-            f"Usuario(id={self.id!r}, us_documento={self.us_documento!r}, "
+            f"Usuario(us_codigo={self.us_codigo!r}, us_documento={self.us_documento!r}, "
             f"us_nombre={self.us_nombre!r}, us_apellido={self.us_apellido!r})"
         )
