@@ -5,7 +5,12 @@ uvicorn[standard]==0.34.0
 # Database
 sqlalchemy==2.0.39
 psycopg2-binary==2.9.10
+asyncpg==0.30.0
 
 # Configuracion
 pydantic==2.11.1
 pydantic-settings==2.8.1
+bcrypt==4.0.1
+# Testing
+pytest==8.3.5
+pytest-asyncio==0.25.3
