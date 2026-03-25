@@ -4,16 +4,19 @@ Coordina la validación de reglas de negocio y la interacción con el
 repositorio de colonias, garantizando la integridad de los datos antes 
 de su persistencia en la base de datos.
 """
+from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta
 from app.colonias.repositories.colonia_repository import ColoniaRepository
+from app.usuarios.services.usuario_servicio import UsuarioServicio
 
 from fastapi import HTTPException, status
 
 class ColoniaService:
 
-    def __init__(self, repositorio: ColoniaRepository):
+    def __init__(self, repositorio: ColoniaRepository, db: AsyncSession):
         self.repositorio = repositorio
+        self.usuario_servicio = UsuarioServicio(UsuarioRepositorio(db))
 
     async def servicio_crear_colonia(self, datos: ColoniaCrear) -> ColoniaRespuesta:
         """
@@ -48,27 +51,27 @@ class ColoniaService:
         nueva_colonia = await self.repositorio.crear_colonia(datos)
         return ColoniaRespuesta.model_validate(nueva_colonia, from_attributes=True)
     
-    def servicio_establecer_lider(self, colonia_codigo: int, lider_id: int) -> ColoniaRespuesta:
+    async def servicio_establecer_lider(self, colonia_codigo: int, lider_id: int) -> ColoniaRespuesta:
         """
-        Asigna un líder a una colonia existente.
-        Parámetros:
-            db (Session): Sesión activa de SQLAlchemy.
-            colonia_codigo (int): Código de la colonia a actualizar.
-            lider_id (int): ID del líder a asignar.
-        Retorna:
-            ColoniaRespuesta: La colonia actualizada con el nuevo líder.
-        Excepciones:
-            HTTPException 404: Si la colonia no existe en la base de datos.
+            Asigna un líder a una colonia existente.
+            Parámetros:
+                db (Session): Sesión activa de SQLAlchemy.
+                colonia_codigo (int): Código de la colonia a actualizar.
+                lider_id (int): ID del líder a asignar.
+            Retorna:
+                ColoniaRespuesta: La colonia actualizada con el nuevo líder.
+            Excepciones:
+                HTTPException 404: Si la colonia no existe en la base de datos.
         """
-        colonia = self.repositorio.obtener_colonia_por_id(colonia_codigo)
+        colonia = await self.repositorio.obtener_colonia_por_id(colonia_codigo)
         if not colonia:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Colonia con código {colonia_codigo} no encontrada"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Colonia con código {colonia_codigo} no encontrada")
         
-        usuario_lider = self.repositorio.obtener_usuario_por_id(lider_id)
-        # TODO: Validar que el líder exista cuando se implemente el módulo de líderes
-        colonia_actualizada = self.repositorio.establecer_lider_colonia(colonia_codigo, lider_id)
+        usuario_lider = await self.usuario_servicio.obtener_usuario_por_id(lider_id)
+        if not usuario_lider:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Usuario con ID {lider_id} no encontrado")
+
+        colonia_actualizada = await self.repositorio.establecer_lider_colonia(colonia_codigo, lider_id)
         return ColoniaRespuesta.model_validate(colonia_actualizada, from_attributes=True)
-    
