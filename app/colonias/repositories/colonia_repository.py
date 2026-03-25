@@ -52,3 +52,31 @@ class ColoniaRepository:
                 Colonia.ciudad == ciudad
             ).first()
         )
+    
+    def obtener_colonia_por_id(self, colonia_codigo: int) -> Colonia | None:
+        """
+        Busca una colonia por su ID.
+        Parámetros:
+            db (Session): Sesión activa de SQLAlchemy.
+            colonia_codigo (int): Código de la colonia a buscar.
+        Retorna:
+            Colonia | None: La colonia encontrada o None si no existe.
+        """
+        return self.db.query(Colonia).filter(Colonia.codigo == colonia_codigo).first()
+
+    def establecer_lider_colonia(self, colonia_codigo: int, lider_id: int) -> Colonia:
+        """
+        Asigna un líder a una colonia existente.
+        Parámetros:
+            db (Session): Sesión activa de SQLAlchemy.
+            colonia_codigo (int): Código de la colonia a actualizar.
+            lider_id (int): ID del líder a asignar.
+        Retorna:
+            Colonia: La colonia actualizada con el nuevo líder.
+        """
+        colonia = self.obtener_colonia_por_id(colonia_codigo)
+        
+        colonia.lider = lider_id
+        self.db.commit()
+        self.db.refresh(colonia)
+        return colonia
