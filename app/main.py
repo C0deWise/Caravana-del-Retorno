@@ -70,11 +70,9 @@ app.add_middleware(
 # ─────────────────────────────────────────
 # esta seccion esta destinada a los routers de la aplicacion
 from app.colonias.api.v1.router import router as colonia_router
-
-app.include_router(colonia_router, prefix="/api/v1")
 from app.usuarios.api.v1.usuario_router import router as usuario_router
-
-app.include_router(usuario_router)
+app.include_router(colonia_router, prefix="/api/v1")
+app.include_router(usuario_router, prefix="/api/v1")
 
 # ─────────────────────────────────────────
 #  Core endpoints
