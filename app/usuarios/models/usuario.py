@@ -68,6 +68,6 @@ class Usuario(Base):
 
     def __repr__(self) -> str:
         return (
-            f"Usuario(id={self.id!r}, us_documento={self.us_documento!r}, "
+            f"Usuario(codigo={self.us_codigo!r}, us_documento={self.us_documento!r}, "
             f"us_nombre={self.us_nombre!r}, us_apellido={self.us_apellido!r})"
         )

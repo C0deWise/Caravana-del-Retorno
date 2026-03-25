@@ -5,7 +5,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
-from app.usuarios.models.parentesco import Parentesco
+from app.usuarios.models.parentesco import Parentesco, EstadoSolicitudParentesco
 from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear
 
 class ParentescoRepositorio:
@@ -30,7 +30,7 @@ class ParentescoRepositorio:
             select(Parentesco).where(
                 Parentesco.us_codigo_solicitante == codigo_solicitante,
                 Parentesco.us_codigo_destinatario == codigo_destinatario,
-                Parentesco.pa_estado == "pendiente"
+                Parentesco.pa_estado == EstadoSolicitudParentesco.PENDIENTE
             )
         )
         return result.scalar_one_or_none() is not None
@@ -41,7 +41,7 @@ class ParentescoRepositorio:
             select(Parentesco).where(
                 Parentesco.us_codigo_solicitante == codigo_solicitante,
                 Parentesco.us_codigo_destinatario == codigo_destinatario,
-                Parentesco.pa_estado == "aceptada"
+                Parentesco.pa_estado == EstadoSolicitudParentesco.ACEPTADA   
             )
         )
         return result.scalar_one_or_none() is not None
