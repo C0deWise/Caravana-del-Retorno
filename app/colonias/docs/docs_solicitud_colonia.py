@@ -1,3 +1,7 @@
+"""
+    docs_solicitud_colonia.py - Documentación de los endpoints relacionados con las solicitudes de ingreso a colonias.
+"""
+
 from fastapi import status
 
 # ─────────────────────────────────────────

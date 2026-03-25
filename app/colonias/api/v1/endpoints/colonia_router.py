@@ -1,3 +1,7 @@
+"""
+    colonia_router.py - Endpoints relacionados con colonias y solicitudes de colonias.
+"""
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
