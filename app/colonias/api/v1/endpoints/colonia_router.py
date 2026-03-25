@@ -56,7 +56,7 @@ async def crear_solicitud_colonia(
     servicio_usuario: UsuarioServicio = Depends(get_usuario_servicio),
     servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio),
 ):
-    if not servicio_usuario.existe_usuario("us_codigo", datos.codigo_usuario):
+    if not await servicio_usuario.existe_usuario("us_codigo", datos.codigo_usuario):
         raise ValueError(f"El usuario con código {datos.codigo_usuario} no existe.")
     return await servicio.crear_solicitud(datos)
 
