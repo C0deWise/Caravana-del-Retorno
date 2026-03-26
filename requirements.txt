@@ -9,3 +9,7 @@ alembic==1.18.4
 # Configuracion
 pydantic==2.11.1
 pydantic-settings==2.8.1
+bcrypt==4.0.1
+# Testing
+pytest==8.3.5
+pytest-asyncio==0.25.3

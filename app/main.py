@@ -5,6 +5,7 @@ import logging
 
 from app.core.config import get_settings
 from app.core.database import check_db_connection, create_tables
+from app.retornos.api.v1.endpoints.retorno_router import router as retornos_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,8 +22,8 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting %s v%s...", settings.APP_NAME, settings.APP_VERSION)
-    check_db_connection()
-    create_tables()
+    await check_db_connection()
+    await create_tables()
     logger.info("Application ready.")
 
     yield
@@ -62,12 +63,15 @@ app.add_middleware(
 # esta seccion esta destinada a los routers de la aplicacion
 
 
+app.include_router(retornos_router)
+
+
 # ─────────────────────────────────────────
 #  Core endpoints
 # ─────────────────────────────────────────
 @app.get("/health", tags=["Health"])
-def health_check():
-    db_ok = check_db_connection()
+async def health_check():
+    db_ok = await check_db_connection()
     return {
         "status": "ok" if db_ok else "degraded",
         "app": settings.APP_NAME,
