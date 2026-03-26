@@ -1,3 +1,7 @@
+"""
+    usuario.py define el modelo de datos para los usuarios, incluyendo sus atributos y relaciones.
+"""
+
 import enum
 from sqlalchemy import Integer, String, Date, ForeignKey, Enum, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -41,7 +45,7 @@ class Usuario(Base):
     us_correo: Mapped[str] = mapped_column(String, nullable=False,unique=True)
     us_contrasenia: Mapped[str] = mapped_column(String, nullable=False)
     co_codigo: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("colonia.codigo"), nullable=True
+        Integer, ForeignKey("colonia.co_codigo"), nullable=True
     )
     ro_codigo: Mapped[int] = mapped_column(
         Integer, ForeignKey("rol.ro_codigo"), nullable=False, default=1

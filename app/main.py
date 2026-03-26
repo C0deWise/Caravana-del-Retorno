@@ -1,3 +1,8 @@
+"""
+    main.py punto de entrada de la app FASTAPI, contiene el middleware,
+    el registro de routers y los endpoints básicos como /health, /docs y /.
+"""
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -74,6 +79,7 @@ app.include_router(usuario_router)
 
 app.include_router(retornos_router)
 
+app.include_router(usuario_router)
 
 # ─────────────────────────────────────────
 #  Core endpoints

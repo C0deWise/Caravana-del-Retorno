@@ -13,11 +13,9 @@ build/
 venv/
 .venv/
 
-
 # Environment variables
+.env.example
 .env.encrypted
-env.example
-
 
 # Tests
 .pytest_cache/
