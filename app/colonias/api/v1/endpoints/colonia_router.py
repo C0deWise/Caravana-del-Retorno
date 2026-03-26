@@ -1,18 +1,24 @@
 """
     colonia_router.py - Endpoints relacionados con colonias y solicitudes de colonias.
+    Módulo que define los endpoints HTTP para la entidad Colonia.
+    Expone las rutas de la API relacionadas con la gesti+on de colonias
+    colombianas, conectando las solicitudes HTTP con la capa de servicios
+    y documentando cada endpoint en Swagger.  
 """
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from app.colonias.repositories.solicitud_colonia_repository import SolicitudColoniaRepository
+from app.colonias.repositories.colonia_repository import ColoniaRepository
 from app.core.database import get_async_db, get_db
 from app.usuarios.api.v1.usuario_router import get_usuario_servicio
 from app.colonias.schemas.colonia_schemas import ColoniaCreate, ColoniaResponse
 from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear, SolicitudColoniaRespuesta
-from app.colonias.services.colonia_services import service_crear_colonia, service_obtener_colonias
+from app.colonias.services.colonia_services import ColoniaService
 from app.colonias.services.solicitud_colonias_services import SolicitudColoniaService
 from app.usuarios.services.usuario_servicio import UsuarioServicio
+from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta, ColoniaEstablecerLider
 
 from app.colonias.docs.docs_solicitud_colonia import (
     crear_solicitud_docs,
@@ -25,18 +31,64 @@ def get_solicitud_colonia_servicio(db: AsyncSession = Depends(get_async_db)) -> 
     repositorio = SolicitudColoniaRepository(db)
     return SolicitudColoniaService(repositorio)
 
+
+
+
+
+
+def get_colonia_service(db: AsyncSession = Depends(get_async_db)) -> ColoniaService:
+    """Dependencia para obtener una instancia de ColoniaService con el repositorio inyectado."""
+    repositorio = ColoniaRepository(db)
+    return ColoniaService(repositorio, db)
+
 router = APIRouter()
 
 @router.post(
     "/",
-    response_model = ColoniaResponse,
+    response_model = ColoniaRespuesta,
     status_code = status.HTTP_201_CREATED,
     summary = "Crear una colonia",
-    description = "Crea una nueva colonia con país, departamento y ciudad",
-)
-def crear_colonia(datos: ColoniaCreate, db: Session = Depends(get_db)):
-    return service_crear_colonia(db, datos)
+    description = """
+    Crea una nueva colonia colombiana en el sistema.
 
+    **Campos requeridos:**
+    - **pais** (str, obligatorio): País donde se encuentra la colonia. Solo letras, tildes y espacios. Ejemplo: `Colombia`.
+    - **departamento** (str, obligatorio): Departamento o estado. Solo letras, tildes y espacios. Ejemplo: `Cauca`.
+    - **ciudad** (str, obligatorio): Ciudad de la colonia. Solo letras, tildes y espacios. Ejemplo: `Popayán`.
+
+    **Restricciones:**
+    - Todos los campos son obligatorios.
+    - Solo se permiten caracteres alfabéticos, tildes, espacios y guiones.
+    - No se permite crear dos colonias con el mismo país, departamento y ciudad.
+
+    **Autenticación:** Este endpoint no requiere autenticación.
+    """,
+    responses = {
+        201: {
+            "description": "Colonia creada exitosamente.",
+            "model": ColoniaRespuesta
+        },
+        409: {
+            "description": "Ya existe una colonia con la misma ubicación.",
+            "content": {
+
+            }
+        },
+        422: {
+            "description": "Datos inválidos o campos faltantes.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "El campo solo puede contener letras."
+                    }
+                }
+            },
+        }
+    }
+)
+async def crear_colonia(datos: ColoniaCrear, servicio: ColoniaService = Depends(get_colonia_service)):
+    """Endpoint para crear una nueva colonia"""
+    return await servicio.servicio_crear_colonia(datos)
 @router.get(
     "/",
     response_model = list[ColoniaResponse],
@@ -92,3 +144,49 @@ async def obtener_solicitudes_recientes_usuario(
     servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio),
 ):
     return await servicio.obtener_solicitudes_recientes_usuario(cod_usuario)
+    
+
+@router.patch(
+    "/establecer_lider/{colonia_codigo}/",
+    response_model = ColoniaRespuesta,
+    status_code = status.HTTP_200_OK,
+    summary = "Asignar líder a una colonia",
+    description = """
+    Asigna un líder a una colonia existente.
+
+    **Parámetros de ruta:**
+    - **colonia_codigo** (int, obligatorio): Código único de la colonia a la que se le asignará el líder.
+    - **lider_id** (int, obligatorio): ID del líder que se asignará a la colonia.
+
+    **Restricciones:**
+    - La colonia debe existir en la base de datos.
+    - El líder debe existir en la base de datos.
+
+    **Autenticación:** Este endpoint no requiere autenticación.
+    """,
+    responses = {
+        200: {
+            "description": "Líder asignado exitosamente.",
+            "model": ColoniaRespuesta
+        },
+        404: {
+            "description": "Colonia o líder no encontrado.",
+            "content": {
+
+            }
+        },
+        422: {
+            "description": "Datos inválidos o campos faltantes.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Colonia con código 123 no encontrada."
+                    }
+                }
+            },
+        }
+    }
+)
+async def asignar_lider(colonia_codigo: int, datos: ColoniaEstablecerLider, servicio: ColoniaService = Depends(get_colonia_service)) -> ColoniaRespuesta:
+    """Endpoint para asignar un líder a una colonia existente"""
+    return await servicio.servicio_establecer_lider(colonia_codigo, datos.lider_id)

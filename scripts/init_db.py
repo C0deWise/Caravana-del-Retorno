@@ -8,6 +8,7 @@ from app.usuarios.models.usuario import Rol
 from app.usuarios.models.usuario import Usuario
 
 from app.core.database import create_tables
+import asyncio
 import logging
 
 logging.basicConfig(
@@ -18,4 +19,4 @@ logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     logger.info("Creando tablas: %s", list(__import__('app.core.database', fromlist=['Base']).Base.metadata.tables.keys()))
-    create_tables()
+    asyncio.run(create_tables())

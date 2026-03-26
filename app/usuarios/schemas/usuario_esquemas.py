@@ -1,5 +1,11 @@
-from pydantic import BaseModel, field_validator
-from datetime import date
+"""
+Este módulo define los esquemas Pydantic para la validación de datos de la entidad Usuario.
+Estos esquemas se utilizan en la API para validar la entrada de datos,
+serializar la salida y generar la documentación automática de los endpoints.
+"""
+
+from pydantic import BaseModel, field_validator, Field
+from datetime import date, datetime
 from typing import Optional
 
 from app.usuarios.models.usuario import TipoDoc, Genero
@@ -25,6 +31,7 @@ class UsuarioCrear(BaseModel):
     @field_validator("documento")
     @classmethod
     def documento_no_vacio(cls, v: str) -> str:
+        """Valida que el documento no esté vacío."""
         if not v.strip():
             raise ValueError("El documento no puede estar vacío.")
         return v
@@ -32,6 +39,11 @@ class UsuarioCrear(BaseModel):
     @field_validator("celular")
     @classmethod
     def celular_valido(cls, v: str) -> str:
+        """
+        Valida el formato del número de celular.
+        Permite solo dígitos, espacios y el símbolo '+' al inicio.
+        La longitud debe estar entre 7 y 15 dígitos.
+        """
         digits = v.replace("+", "").replace(" ", "")
         if not digits.isdigit():
             raise ValueError("El celular solo puede contener números, espacios y '+'.")
@@ -42,26 +54,12 @@ class UsuarioCrear(BaseModel):
     @field_validator("nombre", "apellido")
     @classmethod
     def solo_letras(cls, v: str) -> str:
+        """Valida que los nombres y apellidos contengan solo letras y espacios."""
         if not v.replace(" ", "").isalpha():
             raise ValueError("El campo solo puede contener letras.")
         return v.strip()
 
-    @field_validator("tipo_doc")
-    @classmethod
-    def validar_tipo_doc(cls, v: TipoDoc) -> TipoDoc:
-        valores = [e.value for e in TipoDoc]
-        if v not in TipoDoc.__members__.values():
-            raise ValueError(f"Tipo de documento inválido. Valores permitidos: {valores}")
-        return v
-
-    @field_validator("genero")
-    @classmethod
-    def validar_genero(cls, v: Genero) -> Genero:
-        valores = [e.value for e in Genero]
-        if v not in Genero.__members__.values():
-            raise ValueError(f"Género inválido. Valores permitidos: {valores}")
-        return v
-    model_config = {"from_attributes": True}
+   
 
     @field_validator("correo")
     @classmethod

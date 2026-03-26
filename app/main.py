@@ -1,3 +1,8 @@
+"""
+    main.py punto de entrada de la app FASTAPI, contiene el middleware,
+    el registro de routers y los endpoints básicos como /health, /docs y /.
+"""
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -25,12 +30,9 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting %s v%s...", settings.APP_NAME, settings.APP_VERSION)
-    check_db_connection()
+    await check_db_connection()
     print(">>> lifespan ejecutándose")
-    create_tables()
-    logger.info("Scheduler started.")
-    scheduler.start()
-
+    await create_tables()
     logger.info("Application ready.")
 
     yield
@@ -70,16 +72,18 @@ app.add_middleware(
 # ─────────────────────────────────────────
 # esta seccion esta destinada a los routers de la aplicacion
 from app.colonias.api.v1.router import router as colonia_router
+from app.retornos.api.v1.endpoints.retorno_router import router as retornos_router
 from app.usuarios.api.v1.usuario_router import router as usuario_router
 app.include_router(colonia_router, prefix="/api/v1")
 app.include_router(usuario_router, prefix="/api/v1")
+app.include_router(retornos_router)
 
 # ─────────────────────────────────────────
 #  Core endpoints
 # ─────────────────────────────────────────
 @app.get("/health", tags=["Health"])
-def health_check():
-    db_ok = check_db_connection()
+async def health_check():
+    db_ok = await check_db_connection()
     return {
         "status": "ok" if db_ok else "degraded",
         "app": settings.APP_NAME,
@@ -89,7 +93,7 @@ def health_check():
 
 
 @app.get("/", tags=["Root"])
-def root():
+async def root():
     return {
         "app": settings.APP_NAME,
         "version": settings.APP_VERSION,

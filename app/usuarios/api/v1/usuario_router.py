@@ -1,15 +1,32 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+"""
+Este módulo define los endpoints de la API para la gestión de usuarios.
+Expone operaciones como registro, consulta y búsqueda de usuarios,
+gestionando las solicitudes HTTP y las respuestas correspondientes.
+"""
+
+from typing import Annotated
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_async_db
+from app.core.database import get_db
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.services.usuario_servicio import UsuarioServicio
-from app.usuarios.schemas.usuario_esquemas import UsuarioCrear
-from app.usuarios.docs.registro_doc import registrar_docs, registrar_body
+from app.usuarios.schemas.usuario_esquemas import UsuarioCrear, UsuarioSalida, UsuarioNombre, UsuarioDetallado
+
 router = APIRouter(prefix="/usuario", tags=["Usuario"])
 
 
-def get_usuario_servicio(db: AsyncSession = Depends(get_async_db)) -> UsuarioServicio:
+def get_usuario_servicio(db: AsyncSession = Depends(get_db)) -> UsuarioServicio:
+    """
+    Función de dependencia para obtener una instancia del servicio de usuarios.
+    Inyecta la sesión de base de datos en el repositorio y luego en el servicio.
+
+    Args:
+        db (AsyncSession): Sesión de base de datos asíncrona.
+
+    Returns:
+        UsuarioServicio: Instancia del servicio de usuarios.
+    """
     repositorio = UsuarioRepositorio(db)
     return UsuarioServicio(repositorio)
 
@@ -30,3 +47,71 @@ async def registrar_usuario(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
+
+
+@router.get("/", response_model=list[UsuarioSalida], summary="Listar todos los usuarios (básico)")
+async def listar_usuarios(
+    servicio: UsuarioServicio = Depends(get_usuario_servicio),
+):
+    """
+    Obtiene una lista de todos los usuarios con su información básica.
+
+    **Acceso:** Requiere autenticación y rol de **Administrador**.
+    """
+    return await servicio.obtener_todos()
+
+
+@router.get("/nombres", response_model=list[UsuarioNombre], summary="Listar nombres de todos los usuarios")
+async def listar_nombres_usuarios(
+    servicio: UsuarioServicio = Depends(get_usuario_servicio),
+):
+    """
+    Obtiene una lista con únicamente los nombres y apellidos de todos los usuarios.
+
+    **Acceso:** Requiere autenticación y rol de **Administrador**.
+    """
+    return await servicio.obtener_todos()
+
+
+@router.get("/todos", response_model=list[UsuarioDetallado], summary="Listar todos los usuarios (detallado)")
+async def listar_usuarios_completo(
+    servicio: UsuarioServicio = Depends(get_usuario_servicio),
+):
+    """
+    Obtiene una lista de todos los usuarios con toda su información detallada.
+
+    **Acceso:** Requiere autenticación y rol de **Administrador**.
+    """
+    return await servicio.obtener_todos()
+
+
+@router.get("/buscar/{nombre}", response_model=list[UsuarioSalida], summary="Buscar usuarios por nombre")
+async def buscar_usuario_por_nombre(
+    nombre: str,
+    servicio: UsuarioServicio = Depends(get_usuario_servicio),
+):
+    """
+    Busca y devuelve usuarios cuyo nombre coincida parcialmente con el término de búsqueda.
+
+    **Acceso:** Requiere autenticación y rol de **Administrador**.
+    """
+    return await servicio.buscar_por_nombre(nombre)
+
+
+@router.get("/buscar_documento/{documento}", response_model=UsuarioSalida, summary="Buscar un usuario por documento")
+async def buscar_usuario_por_documento(
+    documento: str,
+    servicio: UsuarioServicio = Depends(get_usuario_servicio),
+):
+    """
+    Busca y devuelve un usuario por su número de documento exacto.
+
+    **Acceso:** Requiere autenticación y rol de **Administrador**.
+
+    Raises:
+        HTTPException: 404 si el usuario no es encontrado.
+    """
+    usuario = await servicio.buscar_por_documento(documento)
+    if not usuario:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado.")
+    return usuario
