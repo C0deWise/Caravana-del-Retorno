@@ -10,9 +10,10 @@ import logging
 
 from app.core.config import get_settings
 from app.core.database import check_db_connection, create_tables
-from app.colonias.models.colonia import Colonia  
+from app.colonias.models.colonia_model import Colonia  
 from app.usuarios.models.usuario import Rol
 from app.usuarios.models.usuario import Usuario
+from app.retornos.api.v1.endpoints.retorno_router import router as retornos_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -29,9 +30,8 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting %s v%s...", settings.APP_NAME, settings.APP_VERSION)
-    check_db_connection()
-    print(">>> lifespan ejecutándose")
-    create_tables()
+    await check_db_connection()
+    await create_tables()
     logger.info("Application ready.")
 
     yield
@@ -69,7 +69,15 @@ app.add_middleware(
 #  Routers
 # ─────────────────────────────────────────
 # esta seccion esta destinada a los routers de la aplicacion
+from app.colonias.api.v1.router import router as colonia_router
+from app.colonias.models.colonia_model import Colonia
+
+app.include_router(colonia_router, prefix="/api/v1")
 from app.usuarios.api.v1.usuario_router import router as usuario_router
+
+app.include_router(usuario_router)
+
+app.include_router(retornos_router)
 
 app.include_router(usuario_router)
 
@@ -77,8 +85,8 @@ app.include_router(usuario_router)
 #  Core endpoints
 # ─────────────────────────────────────────
 @app.get("/health", tags=["Health"])
-def health_check():
-    db_ok = check_db_connection()
+async def health_check():
+    db_ok = await check_db_connection()
     return {
         "status": "ok" if db_ok else "degraded",
         "app": settings.APP_NAME,

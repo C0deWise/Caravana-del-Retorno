@@ -27,6 +27,12 @@ class UsuarioRepositorio:
         await self.db.refresh(usuario)
         return usuario
 
+    async def obtener_usuario_por_id(self, us_id: int) -> Usuario | None:
+        """Obtiene un usuario por su ID."""
+        resultado = await self.db.execute(
+            select(Usuario).where(Usuario.us_codigo == us_id)
+        )
+        return resultado.scalar_one_or_none()
 
     async def existe_usuario(self, campo: str, valor: str) -> bool:
         """Verifica si existe un usuario con el valor especificado en el campo dado."""
