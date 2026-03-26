@@ -111,3 +111,15 @@ class UsuarioServicio:
             bool: True si el usuario existe, False de lo contrario.
         """
         return await self.repositorio.existe_usuario(campo, valor)
+    
+    async def obtener_usuario_por_id(self, us_id: int) -> Usuario | None:
+        """
+        Obtiene un usuario por su ID.
+
+        Args:
+            us_id (int): El ID del usuario a buscar.
+
+        Returns:
+            Usuario | None: El usuario encontrado o None si no existe.
+        """
+        return await self.repositorio.obtener_usuario_por_id(us_id)
