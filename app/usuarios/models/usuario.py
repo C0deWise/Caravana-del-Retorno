@@ -1,5 +1,7 @@
 """
-    usuario.py define el modelo de datos para los usuarios, incluyendo sus atributos y relaciones.
+Este módulo define los modelos de datos para las entidades `Usuario` y `Rol` utilizando SQLAlchemy.
+Establece la estructura de las tablas en la base de datos, incluyendo columnas,
+tipos de datos, relaciones y constraints para garantizar la integridad de los datos.
 """
 
 import enum
@@ -10,27 +12,38 @@ from app.core.database import Base
 
 
 class Rol(Base):
+    """
+    Modelo que representa los roles de usuario en el sistema.
+    Permite diferenciar los niveles de acceso y permisos.
+    """
     __tablename__ = "rol"
 
     ro_codigo: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     ro_nombre: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
     def __repr__(self) -> str:
-        return f"Rol(id={self.id!r}, ro_nombre={self.ro_nombre!r})"
-    
+        """Representación en cadena del objeto Rol."""
+        return f"Rol(ro_codigo={self.ro_codigo!r}, ro_nombre={self.ro_nombre!r})"
+
 
 class TipoDoc(str, enum.Enum):
+    """Enumeración para los tipos de documento de identidad."""
     CC = "CC"
     CE = "CE"
 
 
 class Genero(str, enum.Enum):
+    """Enumeración para el género de los usuarios."""
     F = "F"
     M = "M"
     OTRO = "otro"
 
 
 class Usuario(Base):
+    """
+    Modelo que representa a un usuario en el sistema.
+    Contiene su información personal, credenciales y relaciones con otras entidades.
+    """
     __tablename__ = "usuario"
 
     us_codigo: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -45,7 +58,7 @@ class Usuario(Base):
     us_correo: Mapped[str] = mapped_column(String, nullable=False,unique=True)
     us_contrasenia: Mapped[str] = mapped_column(String, nullable=False)
     co_codigo: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("colonia.co_codigo"), nullable=True
+        Integer, ForeignKey("colonia.codigo"), nullable=True
     )
     ro_codigo: Mapped[int] = mapped_column(
         Integer, ForeignKey("rol.ro_codigo"), nullable=False, default=1
@@ -63,11 +76,12 @@ class Usuario(Base):
     # ─────────────────────────────────────────
     #  Relaciones
     # ─────────────────────────────────────────
-    colonia: Mapped["Colonia"] = relationship("Colonia")
+    colonia: Mapped["Colonia"] = relationship(Colonia)
     rol: Mapped["Rol"] = relationship("Rol")
 
     def __repr__(self) -> str:
+        """Representación en cadena del objeto Usuario."""
         return (
-            f"Usuario(id={self.id!r}, us_documento={self.us_documento!r}, "
+            f"Usuario(us_codigo={self.us_codigo!r}, us_documento={self.us_documento!r}, "
             f"us_nombre={self.us_nombre!r}, us_apellido={self.us_apellido!r})"
         )

@@ -31,6 +31,7 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting %s v%s...", settings.APP_NAME, settings.APP_VERSION)
     await check_db_connection()
+    print(">>> lifespan ejecutándose")
     await create_tables()
     logger.info("Application ready.")
 
@@ -74,6 +75,9 @@ from app.colonias.models.colonia_model import Colonia
 
 app.include_router(colonia_router, prefix="/api/v1")
 from app.usuarios.api.v1.usuario_router import router as usuario_router
+from app.colonias.api.v1.router import router as colonia_router
+
+app.include_router(colonia_router, prefix="/api/v1")
 
 app.include_router(usuario_router)
 
@@ -96,7 +100,7 @@ async def health_check():
 
 
 @app.get("/", tags=["Root"])
-def root():
+async def root():
     return {
         "app": settings.APP_NAME,
         "version": settings.APP_VERSION,
