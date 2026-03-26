@@ -138,3 +138,14 @@ class UsuarioServicio:
             raise ValueError("Ya existe una solicitud de parentesco pendiente entre estos usuarios.")
 
         return await self.repositorio_parentesco.solicitar_parentesco(parentesco_crear)
+    async def obtener_usuario_por_id(self, us_id: int) -> Usuario | None:
+        """
+        Obtiene un usuario por su ID.
+
+        Args:
+            us_id (int): El ID del usuario a buscar.
+
+        Returns:
+            Usuario | None: El usuario encontrado o None si no existe.
+        """
+        return await self.repositorio.obtener_usuario_por_id(us_id)
