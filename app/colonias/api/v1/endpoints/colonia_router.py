@@ -7,11 +7,11 @@ y documentando cada endpoint en Swagger.
 from app.colonias.repositories.colonia_repository import ColoniaRepository
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.core.database import get_async_db
+from app.core.database import get_db
 from app.colonias.services.colonia_services import ColoniaService
 from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta, ColoniaEstablecerLider
 
-def get_colonia_service(db: AsyncSession = Depends(get_async_db)) -> ColoniaService:
+def get_colonia_service(db: AsyncSession = Depends(get_db)) -> ColoniaService:
     """Dependencia para obtener una instancia de ColoniaService con el repositorio inyectado."""
     repositorio = ColoniaRepository(db)
     return ColoniaService(repositorio, db)
