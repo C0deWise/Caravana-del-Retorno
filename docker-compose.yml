@@ -32,8 +32,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: fastapi_app
+    container_name: caravana_retorno_app
     restart: unless-stopped
+    entrypoint: ["sh", "/app/scripts/entrypoint.sh"]
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       PORT: ${PORT:-8000}
