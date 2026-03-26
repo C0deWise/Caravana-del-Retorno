@@ -43,6 +43,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+    - ./alembic/versions:/app/alembic/versions
     networks:
       - app_network
 
