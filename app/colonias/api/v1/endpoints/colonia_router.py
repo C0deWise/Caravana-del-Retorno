@@ -11,14 +11,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from app.colonias.repositories.solicitud_colonia_repository import SolicitudColoniaRepository
 from app.colonias.repositories.colonia_repository import ColoniaRepository
-from app.core.database import get_async_db, get_db
+from app.core.database import get_db
 from app.usuarios.api.v1.usuario_router import get_usuario_servicio
-from app.colonias.schemas.colonia_schemas import ColoniaCreate, ColoniaResponse
+from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta, ColoniaEstablecerLider
 from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear, SolicitudColoniaRespuesta
 from app.colonias.services.colonia_services import ColoniaService
 from app.colonias.services.solicitud_colonias_services import SolicitudColoniaService
 from app.usuarios.services.usuario_servicio import UsuarioServicio
-from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta, ColoniaEstablecerLider
+
 
 from app.colonias.docs.docs_solicitud_colonia import (
     crear_solicitud_docs,
@@ -27,16 +27,12 @@ from app.colonias.docs.docs_solicitud_colonia import (
     obtener_solicitudes_recientes_usuario_docs,
 )
 
-def get_solicitud_colonia_servicio(db: AsyncSession = Depends(get_async_db)) -> SolicitudColoniaRepository:
+def get_solicitud_colonia_servicio(db: AsyncSession = Depends(get_db)) -> SolicitudColoniaRepository:
     repositorio = SolicitudColoniaRepository(db)
     return SolicitudColoniaService(repositorio)
 
 
-
-
-
-
-def get_colonia_service(db: AsyncSession = Depends(get_async_db)) -> ColoniaService:
+def get_colonia_service(db: AsyncSession = Depends(get_db)) -> ColoniaService:
     """Dependencia para obtener una instancia de ColoniaService con el repositorio inyectado."""
     repositorio = ColoniaRepository(db)
     return ColoniaService(repositorio, db)
