@@ -6,7 +6,7 @@ from fastapi import Depends
 from sqlalchemy.ext import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.colonias.repositories.solicitud_colonia_repository import SolicitudColoniaRepository
-from app.core.database import AsyncSessionLocal, SessionLocal, get_async_db  
+from app.core.database import AsyncSessionLocal
 from app.colonias.services.solicitud_colonias_services import SolicitudColoniaService
 
 logger = logging.getLogger(__name__)
