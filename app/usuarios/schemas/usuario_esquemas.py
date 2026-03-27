@@ -68,3 +68,42 @@ class UsuarioCrear(BaseModel):
         if not re.match(patron, v):
             raise ValueError("El correo ingresado no es válido.")
         return v.strip().lower()
+
+class UsuarioSalida(BaseModel):
+    """Esquema para la salida de datos básicos de un usuario."""
+    id: int = Field(..., validation_alias="us_codigo", description="ID único del usuario.")
+    nombre: str = Field(..., validation_alias="us_nombre", description="Nombre completo del usuario.")
+    apellido: str = Field(..., validation_alias="us_apellido", description="Apellidos del usuario.")
+    correo: str = Field(..., validation_alias="us_correo", description="Correo electrónico del usuario.")
+    documento: str = Field(..., validation_alias="us_documento", description="Número de documento del usuario.")
+
+    model_config = {"from_attributes": True}
+
+
+class UsuarioNombre(BaseModel):
+    """Esquema para mostrar únicamente el nombre y apellido de un usuario."""
+    nombre: str = Field(..., validation_alias="us_nombre", description="Nombre del usuario.")
+    apellido: str = Field(..., validation_alias="us_apellido", description="Apellido del usuario.")
+
+    model_config = {"from_attributes": True}
+
+
+class UsuarioDetallado(BaseModel):
+    """Esquema para la salida de datos detallados de un usuario, ideal para vistas de administrador."""
+    id: int = Field(validation_alias="us_codigo")
+    fecha_creacion: datetime = Field(validation_alias="us_fecha_creacion")
+    tipo_doc: TipoDoc = Field(validation_alias="us_tipo_doc")
+    documento: str = Field(validation_alias="us_documento")
+    celular: str = Field(validation_alias="us_celular")
+    correo: str = Field(validation_alias="us_correo")
+    codigo_colonia: Optional[int] = Field(validation_alias="co_codigo")
+    codigo_rol: int = Field(validation_alias="ro_codigo")
+    nombre: str = Field(validation_alias="us_nombre")
+    apellido: str = Field(validation_alias="us_apellido")
+    genero: Genero = Field(validation_alias="us_genero")
+    fecha_nacimiento: date = Field(validation_alias="us_fecha_nacimiento")
+    pais: str = Field(validation_alias="us_pais")
+    departamento: Optional[str] = Field(validation_alias="us_departamento")
+    ciudad: Optional[str] = Field(validation_alias="us_ciudad")
+
+    model_config = {"from_attributes": True}
