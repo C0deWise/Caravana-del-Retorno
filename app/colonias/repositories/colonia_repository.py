@@ -25,9 +25,9 @@ class ColoniaRepository:
             Colonia: Objeto de la colonia recién creado con su id generado.
         """
         colonia = Colonia(
-            pais=datos.pais,
-            departamento=datos.departamento,
-            ciudad=datos.ciudad,
+            co_pais=datos.pais,
+            co_departamento=datos.departamento,
+            co_ciudad=datos.ciudad,
             lider=datos.lider,
         )
         self.db.add(colonia)
@@ -49,9 +49,9 @@ class ColoniaRepository:
             Colonia | None: La colonia encontrada o None si no existe.
         """
         sentencia = select(Colonia).filter(
-            Colonia.pais == pais,
-            Colonia.departamento == departamento,
-            Colonia.ciudad == ciudad
+            Colonia.co_pais == pais,
+            Colonia.co_departamento == departamento,
+            Colonia.co_ciudad == ciudad
         )
         resultado = await self.db.execute(sentencia)
         return resultado.scalars().first()
@@ -68,5 +68,7 @@ class ColoniaRepository:
         await self.db.refresh(colonia)
         return colonia
       
-    def obtener_colonias(db: Session) -> list[Colonia]:
-      return db.query(Colonia).all()
+    async def obtener_colonias(self) -> list[Colonia]:
+      sentencia = select(Colonia)
+      resultado = await self.db.execute(sentencia)
+      return resultado.scalars().all()

@@ -74,10 +74,10 @@ class ColoniaCrear (BaseModel):
 class ColoniaRespuesta (BaseModel):
     """Esquema de respúesta para una colonia creada."""
 
-    codigo: int 
-    pais: str 
-    departamento: Optional[str] = None
-    ciudad: Optional[str] = None
+    codigo: int = Field(alias="co_codigo")
+    pais: str = Field(alias="co_pais")
+    departamento: Optional[str] = Field(None, alias="co_departamento")
+    ciudad: Optional[str] = Field(None, alias="co_ciudad")
     lider: Optional[int] = None
 
     model_config = {"from_attributes": True, "populate_by_name": True}

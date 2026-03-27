@@ -88,13 +88,13 @@ async def crear_colonia(datos: ColoniaCrear, servicio: ColoniaService = Depends(
     return await servicio.servicio_crear_colonia(datos)
 @router.get(
     "/",
-    response_model = list[ColoniaResponse],
+    response_model = list[ColoniaRespuesta],
     status_code = status.HTTP_200_OK,
     summary = "Obtener todas las colonias",
     description = "Obtiene una lista de todas las colonias registradas en el sistema",
 )
-def obtener_colonias(db: Session = Depends(get_db)):
-    return service_obtener_colonias(db)
+async def obtener_colonias(servicio: ColoniaService = Depends(get_colonia_service)):
+    return await servicio.obtener_colonias()
 
 @router.post(
     "/crear-solicitud",
