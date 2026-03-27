@@ -1,6 +1,6 @@
 """
-Este módulo define los endpoints de la API para la gestión de usuarios.
-Expone operaciones como registro, consulta y búsqueda de usuarios,
+    usuario_router.py define el router para las operaciones relacionadas con los usuarios.
+    Aquí se implementan los endpoints para registrar usuarios, solicitar parentesco, consulta y búsqueda de usuarios,
 gestionando las solicitudes HTTP y las respuestas correspondientes.
 """
 
@@ -9,8 +9,12 @@ from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.usuarios.repository.parentesco_repositorio import ParentescoRepositorio
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
+from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear
 from app.usuarios.services.usuario_servicio import UsuarioServicio
+from app.usuarios.docs.registro_doc import registrar_docs, registrar_body
+from app.usuarios.docs.solicitud_parentesco_doc import solicitar_parentesco_docs, solicitar_parentesco_body
 from app.usuarios.schemas.usuario_esquemas import UsuarioCrear, UsuarioSalida, UsuarioNombre, UsuarioDetallado
 from app.usuarios.docs.registro_doc import registrar_body, registrar_docs
 router = APIRouter(prefix="/usuario", tags=["Usuario"])
@@ -28,7 +32,8 @@ def get_usuario_servicio(db: AsyncSession = Depends(get_db)) -> UsuarioServicio:
         UsuarioServicio: Instancia del servicio de usuarios.
     """
     repositorio = UsuarioRepositorio(db)
-    return UsuarioServicio(repositorio)
+    repositorio_parentesco = ParentescoRepositorio(db)
+    return UsuarioServicio(repositorio, repositorio_parentesco)
 
 
 @router.post(
@@ -48,6 +53,21 @@ async def registrar_usuario(
             detail=str(e),
         )
 
+@router.post(
+    "/solicitar-parentesco", status_code=status.HTTP_201_CREATED, **solicitar_parentesco_docs
+)
+async def solicitar_parentesco(
+    parentesco_crear: solicitar_parentesco_body,
+    servicio: UsuarioServicio = Depends(get_usuario_servicio),
+):
+    try:
+        await servicio.solicitar_parentesco(parentesco_crear)
+        return {"mensaje": "Solicitud de parentesco enviada exitosamente."}
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
 
 @router.get("/", response_model=list[UsuarioSalida], summary="Listar todos los usuarios (básico)")
 async def listar_usuarios(

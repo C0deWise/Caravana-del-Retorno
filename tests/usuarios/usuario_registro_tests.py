@@ -51,14 +51,14 @@ class TestRegistrar:
 
     @pytest.mark.asyncio
     async def test_registrar_exitoso(self, servicio, mock_repositorio, schema_valido):
-        mock_repositorio.registrar.return_value = MagicMock(id=1)
+        mock_repositorio.registrar.return_value = MagicMock(us_codigo=1)
         usuario = await servicio.registrar(schema_valido)
-        assert usuario.id == 1
+        assert usuario.us_codigo == 1
         mock_repositorio.registrar.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_contrasenia_es_hasheada(self, servicio, mock_repositorio, schema_valido):
-        mock_repositorio.registrar.return_value = MagicMock(id=1)
+        mock_repositorio.registrar.return_value = MagicMock(us_codigo=1)
         contrasenia_plana = schema_valido.contrasenia
         await servicio.registrar(schema_valido)
 
