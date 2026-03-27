@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
+from pathlib import Path
 
 from pathlib import Path
 
@@ -24,7 +25,7 @@ class Settings(BaseSettings):
     #  Security
     # ─────────────────────────────────────────
     SECRET_KEY: str = "supersecretkey"
-    ALLOWED_HOSTS: list[str] = ["*"]
+    ALLOWED_HOSTS: list[str] = ["caravana-del-retorno-frontend-git-dev-c0dewise.vercel.app"]
 
     model_config = SettingsConfigDict(
         env_file = BASE_DIR / ".env",

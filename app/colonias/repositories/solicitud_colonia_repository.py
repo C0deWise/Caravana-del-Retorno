@@ -1,49 +1,46 @@
-from typing import Optional
 from datetime import datetime, timedelta
-from app.colonias.excepciones.excepciones import SolicitudEstadoInvalido, SolicitudNoEncontrada
-from sqlalchemy.orm import Session
-
+from sqlalchemy.orm import joinedload
 from app.colonias.models.solicitud_colonia import SolicitudColonia, EstadoSolicitud
 from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear
-
+from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 class SolicitudColoniaRepository:
-
-    def crear_solicitud_colonia(self, db: Session, data: SolicitudColoniaCrear) -> SolicitudColonia:
+ 
+    def __init__(self, db: AsyncSession):
+        self.db = db
+ 
+    async def crear_solicitud_colonia(self, data: SolicitudColoniaCrear) -> SolicitudColonia:
         solicitud = SolicitudColonia(
-            usuario_id=data.usuario_id,
-            colonia_id=data.colonia_id,
-            estado=EstadoSolicitud.pendiente,
+            us_codigo=data.codigo_usuario,
+            co_codigo=data.codigo_colonia,
+            so_estado=EstadoSolicitud.pendiente,
         )
-        db.add(solicitud)
-        db.commit()
-        db.refresh(solicitud)
+        self.db.add(solicitud)
+        await self.db.commit()
+        await self.db.refresh(solicitud, attribute_names=["usuario"])
         return solicitud
-
-    def obtener_solicitud_por_id(self, db: Session, codigo: int) -> Optional[SolicitudColonia]:
+ 
+    async def obtener_solicitudes_pendientes_por_colonia(self, cod_colonia: int) -> list[SolicitudColonia]:
+        resultado = await self.db.execute(
+            select(SolicitudColonia)
+            .where(
+                SolicitudColonia.co_codigo == cod_colonia,
+                SolicitudColonia.so_estado == EstadoSolicitud.pendiente,
+            )
+            .options(joinedload(SolicitudColonia.usuario))
+        )
+        return resultado.scalars().all()
+      
+     def obtener_solicitud_por_id(self, db: Session, codigo: int) -> Optional[SolicitudColonia]:
         return db.query(SolicitudColonia).filter(
             SolicitudColonia.codigo == codigo
         ).first()
 
     def get_all(self, db: Session) -> list[SolicitudColonia]:
         return db.query(SolicitudColonia).all()
-
-    def expirar_pendientes(self, db: Session) -> int:
-        """Marca como 'expirada' toda solicitud pendiente con más de 30 días.
-        Retorna la cantidad de registros actualizados."""
-        limite = datetime.utcnow() - timedelta(days=30)
-        actualizadas = (
-            db.query(SolicitudColonia)
-            .filter(
-                SolicitudColonia.estado == EstadoSolicitud.pendiente,
-                SolicitudColonia.fecha_creacion <= limite,
-            )
-            .update({"estado": EstadoSolicitud.expirada}, synchronize_session="fetch")
-        )
-        db.commit()
-        return actualizadas
-    
-    def aceptar_solicitud_colonia(self, db: Session, codigo: int) -> SolicitudColonia:
+      
+     def aceptar_solicitud_colonia(self, db: Session, codigo: int) -> SolicitudColonia:
         """Cambia el estado de una solicitud a aceptada"""
         solicitud = self.obtener_solicitud_por_id(db, codigo)
 
@@ -74,3 +71,40 @@ class SolicitudColoniaRepository:
         db.refresh(solicitud)
 
         return solicitud
+    async def obtener_solicitudes_recientes_por_colonia(self, cod_colonia: int) -> list[SolicitudColonia]:
+        limite = datetime.utcnow() - timedelta(days=30)
+        resultado = await self.db.execute(
+            select(SolicitudColonia)
+            .where(
+                SolicitudColonia.co_codigo == cod_colonia,
+                SolicitudColonia.so_fecha_creacion > limite,
+            )
+            .options(joinedload(SolicitudColonia.usuario))
+        )
+        return resultado.scalars().all()
+ 
+    async def obtener_solicitudes_recientes_por_usuario(self, cod_usuario: int) -> list[SolicitudColonia]:
+        limite = datetime.utcnow() - timedelta(days=30)
+        resultado = await self.db.execute(
+            select(SolicitudColonia)
+            .where(
+                SolicitudColonia.us_codigo == cod_usuario,
+                SolicitudColonia.so_fecha_creacion > limite,
+            )
+            .options(joinedload(SolicitudColonia.usuario))
+        )
+        return resultado.scalars().all()
+ 
+    async def expirar_pendientes(self) -> int:
+        limite = datetime.utcnow() - timedelta(days=30)
+        resultado = await self.db.execute(
+            update(SolicitudColonia)
+            .where(
+                SolicitudColonia.so_estado == EstadoSolicitud.pendiente,
+                SolicitudColonia.so_fecha_creacion <= limite,
+            )
+            .values(so_estado=EstadoSolicitud.expirada)
+            .execution_options(synchronize_session="fetch")
+        )
+        await self.db.commit()
+        return resultado.rowcount

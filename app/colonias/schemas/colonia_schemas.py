@@ -81,3 +81,8 @@ class ColoniaRespuesta (BaseModel):
     lider: Optional[int] = None
 
     model_config = {"from_attributes": True, "populate_by_name": True}
+
+class ColoniaEstablecerLider (BaseModel):
+    """Esquema de entrada para establecer un líder a una colonia."""
+
+    lider_id: int = None

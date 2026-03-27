@@ -1,3 +1,8 @@
+"""
+    main.py punto de entrada de la app FASTAPI, contiene el middleware,
+    el registro de routers y los endpoints básicos como /health, /docs y /.
+"""
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -8,6 +13,10 @@ from app.core.database import check_db_connection, create_tables
 from app.colonias.models.colonia_model import Colonia  
 from app.usuarios.models.usuario import Rol
 from app.usuarios.models.usuario import Usuario
+from app.usuarios.models.parentesco import Parentesco
+from app.retornos.api.v1.endpoints.retorno_router import router as retornos_router
+from app.colonias.models.solicitud_colonia import SolicitudColonia
+import app.core.scheduler as scheduler
 
 logging.basicConfig(
     level=logging.INFO,
@@ -24,15 +33,16 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting %s v%s...", settings.APP_NAME, settings.APP_VERSION)
-    check_db_connection()
+    await check_db_connection()
     print(">>> lifespan ejecutándose")
-    create_tables()
+    await create_tables()
     logger.info("Application ready.")
 
     yield
 
     # Shutdown
     logger.info("Shutting down %s...", settings.APP_NAME)
+    scheduler.shutdown()
 
 
 # ─────────────────────────────────────────
@@ -65,18 +75,18 @@ app.add_middleware(
 # ─────────────────────────────────────────
 # esta seccion esta destinada a los routers de la aplicacion
 from app.colonias.api.v1.router import router as colonia_router
-
-app.include_router(colonia_router, prefix="/api/v1")
+from app.retornos.api.v1.endpoints.retorno_router import router as retornos_router
 from app.usuarios.api.v1.usuario_router import router as usuario_router
-
-app.include_router(usuario_router)
+app.include_router(colonia_router, prefix="/api/v1")
+app.include_router(usuario_router, prefix="/api/v1")
+app.include_router(retornos_router)
 
 # ─────────────────────────────────────────
 #  Core endpoints
 # ─────────────────────────────────────────
 @app.get("/health", tags=["Health"])
-def health_check():
-    db_ok = check_db_connection()
+async def health_check():
+    db_ok = await check_db_connection()
     return {
         "status": "ok" if db_ok else "degraded",
         "app": settings.APP_NAME,
@@ -86,7 +96,7 @@ def health_check():
 
 
 @app.get("/", tags=["Root"])
-def root():
+async def root():
     return {
         "app": settings.APP_NAME,
         "version": settings.APP_VERSION,
