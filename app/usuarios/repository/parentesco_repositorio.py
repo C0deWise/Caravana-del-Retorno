@@ -30,7 +30,7 @@ class ParentescoRepositorio:
             select(Parentesco).where(
                 Parentesco.us_codigo_solicitante == codigo_solicitante,
                 Parentesco.us_codigo_destinatario == codigo_destinatario,
-                Parentesco.pa_estado == EstadoSolicitudParentesco.PENDIENTE
+                Parentesco.pa_estado == EstadoSolicitudParentesco.pendiente
             )
         )
         return result.scalar_one_or_none() is not None
@@ -41,7 +41,7 @@ class ParentescoRepositorio:
             select(Parentesco).where(
                 Parentesco.us_codigo_solicitante == codigo_solicitante,
                 Parentesco.us_codigo_destinatario == codigo_destinatario,
-                Parentesco.pa_estado == EstadoSolicitudParentesco.ACEPTADA   
+                Parentesco.pa_estado == EstadoSolicitudParentesco.aceptada   
             )
         )
         return result.scalar_one_or_none() is not None
