@@ -75,3 +75,7 @@ class ColoniaService:
 
         colonia_actualizada = await self.repositorio.establecer_lider_colonia(colonia_codigo, lider_id)
         return ColoniaRespuesta.model_validate(colonia_actualizada, from_attributes=True)
+    
+    async def obtener_colonias(self) -> list[ColoniaRespuesta]:
+        colonias = await self.repositorio.obtener_colonias()
+        return [ColoniaRespuesta.model_validate(colonia, from_attributes=True) for colonia in colonias]
