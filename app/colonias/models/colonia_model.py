@@ -7,10 +7,10 @@ from app.core.database import Base
 class Colonia(Base):
     __tablename__ = "colonia"
 
-    codigo: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    pais: Mapped[str] = mapped_column(String, nullable=False)
-    departamento: Mapped[str | None] = mapped_column(String, nullable=True)
-    ciudad: Mapped[str | None] = mapped_column(String, nullable=True)
+    co_codigo: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    co_pais: Mapped[str] = mapped_column(String, nullable=False)
+    co_departamento: Mapped[str | None] = mapped_column(String, nullable=True)
+    co_ciudad: Mapped[str | None] = mapped_column(String, nullable=True)
     lider: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     def __repr__(self) -> str:

@@ -67,3 +67,6 @@ class ColoniaRepository:
         await self.db.commit()
         await self.db.refresh(colonia)
         return colonia
+      
+    def obtener_colonias(db: Session) -> list[Colonia]:
+      return db.query(Colonia).all()

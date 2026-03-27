@@ -34,58 +34,14 @@ def get_usuario_servicio(db: AsyncSession = Depends(get_db)) -> UsuarioServicio:
 @router.post(
     "/registrar",
     status_code=status.HTTP_201_CREATED,
-    summary="Registrar un nuevo usuario",
-    description=(
-        "Crea un nuevo usuario en el sistema. "
-        "**Acceso:** Público, no requiere autenticación."
-    ),
-    responses={
-        201: {"description": "Usuario registrado exitosamente."},
-        400: {"description": "Error de validación o de negocio (ej. duplicados)."},
-        422: {"description": "Error de validación de Pydantic."}
-    }
 )
 async def registrar_usuario(
-    schema: Annotated[
-        UsuarioCrear,
-        Body(
-            openapi_examples={
-                "ejemplo_basico": {
-                    "summary": "Registro básico",
-                    "value": {
-                        "tipo_doc": "CC",
-                        "documento": "1234567890",
-                        "celular": "+57 300 123 4567",
-                        "correo": "juan.perez@gmail.com",
-                        "contrasenia": "MiContrasenia123",
-                        "nombre": "Juan",
-                        "apellido": "Perez",
-                        "genero": "M",
-                        "fecha_nacimiento": "1995-06-15",
-                        "pais": "Colombia",
-                    },
-                },
-            }
-        )
-    ],
+    schema: UsuarioCrear,
     servicio: UsuarioServicio = Depends(get_usuario_servicio),
 ):
-    """
-    Endpoint para registrar un nuevo usuario.
-
-    Args:
-        schema (UsuarioCrear): Datos del usuario a crear.
-        servicio (UsuarioServicio): Servicio de usuarios inyectado.
-
-    Returns:
-        dict: Mensaje de éxito con el nombre del usuario.
-
-    Raises:
-        HTTPException: Si ocurren errores de validación o de negocio.
-    """
     try:
         usuario = await servicio.registrar(schema)
-        return {"mensaje": "Usuario registrado exitosamente.", "nombre": f"{usuario.us_nombre} {usuario.us_apellido}"}
+        return {"mensaje": "Usuario registrado exitosamente.", "nombre": usuario.us_nombre + " " + usuario.us_apellido}
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
