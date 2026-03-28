@@ -16,6 +16,7 @@ from app.usuarios.models.usuario import Usuario
 from app.usuarios.models.parentesco import Parentesco
 from app.retornos.api.v1.endpoints.retorno_router import router as retornos_router
 from app.colonias.models.solicitud_colonia import SolicitudColonia
+from scripts.seed_roles import seed_roles
 import app.core.scheduler as scheduler
 
 logging.basicConfig(
@@ -35,6 +36,10 @@ async def lifespan(app: FastAPI):
     logger.info("Starting %s v%s...", settings.APP_NAME, settings.APP_VERSION)
     await check_db_connection()
     print(">>> lifespan ejecutándose")
+    
+    # Ejecutar seed de roles automáticamente al iniciar la app
+    logger.info("Verificando e insertando roles iniciales...")
+    await seed_roles()
 
     logger.info("Application ready.")
 

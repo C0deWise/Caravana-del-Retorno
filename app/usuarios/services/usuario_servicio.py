@@ -5,6 +5,7 @@ de datos requeridas antes de interactuar con la capa de repositorio.
 """
 
 from passlib.context import CryptContext
+from sqlalchemy import select
 
 from app.usuarios.models.usuario import Usuario
 from app.usuarios.repository.parentesco_repositorio import ParentescoRepositorio
@@ -58,6 +59,14 @@ class UsuarioServicio:
             errores.append("El correo ya se encuentra registrado.")
         if await self.repositorio.existe_usuario("us_celular", schema.celular):
             errores.append("El celular ya se encuentra registrado.")
+
+        # Verificar que el rol asignado exista para evitar errores de llave foránea
+        from app.usuarios.models.usuario import Rol
+        rol_query = await self.repositorio.db.execute(
+            select(Rol).where(Rol.ro_codigo == schema.codigo_rol)
+        )
+        if not rol_query.scalar_one_or_none():
+            errores.append(f"El rol con código {schema.codigo_rol} no existe en el sistema.")
 
         # Si se encontraron errores, se lanzan en una sola excepción.
         if errores:
