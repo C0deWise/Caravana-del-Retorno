@@ -4,8 +4,10 @@ Estos esquemas se utilizan en la API para validar la entrada de datos,
 serializar la salida y generar la documentación automática de los endpoints.
 """
 
+
+
 from pydantic import BaseModel, field_validator, Field
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 
 from app.usuarios.models.usuario import TipoDoc, Genero

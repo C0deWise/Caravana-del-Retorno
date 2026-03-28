@@ -22,8 +22,6 @@ from app.usuarios.docs.listar_parentescos_doc import listar_parentescos_docs
 router = APIRouter(prefix="/usuario", tags=["Usuario"])
 
 
-router = APIRouter()
-
 def get_usuario_servicio(db: AsyncSession = Depends(get_db)) -> UsuarioServicio:
     """
     Función de dependencia para obtener una instancia del servicio de usuarios.

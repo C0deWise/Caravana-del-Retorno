@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI):
     logger.info("Starting %s v%s...", settings.APP_NAME, settings.APP_VERSION)
     await check_db_connection()
     print(">>> lifespan ejecutándose")
-    await create_tables()
+
     logger.info("Application ready.")
 
     yield
