@@ -21,11 +21,17 @@ ROLES = ["usuario", "lider", "admin"]
 
 
 async def seed_roles() -> None:
-    engine = create_async_engine(
-        settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://"),
-        echo=False,
-    )
+    # Render suele entregar postgres://, asyncpg requiere postgresql+asyncpg://
+    db_url = settings.DATABASE_URL
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif db_url.startswith("postgresql://"):
+        db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    else:
+        # Por si ya viene con el driver o es otro formato
+        db_url = db_url.replace("://", "+asyncpg://", 1) if "+asyncpg" not in db_url else db_url
 
+    engine = create_async_engine(db_url, echo=False)
     async_session = async_sessionmaker(bind=engine, expire_on_commit=False)
 
     async with async_session() as db:
@@ -33,20 +39,20 @@ async def seed_roles() -> None:
         from app.usuarios.models.usuario import Rol
 
         # Verificar si ya existen roles
-        result = await db.execute(select(Rol))
-        existentes = result.scalars().all()
+        result = await db.execute(select(Rol.ro_nombre))
+        nombres_existentes = set(result.scalars().all())
 
-        if existentes:
-            logger.info("Los roles ya existen, seed omitido.")
-            await engine.dispose()
-            return
-
-        # Insertar roles
+        roles_a_crear = []
         for nombre in ROLES:
-            db.add(Rol(ro_nombre=nombre))
+            if nombre not in nombres_existentes:
+                db.add(Rol(ro_nombre=nombre))
+                roles_a_crear.append(nombre)
 
-        await db.commit()
-        logger.info("Roles insertados: %s", ROLES)
+        if roles_a_crear:
+            await db.commit()
+            logger.info("Roles insertados: %s", roles_a_crear)
+        else:
+            logger.info("Todos los roles ya existen en la base de datos.")
 
     await engine.dispose()
 

@@ -14,17 +14,16 @@ settings = get_settings()
 # ─────────────────────────────────────────
 #  Engine
 # ─────────────────────────────────────────
-engine = create_async_engine(
-    settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://"),
-    echo=settings.DEBUG,
-    pool_pre_ping=True,
-)
+def get_async_url(url: str) -> str:
+    if url.startswith("postgres://"):
+        return url.replace("postgres://", "postgresql+asyncpg://", 1)
+    return url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-async_engine = create_async_engine(
-    settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://"),
-    echo=settings.DEBUG,
-    pool_pre_ping=True,
-)
+db_url = get_async_url(settings.DATABASE_URL)
+
+engine = create_async_engine(db_url, echo=settings.DEBUG, pool_pre_ping=True)
+
+async_engine = create_async_engine(db_url, echo=settings.DEBUG, pool_pre_ping=True)
 
 
 
