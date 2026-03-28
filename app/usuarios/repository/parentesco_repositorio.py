@@ -30,7 +30,7 @@ class ParentescoRepositorio:
             select(Parentesco).where(
                 Parentesco.us_codigo_solicitante == codigo_solicitante,
                 Parentesco.us_codigo_destinatario == codigo_destinatario,
-                Parentesco.pa_estado == EstadoSolicitudParentesco.PENDIENTE
+                Parentesco.pa_estado == EstadoSolicitudParentesco.pendiente
             )
         )
         return result.scalar_one_or_none() is not None
@@ -41,7 +41,16 @@ class ParentescoRepositorio:
             select(Parentesco).where(
                 Parentesco.us_codigo_solicitante == codigo_solicitante,
                 Parentesco.us_codigo_destinatario == codigo_destinatario,
-                Parentesco.pa_estado == EstadoSolicitudParentesco.ACEPTADA   
+                Parentesco.pa_estado == EstadoSolicitudParentesco.aceptada  
             )
         )
         return result.scalar_one_or_none() is not None
+    
+    async def listar_parentescos_usuario(self, codigo_usuario: int) -> list[Parentesco]:
+        """Lista todas las relaciones de parentesco de un usuario."""
+        result = await self.db.execute(
+            select(Parentesco).where(
+                (Parentesco.us_codigo_destinatario == codigo_usuario) | (Parentesco.us_codigo_solicitante == codigo_usuario),
+            )
+        )
+        return result.scalars().all()

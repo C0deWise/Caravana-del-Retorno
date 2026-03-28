@@ -138,3 +138,7 @@ class UsuarioServicio:
             raise ValueError("Ya existe una solicitud de parentesco pendiente entre estos usuarios.")
 
         return await self.repositorio_parentesco.solicitar_parentesco(parentesco_crear)
+    
+    async def listar_parentescos_usuario(self, codigo_usuario: int):
+        """Lista todas las relaciones de parentesco de un usuario."""
+        return await self.repositorio_parentesco.listar_parentescos_usuario(codigo_usuario)
