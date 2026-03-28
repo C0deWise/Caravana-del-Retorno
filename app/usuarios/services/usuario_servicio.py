@@ -21,12 +21,13 @@ class UsuarioServicio:
     Servicio para gestionar la lógica de negocio de los usuarios.
     """
 
-    def __init__(self, repositorio: UsuarioRepositorio, repositorio_parentesco: ParentescoRepositorio) -> None:
+    def __init__(self, repositorio: UsuarioRepositorio, repositorio_parentesco: ParentescoRepositorio = None) -> None:
         """
         Inicializa el servicio con un repositorio de usuarios.
 
         Args:
             repositorio (UsuarioRepositorio): El repositorio para el acceso a datos.
+            repositorio_parentesco (ParentescoRepositorio, opcional): El repositorio de parentesco.
         """
         self.repositorio = repositorio
         self.repositorio_parentesco = repositorio_parentesco
@@ -116,14 +117,20 @@ class UsuarioServicio:
     
     async def existe_parentesco(self, codigo_solicitante: int, codigo_destinatario: int) -> bool:
         """Verifica si ya existe una relación de parentesco entre dos usuarios."""
+        if not self.repositorio_parentesco:
+            raise RuntimeError("Repositorio de parentesco no inicializado.")
         return await self.repositorio_parentesco.existe_parentesco(codigo_solicitante, codigo_destinatario)
 
     async def existe_solicitud_parentesco(self, codigo_solicitante: int, codigo_destinatario: int) -> bool:
         """Verifica si ya existe una solicitud de parentesco entre dos usuarios."""
+        if not self.repositorio_parentesco:
+            raise RuntimeError("Repositorio de parentesco no inicializado.")
         return await self.repositorio_parentesco.existe_solicitud_parentesco(codigo_solicitante, codigo_destinatario)
     
     async def solicitar_parentesco(self, parentesco_crear: ParentescoCrear):
         """Solicita un parentesco entre dos usuarios."""
+        if not self.repositorio_parentesco:
+            raise RuntimeError("Repositorio de parentesco no inicializado.")
         if parentesco_crear.codigo_solicitante == parentesco_crear.codigo_destinatario:
             raise ValueError("El solicitante y el destinatario no pueden ser el mismo usuario.")
         # Verificar que ambos usuarios existan
