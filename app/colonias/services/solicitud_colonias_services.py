@@ -1,6 +1,7 @@
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.colonias.excepciones.excepciones import SolicitudEstadoInvalido, SolicitudNoEncontrada
 from app.colonias.models.solicitud_colonia import SolicitudColonia
 from app.colonias.repositories.solicitud_colonia_repository import SolicitudColoniaRepository 
 from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear, SolicitudColoniaRespuesta
@@ -39,3 +40,30 @@ class SolicitudColoniaService:
 
     async def expirar_solicitudes_vencidas(self) -> int:
         return await self.repositorio.expirar_pendientes()
+    
+    async def aceptar_solicitud (self, codigo: int) -> SolicitudColoniaRespuesta:
+        """Acepta una solicitud pendiente, cambiando su estado a 'aceptada'."""
+        try:
+            solicitud = await self.repositorio.aceptar_solicitud_colonia(codigo)
+            return self._mapear_solicitud(solicitud)
+        except SolicitudNoEncontrada as e:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        except SolicitudEstadoInvalido as e:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+        
+    
+    async def rechazar_solicitud (self, codigo: int) -> SolicitudColoniaRespuesta:
+        """Rechaza una solicitud pendiente, cambiando su estado a 'rechazada'."""
+        try:
+            solicitud = await self.repositorio.rechazar_solicitud_colonia(codigo)
+            return self._mapear_solicitud(solicitud)
+        except SolicitudNoEncontrada as e:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        except SolicitudEstadoInvalido as e:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    
+    async def obtener_solicitud(self,codigo: int) -> SolicitudColoniaRespuesta:
+        solicitud = await self.repositorio.obtener_solicitud_por_id(codigo)
+        if not solicitud:
+            raise ValueError(f"Solicitud con código {codigo} no encontrada.")
+        return self._mapear_solicitud(solicitud)
