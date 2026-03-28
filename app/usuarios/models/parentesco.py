@@ -16,7 +16,7 @@ class EstadoSolicitudParentesco(str, enum.Enum):
     rechazada = "rechazada"
     expirada = "expirada"
 
-class tipoParentesco(str, enum.Enum):
+class TipoParentesco(str, enum.Enum):
     padre = "padre"
     madre = "madre"
     hermano = "hermano (a)"
@@ -43,7 +43,7 @@ class Parentesco(Base):
     us_codigo_solicitante: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.us_codigo"), nullable=False)
     us_codigo_destinatario: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.us_codigo"), nullable=False)
 
-    pa_tipo_parentesco: Mapped[tipoParentesco] = mapped_column(Enum(tipoParentesco), nullable=False)
+    pa_tipo_parentesco: Mapped[TipoParentesco] = mapped_column(Enum(TipoParentesco), nullable=False)
 
     # ─────────────────────────────────────────
     #  Relaciones
@@ -52,4 +52,4 @@ class Parentesco(Base):
     destinatario: Mapped["Usuario"] = relationship("Usuario", foreign_keys=[us_codigo_destinatario])
 
     def __repr__(self) -> str:
-        return f"Parentesco(id={self.pa_codigo!r}, pa_estado={self.pa_estado!r} us_codigo_solicitante={self.us_codigo_solicitante!r} us_codigo_destinatario={self.us_codigo_destinatario!r} tipo_parentesco={self.tipo_parentesco!r})"
+        return f"Parentesco(id={self.pa_codigo!r}, pa_estado={self.pa_estado!r} us_codigo_solicitante={self.us_codigo_solicitante!r} us_codigo_destinatario={self.us_codigo_destinatario!r} tipo_parentesco={self.pa_tipo_parentesco!r})"

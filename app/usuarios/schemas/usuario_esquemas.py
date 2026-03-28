@@ -5,7 +5,7 @@ serializar la salida y generar la documentación automática de los endpoints.
 """
 
 from pydantic import BaseModel, field_validator, Field
-from datetime import date, datetime
+from datetime import date
 from typing import Optional
 
 from app.usuarios.models.usuario import TipoDoc, Genero
@@ -107,3 +107,8 @@ class UsuarioDetallado(BaseModel):
     ciudad: Optional[str] = Field(validation_alias="us_ciudad")
 
     model_config = {"from_attributes": True}
+class UsuarioResumen(BaseModel):
+    codigo: int = Field(alias="us_codigo")
+    nombre: str = Field(alias="us_nombre")
+    apellido: str = Field(alias="us_apellido")
+    model_config = {"from_attributes": True, "populate_by_name": True}

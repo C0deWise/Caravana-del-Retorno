@@ -156,3 +156,7 @@ class UsuarioServicio:
             Usuario | None: El usuario encontrado o None si no existe.
         """
         return await self.repositorio.obtener_usuario_por_id(us_id)
+    
+    async def listar_parentescos_usuario(self, codigo_usuario: int):
+        """Lista todas las relaciones de parentesco de un usuario."""
+        return await self.repositorio_parentesco.listar_parentescos_usuario(codigo_usuario)

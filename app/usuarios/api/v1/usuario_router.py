@@ -11,14 +11,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.usuarios.repository.parentesco_repositorio import ParentescoRepositorio
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
-from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear
+from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear, ParentescoRespuestaDetallada
 from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.usuarios.docs.registro_doc import registrar_docs, registrar_body
 from app.usuarios.docs.solicitud_parentesco_doc import solicitar_parentesco_docs, solicitar_parentesco_body
 from app.usuarios.schemas.usuario_esquemas import UsuarioCrear, UsuarioSalida, UsuarioNombre, UsuarioDetallado
 from app.usuarios.docs.registro_doc import registrar_body, registrar_docs
+from app.usuarios.docs.listar_parentescos_doc import listar_parentescos_docs
+
 router = APIRouter(prefix="/usuario", tags=["Usuario"])
 
+
+router = APIRouter()
 
 def get_usuario_servicio(db: AsyncSession = Depends(get_db)) -> UsuarioServicio:
     """
@@ -135,3 +139,21 @@ async def buscar_usuario_por_documento(
     if not usuario:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado.")
     return usuario
+    
+@router.get(
+    "/{codigo_usuario}/parentescos",
+    status_code=status.HTTP_200_OK,
+    **listar_parentescos_docs
+)
+async def listar_parentescos_usuario(
+    codigo_usuario: int,
+    servicio: UsuarioServicio = Depends(get_usuario_servicio),
+):
+    try:
+        parentescos = await servicio.listar_parentescos_usuario(codigo_usuario)
+        return parentescos
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
