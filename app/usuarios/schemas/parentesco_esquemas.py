@@ -10,12 +10,12 @@ from datetime import date
 from typing import Optional
 
 
-from app.usuarios.models.parentesco import EstadoSolicitudParentesco, tipoParentesco
+from app.usuarios.models.parentesco import EstadoSolicitudParentesco, TipoParentesco
 
 class ParentescoCrear(BaseModel):
     codigo_solicitante: int
     codigo_destinatario: int
-    tipo_parentesco: tipoParentesco
+    tipo_parentesco: TipoParentesco
 
 class ParentescoRespuesta(BaseModel):
     codigo: int
@@ -23,13 +23,13 @@ class ParentescoRespuesta(BaseModel):
     estado: EstadoSolicitudParentesco
     codigo_solicitante: int
     codigo_destinatario: int
-    tipo_parentesco: tipoParentesco
+    tipo_parentesco: TipoParentesco
 
     model_config = {"from_attributes": True}
 
 class ParentescoRespuestaDetallada(BaseModel):
     codigo: int = Field(alias="pa_codigo")
-    tipo_parentesco: tipoParentesco = Field(alias="pa_tipo_parentesco")
+    tipo_parentesco: TipoParentesco = Field(alias="pa_tipo_parentesco")
     estado: EstadoSolicitudParentesco = Field(alias="pa_estado")
     solicitante: UsuarioResumen
     destinatario: UsuarioResumen

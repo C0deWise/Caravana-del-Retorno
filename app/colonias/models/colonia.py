@@ -14,6 +14,6 @@ class Colonia(Base):
 
     def __repr__(self) -> str:
         return (
-            f"Colonia(id={self.id!r}, co_pais={self.co_pais!r}, "
+            f"Colonia(id={self.co_codigo!r}, co_pais={self.co_pais!r}, "
             f"co_departamento={self.co_departamento!r}, co_ciudad={self.co_ciudad!r})"
         )

@@ -16,7 +16,7 @@ class Rol(Base):
     ro_nombre: Mapped[str] = mapped_column(String, nullable=False, unique=True)
 
     def __repr__(self) -> str:
-        return f"Rol(id={self.id!r}, ro_nombre={self.ro_nombre!r})"
+        return f"Rol(id={self.ro_codigo!r}, ro_nombre={self.ro_nombre!r})"
     
 
 class TipoDoc(str, enum.Enum):

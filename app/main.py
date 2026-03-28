@@ -71,7 +71,7 @@ app.add_middleware(
 # esta seccion esta destinada a los routers de la aplicacion
 from app.usuarios.api.v1.usuario_router import router as usuario_router
 
-app.include_router(usuario_router)
+app.include_router(usuario_router, prefix="/api/v1")
 
 # ─────────────────────────────────────────
 #  Core endpoints

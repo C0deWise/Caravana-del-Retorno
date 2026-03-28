@@ -15,8 +15,8 @@ from app.usuarios.schemas.usuario_esquemas import UsuarioCrear
 from app.usuarios.docs.registro_doc import registrar_docs, registrar_body
 from app.usuarios.docs.solicitud_parentesco_doc import solicitar_parentesco_docs, solicitar_parentesco_body
 from app.usuarios.docs.listar_parentescos_doc import listar_parentescos_docs
-router = APIRouter(prefix="/usuario", tags=["Usuario"])
 
+router = APIRouter()
 
 def get_usuario_servicio(db: AsyncSession = Depends(get_async_db)) -> UsuarioServicio:
     repositorio = UsuarioRepositorio(db)
