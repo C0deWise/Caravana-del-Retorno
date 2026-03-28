@@ -85,19 +85,19 @@ router = APIRouter()
 )
 async def crear_colonia(datos: ColoniaCrear, servicio: ColoniaService = Depends(get_colonia_service)):
     """Endpoint para crear una nueva colonia"""
-    return servicio_crear_colonia(db, datos)
+    return await servicio.servicio_crear_colonia(datos)
 
 
 @router.patch(
     "/solicitud-colonia/{codigo}/aceptar",
-    response_model = SolicitudColoniaResponse,
+    response_model = SolicitudColoniaRespuesta,
     status_code = status.HTTP_200_OK,
     summary = "Aceptar una solicitud de ingreso a una colonia",
     description = "Acepta una solicitud pendiente, cambiando su estado a 'aceptada'.",
     responses = {
         200: {
             "description": "Solicitud aceptada exitosamente.",
-            "model": SolicitudColoniaResponse
+            "model": SolicitudColoniaRespuesta
         },
         404: {
             "description": "Solicitud no encontrada.",
@@ -121,19 +121,19 @@ async def crear_colonia(datos: ColoniaCrear, servicio: ColoniaService = Depends(
         }
     }
 )
-def aceptar_solicitud_colonia(codigo: int, db: Session = Depends(get_db)):
-    return SolicitudColoniaService().aceptar_solicitud(db, codigo)
+async def aceptar_solicitud_colonia(codigo: int, servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio)):
+    return await servicio.aceptar_solicitud(codigo)
 
 @router.patch(
     "/solicitud-colonia/{codigo}/rechazar",
-    response_model = SolicitudColoniaResponse,
+    response_model = SolicitudColoniaRespuesta,
     status_code = status.HTTP_200_OK,
     summary = "Rechaza una solicitud de ingreso a una colonia",
     description = "Rechaza una solicitud pendiente, cambiando su estado a 'rechazada'.",
     responses = {
         200: {
             "description": "Solicitud rechazada exitosamente.",
-            "model": SolicitudColoniaResponse
+            "model": SolicitudColoniaRespuesta
         },
         404: {
             "description": "Solicitud no encontrada.",
@@ -157,10 +157,9 @@ def aceptar_solicitud_colonia(codigo: int, db: Session = Depends(get_db)):
         }
     }
 )
-def rechazar_solicitud_colonia(codigo: int, db: Session = Depends(get_db)):
-    return SolicitudColoniaService().rechazar_solicitud(db, codigo)
+async def rechazar_solicitud_colonia(codigo: int, servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio)):
+    return await servicio.rechazar_solicitud(codigo)
 
-    return await servicio.servicio_crear_colonia(datos)
 @router.get(
     "/",
     response_model = list[ColoniaRespuesta],

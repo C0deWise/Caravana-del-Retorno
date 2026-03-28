@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
+from typing import Optional
 from sqlalchemy.orm import joinedload
+from app.colonias.excepciones.excepciones import SolicitudEstadoInvalido, SolicitudNoEncontrada
 from app.colonias.models.solicitud_colonia import SolicitudColonia, EstadoSolicitud
 from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear
 from sqlalchemy import select, update
@@ -32,45 +34,48 @@ class SolicitudColoniaRepository:
         )
         return resultado.scalars().all()
       
-     def obtener_solicitud_por_id(self, db: Session, codigo: int) -> Optional[SolicitudColonia]:
-        return db.query(SolicitudColonia).filter(
-            SolicitudColonia.codigo == codigo
-        ).first()
+    async def obtener_solicitud_por_id(self, codigo: int) -> Optional[SolicitudColonia]:
+        resultado = await self.db.execute(
+            select(SolicitudColonia).where(SolicitudColonia.so_codigo == codigo).options(joinedload(SolicitudColonia.usuario))
+        )
+        return resultado.scalar_one_or_none()
 
-    def get_all(self, db: Session) -> list[SolicitudColonia]:
-        return db.query(SolicitudColonia).all()
-      
-     def aceptar_solicitud_colonia(self, db: Session, codigo: int) -> SolicitudColonia:
+    async def get_all(self) -> list[SolicitudColonia]:
+        resultado = await self.db.execute(select(SolicitudColonia))
+        return resultado.scalars().all()
+
+    async def aceptar_solicitud_colonia(self, codigo: int) -> SolicitudColonia:
         """Cambia el estado de una solicitud a aceptada"""
-        solicitud = self.obtener_solicitud_por_id(db, codigo)
+        solicitud = await self.obtener_solicitud_por_id(codigo)
 
         if not solicitud:
             raise SolicitudNoEncontrada(f"Solicitud con código {codigo} no encontrada.")
         
-        if solicitud.estado != EstadoSolicitud.pendiente:
-            raise SolicitudEstadoInvalido(f"Solo se pueden aceptar solicitudes pendientes. Solicitud {codigo} está en estado {solicitud.estado.value}.")
+        if solicitud.so_estado != EstadoSolicitud.pendiente:
+            raise SolicitudEstadoInvalido(f"Solo se pueden aceptar solicitudes pendientes. Solicitud {codigo} está en estado {solicitud.so_estado.value}.")
         
-        solicitud.estado = EstadoSolicitud.aceptada
-        db.commit()
-        db.refresh(solicitud)
+        solicitud.so_estado = EstadoSolicitud.aceptada
+        await self.db.commit()
+        await self.db.refresh(solicitud)
 
         return solicitud
 
-    def rechazar_solicitud_colonia(self, db: Session, codigo: int) -> SolicitudColonia:
+    async def rechazar_solicitud_colonia(self, codigo: int) -> SolicitudColonia:
         """Cambia el estado de una solicitud a rechazada"""
-        solicitud = self.obtener_solicitud_por_id(db, codigo)
+        solicitud = await self.obtener_solicitud_por_id(codigo)
 
         if not solicitud:
             raise SolicitudNoEncontrada(f"Solicitud con código {codigo} no encontrada.")
         
-        if solicitud.estado != EstadoSolicitud.pendiente:
-            raise SolicitudEstadoInvalido(f"Solo se pueden rechazar solicitudes pendientes. Solicitud {codigo} está en estado {solicitud.estado.value}.")
+        if solicitud.so_estado != EstadoSolicitud.pendiente:
+            raise SolicitudEstadoInvalido(f"Solo se pueden rechazar solicitudes pendientes. Solicitud {codigo} está en estado {solicitud.so_estado.value}.")
         
-        solicitud.estado = EstadoSolicitud.rechazada
-        db.commit()
-        db.refresh(solicitud)
+        solicitud.so_estado = EstadoSolicitud.rechazada
+        await self.db.commit()
+        await self.db.refresh(solicitud)
 
         return solicitud
+    
     async def obtener_solicitudes_recientes_por_colonia(self, cod_colonia: int) -> list[SolicitudColonia]:
         limite = datetime.utcnow() - timedelta(days=30)
         resultado = await self.db.execute(
