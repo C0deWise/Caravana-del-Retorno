@@ -32,10 +32,6 @@ def get_solicitud_colonia_servicio(db: AsyncSession = Depends(get_async_db)) -> 
     return SolicitudColoniaService(repositorio)
 
 
-
-
-
-
 def get_colonia_service(db: AsyncSession = Depends(get_async_db)) -> ColoniaService:
     """Dependencia para obtener una instancia de ColoniaService con el repositorio inyectado."""
     repositorio = ColoniaRepository(db)
@@ -88,6 +84,81 @@ router = APIRouter()
 )
 async def crear_colonia(datos: ColoniaCrear, servicio: ColoniaService = Depends(get_colonia_service)):
     """Endpoint para crear una nueva colonia"""
+    return servicio_crear_colonia(db, datos)
+
+
+@router.patch(
+    "/solicitud-colonia/{codigo}/aceptar",
+    response_model = SolicitudColoniaResponse,
+    status_code = status.HTTP_200_OK,
+    summary = "Aceptar una solicitud de ingreso a una colonia",
+    description = "Acepta una solicitud pendiente, cambiando su estado a 'aceptada'.",
+    responses = {
+        200: {
+            "description": "Solicitud aceptada exitosamente.",
+            "model": SolicitudColoniaResponse
+        },
+        404: {
+            "description": "Solicitud no encontrada.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Solicitud con código 123 no encontrada."
+                    }
+                }
+            }
+        },
+        409: {
+            "description": "Solicitud en estado no válido para aceptar.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Solo se pueden aceptar solicitudes pendientes. Solicitud 123 está en estado expirada."
+                    }
+                }
+            }
+        }
+    }
+)
+def aceptar_solicitud_colonia(codigo: int, db: Session = Depends(get_db)):
+    return SolicitudColoniaService().aceptar_solicitud(db, codigo)
+
+@router.patch(
+    "/solicitud-colonia/{codigo}/rechazar",
+    response_model = SolicitudColoniaResponse,
+    status_code = status.HTTP_200_OK,
+    summary = "Rechaza una solicitud de ingreso a una colonia",
+    description = "Rechaza una solicitud pendiente, cambiando su estado a 'rechazada'.",
+    responses = {
+        200: {
+            "description": "Solicitud rechazada exitosamente.",
+            "model": SolicitudColoniaResponse
+        },
+        404: {
+            "description": "Solicitud no encontrada.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Solicitud con código 123 no encontrada."
+                    }
+                }
+            }
+        },
+        409: {
+            "description": "Solicitud en estado no válido para rechazar.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Solo se pueden rechzar solicitudes pendientes. Solicitud 123 está en estado expirada."
+                    }
+                }
+            }
+        }
+    }
+)
+def rechazar_solicitud_colonia(codigo: int, db: Session = Depends(get_db)):
+    return SolicitudColoniaService().rechazar_solicitud(db, codigo)
+
     return await servicio.servicio_crear_colonia(datos)
 @router.get(
     "/",

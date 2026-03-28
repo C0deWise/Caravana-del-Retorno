@@ -31,7 +31,46 @@ class SolicitudColoniaRepository:
             .options(joinedload(SolicitudColonia.usuario))
         )
         return resultado.scalars().all()
- 
+      
+     def obtener_solicitud_por_id(self, db: Session, codigo: int) -> Optional[SolicitudColonia]:
+        return db.query(SolicitudColonia).filter(
+            SolicitudColonia.codigo == codigo
+        ).first()
+
+    def get_all(self, db: Session) -> list[SolicitudColonia]:
+        return db.query(SolicitudColonia).all()
+      
+     def aceptar_solicitud_colonia(self, db: Session, codigo: int) -> SolicitudColonia:
+        """Cambia el estado de una solicitud a aceptada"""
+        solicitud = self.obtener_solicitud_por_id(db, codigo)
+
+        if not solicitud:
+            raise SolicitudNoEncontrada(f"Solicitud con código {codigo} no encontrada.")
+        
+        if solicitud.estado != EstadoSolicitud.pendiente:
+            raise SolicitudEstadoInvalido(f"Solo se pueden aceptar solicitudes pendientes. Solicitud {codigo} está en estado {solicitud.estado.value}.")
+        
+        solicitud.estado = EstadoSolicitud.aceptada
+        db.commit()
+        db.refresh(solicitud)
+
+        return solicitud
+
+    def rechazar_solicitud_colonia(self, db: Session, codigo: int) -> SolicitudColonia:
+        """Cambia el estado de una solicitud a rechazada"""
+        solicitud = self.obtener_solicitud_por_id(db, codigo)
+
+        if not solicitud:
+            raise SolicitudNoEncontrada(f"Solicitud con código {codigo} no encontrada.")
+        
+        if solicitud.estado != EstadoSolicitud.pendiente:
+            raise SolicitudEstadoInvalido(f"Solo se pueden rechazar solicitudes pendientes. Solicitud {codigo} está en estado {solicitud.estado.value}.")
+        
+        solicitud.estado = EstadoSolicitud.rechazada
+        db.commit()
+        db.refresh(solicitud)
+
+        return solicitud
     async def obtener_solicitudes_recientes_por_colonia(self, cod_colonia: int) -> list[SolicitudColonia]:
         limite = datetime.utcnow() - timedelta(days=30)
         resultado = await self.db.execute(
