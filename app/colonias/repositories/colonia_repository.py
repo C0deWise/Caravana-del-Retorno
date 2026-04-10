@@ -5,6 +5,7 @@ relacionadas con colonias colombianas, utilizando sesiones SQLAlchemy
 como capa de persistencia.
 """
 
+from app.usuarios.models.usuario import Usuario
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.colonias.models.colonia_model import Colonia
@@ -57,13 +58,15 @@ class ColoniaRepository:
         return resultado.scalars().first()
     
     async def obtener_colonia_por_id(self, colonia_codigo: int) -> Colonia | None:
-        sentencia = select(Colonia).filter(Colonia.codigo == colonia_codigo)
+        sentencia = select(Colonia).filter(Colonia.co_codigo == colonia_codigo)
         resultado = await self.db.execute(sentencia)
         return resultado.scalars().first()
 
     async def establecer_lider_colonia(self, colonia_codigo: int, lider_id: int) -> Colonia:
         colonia = await self.obtener_colonia_por_id(colonia_codigo)
         colonia.lider = lider_id
+        usuario = await self.db.get(Usuario, lider_id)
+        usuario.ro_codigo = 2 #Revisar si es necesario cambiar el rol del usuario a lider
         await self.db.commit()
         await self.db.refresh(colonia)
         return colonia

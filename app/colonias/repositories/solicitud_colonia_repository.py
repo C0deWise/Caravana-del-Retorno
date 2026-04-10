@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Optional
+from app.usuarios.models.usuario import Usuario
 from sqlalchemy.orm import joinedload
 from app.colonias.excepciones.excepciones import SolicitudEstadoInvalido, SolicitudNoEncontrada
 from app.colonias.models.solicitud_colonia import SolicitudColonia, EstadoSolicitud
@@ -55,6 +56,8 @@ class SolicitudColoniaRepository:
             raise SolicitudEstadoInvalido(f"Solo se pueden aceptar solicitudes pendientes. Solicitud {codigo} está en estado {solicitud.so_estado.value}.")
         
         solicitud.so_estado = EstadoSolicitud.aceptada
+        usuario = await self.db.get(Usuario, solicitud.us_codigo)
+        usuario.co_codigo = solicitud.co_codigo
         await self.db.commit()
         await self.db.refresh(solicitud)
 
