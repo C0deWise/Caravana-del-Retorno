@@ -16,6 +16,7 @@ from app.usuarios.models.usuario import Usuario
 from app.usuarios.models.parentesco import Parentesco
 from app.retornos.api.v1.endpoints.retorno_router import router as retornos_router
 from app.colonias.models.solicitud_colonia import SolicitudColonia
+from app.retornos.modelos.registro_retorno_modelo import RegistroRetorno
 from scripts.seed_roles import seed_roles
 import app.core.scheduler as scheduler
 
@@ -35,6 +36,7 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting %s v%s...", settings.APP_NAME, settings.APP_VERSION)
     await check_db_connection()
+    await create_tables()
     print(">>> lifespan ejecutándose")
     
     # Ejecutar seed de roles automáticamente al iniciar la app
@@ -84,7 +86,7 @@ from app.retornos.api.v1.endpoints.retorno_router import router as retornos_rout
 from app.usuarios.api.v1.usuario_router import router as usuario_router
 app.include_router(colonia_router, prefix="/api/v1")
 app.include_router(usuario_router, prefix="/api/v1")
-app.include_router(retornos_router)
+app.include_router(retornos_router, prefix="/api/v1")
 
 # ─────────────────────────────────────────
 #  Core endpoints
