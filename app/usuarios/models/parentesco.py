@@ -32,24 +32,25 @@ class TipoParentesco(str, enum.Enum):
 class Parentesco(Base):
     __tablename__ = "parentesco"
 
-    pa_codigo: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    pa_fecha_creacion: Mapped[DateTime] = mapped_column(
+    codigo: Mapped[int] = mapped_column("pa_codigo", Integer, primary_key=True, autoincrement=True)
+    fecha_creacion: Mapped[DateTime] = mapped_column(
+        "pa_fecha_creacion",
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
     )
-    pa_estado: Mapped[EstadoSolicitudParentesco] = mapped_column(Enum(EstadoSolicitudParentesco), nullable=False, default=EstadoSolicitudParentesco.pendiente)
+    estado: Mapped[EstadoSolicitudParentesco] = mapped_column("pa_estado", Enum(EstadoSolicitudParentesco), nullable=False, default=EstadoSolicitudParentesco.pendiente)
 
-    us_codigo_solicitante: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.us_codigo"), nullable=False)
-    us_codigo_destinatario: Mapped[int] = mapped_column(Integer, ForeignKey("usuario.us_codigo"), nullable=False)
+    codigo_solicitante: Mapped[int] = mapped_column("us_codigo_solicitante", Integer, ForeignKey("usuario.us_codigo"), nullable=False)
+    codigo_destinatario: Mapped[int] = mapped_column("us_codigo_destinatario", Integer, ForeignKey("usuario.us_codigo"), nullable=False)
 
-    pa_tipo_parentesco: Mapped[TipoParentesco] = mapped_column(Enum(TipoParentesco), nullable=False)
+    tipo_parentesco: Mapped[TipoParentesco] = mapped_column("pa_tipo_parentesco", Enum(TipoParentesco), nullable=False)
 
     # ─────────────────────────────────────────
     #  Relaciones
     # ─────────────────────────────────────────
-    solicitante: Mapped["Usuario"] = relationship("Usuario", foreign_keys=[us_codigo_solicitante])
-    destinatario: Mapped["Usuario"] = relationship("Usuario", foreign_keys=[us_codigo_destinatario])
+    solicitante: Mapped["Usuario"] = relationship("Usuario", foreign_keys=[codigo_solicitante])
+    destinatario: Mapped["Usuario"] = relationship("Usuario", foreign_keys=[codigo_destinatario])
 
     def __repr__(self) -> str:
         return f"Parentesco(id={self.pa_codigo!r}, pa_estado={self.pa_estado!r} us_codigo_solicitante={self.us_codigo_solicitante!r} us_codigo_destinatario={self.us_codigo_destinatario!r} tipo_parentesco={self.pa_tipo_parentesco!r})"
