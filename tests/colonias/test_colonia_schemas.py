@@ -24,22 +24,22 @@ def test_crear_colonia_colombia_con_lider():
         pais = "colombia",
         departamento = "antioquia",
         ciudad = "medellín",
-        lider_id = 2
+        lider = 2
     )
 
     assert colonia.pais == "Colombia"
     assert colonia.departamento == "Antioquia"
     assert colonia.ciudad == "Medellín"
-    assert colonia.lider_id == 2
+    assert colonia.lider == 2
 
 def test_crear_colonia_extranjera_con_lider():
     colonia = ColoniaCrear(
         pais = "españa",
-        lider_id = 3
+        lider = 3
     )
 
     assert colonia.pais == "España"
-    assert colonia.lider_id == 3
+    assert colonia.lider == 3
 
 def test_crear_colonia_colombia_sin_departamento_ciudad():
     with pytest.raises(ValueError):
