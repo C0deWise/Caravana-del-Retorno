@@ -1,3 +1,10 @@
+"""
+Modulo que define las excepciones personalizadas para el proceso de registro a un retorno.
+Contiene las clases de excepciones que se lanzan en el servicio de registro a un retorno 
+para manejar errores específicos como retornos no existentes, usuarios no existentes, 
+usuarios sin colonia, y usuarios ya registrados. 
+"""
+
 from fastapi import HTTPException, status
 
 class RetornoNoExistente(HTTPException):

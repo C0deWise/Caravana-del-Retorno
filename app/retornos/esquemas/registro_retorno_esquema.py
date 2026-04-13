@@ -1,6 +1,10 @@
+"""
+Modulo que define los esquemas para el registro a un retorno.
+Contiene los esquemas para estructurar los datos de entrada y salida 
+relacionados con el proceso de registro a un retorno.
+"""
 
-from pydantic import BaseModel, Field
-import datetime
+from pydantic import BaseModel
 
 class RegistroRetornoCrear(BaseModel):
     usuario: int

@@ -1,3 +1,9 @@
+"""
+Modulo que define el modelo para el registro a un retorno.
+Aquí se mapea la tabla de registro a un retorno en la base de datos, definiendo 
+sus columnas y relaciones.
+"""
+
 from sqlalchemy import Integer, Boolean, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
