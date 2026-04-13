@@ -36,7 +36,6 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting %s v%s...", settings.APP_NAME, settings.APP_VERSION)
     await check_db_connection()
-    await create_tables()
     print(">>> lifespan ejecutándose")
     
     # Ejecutar seed de roles automáticamente al iniciar la app
