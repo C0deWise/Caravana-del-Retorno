@@ -24,3 +24,9 @@ class RegistroRetornoRespuesta(BaseModel):
     num_parqueadero: int 
 
     model_config = {"from_attributes": True}
+
+class RegistroRetornoDarseDeBaja(BaseModel):
+    usuario: int
+    retorno: int
+
+    model_config = {"from_attributes": True}

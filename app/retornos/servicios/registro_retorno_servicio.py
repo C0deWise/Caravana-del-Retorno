@@ -8,7 +8,7 @@ estructurar los datos de entrada y salida.
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
-from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoRespuesta
+from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoDarseDeBaja, RegistroRetornoRespuesta
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.retornos.excepciones.registro_retorno_excepciones import RetornoNoExistente, RetornoEstadoFinalizado, UsuarioNoExistente, UsuarioSinColonia, UsuarioYaRegistrado
@@ -65,3 +65,14 @@ class RegistroRetornoServicio:
             - RegistroRetornoRespuesta: Esquema con los datos del registro de retorno encontrado, o None si no existe. 
         """
         return await self.repositorio.obtener_registro_retorno_por_usuario_y_retorno(usuario_id, retorno_id)
+    
+    async def darse_de_baja(self, datos:RegistroRetornoDarseDeBaja):
+        """
+        Permite a un usuario darse de baja de un retorno específico, eliminando su registro de retorno.
+        Parámetros:
+            - usuario_id (int): ID del usuario.
+            - retorno_id (int): ID del retorno.
+        Retorna:
+            - bool: True si el registro de retorno fue eliminado exitosamente, False si no se encontró el registro.
+        """
+        return await self.repositorio.eliminar_registro_retorno(datos)

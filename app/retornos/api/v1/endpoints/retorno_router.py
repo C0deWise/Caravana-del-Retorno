@@ -4,7 +4,7 @@ Expone operaciones de creación y consulta bajo el prefijo /retornos,
 con documentación Swagger integrada.
 """
 
-from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoRespuesta
+from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoDarseDeBaja, RegistroRetornoRespuesta
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
@@ -101,3 +101,17 @@ async def obtener_retorno(codigo: int, db: AsyncSession = Depends(get_db)):
 )
 async def inscribir_usuario_en_retorno(registro: RegistroRetornoCrear, servicio: RegistroRetornoServicio = Depends(obtener_registro_retorno_servicio)):
     return await servicio.crear_registro_retorno(registro)
+
+
+@router.delete(
+    "/darse-de-baja",
+    response_model= str,
+    summary="Darse de baja de un retorno",
+    description="Permite a un usuario darse de baja de un retorno específico.",
+)
+async def darse_de_baja(datos: RegistroRetornoDarseDeBaja, servicio: RegistroRetornoServicio = Depends(obtener_registro_retorno_servicio)):
+    resultado = await servicio.darse_de_baja(datos)
+    if resultado:
+        return {"detail": "Usuario dado de baja exitosamente del retorno."}
+    else:
+        return {"detail": "No se encontró un registro de retorno para el usuario y retorno especificados."}
