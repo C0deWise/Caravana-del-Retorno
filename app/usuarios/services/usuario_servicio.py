@@ -169,3 +169,7 @@ class UsuarioServicio:
     async def listar_parentescos_usuario(self, codigo_usuario: int):
         """Lista todas las relaciones de parentesco de un usuario."""
         return await self.repositorio_parentesco.listar_parentescos_usuario(codigo_usuario)
+    
+    async def buscar_por_colonia(self, colonia: int) -> list[Usuario]:
+        """Busca usuarios miembros por colonia."""
+        return await self.repositorio.buscar_por_colonia(colonia)

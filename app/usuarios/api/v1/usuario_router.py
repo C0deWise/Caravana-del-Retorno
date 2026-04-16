@@ -155,3 +155,11 @@ async def listar_parentescos_usuario(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
+
+@router.get("/colonia/{colonia}", response_model=list[UsuarioSalida], summary="Buscar usuarios por colonia")
+async def buscar_usuario_por_colonia(
+    colonia: int, 
+    servicio: UsuarioServicio = Depends(get_usuario_servicio),
+):
+    """Busca y devuelve una lista de usuarios miembros  en una colonia específica."""
+    return await servicio.buscar_por_colonia(colonia)
