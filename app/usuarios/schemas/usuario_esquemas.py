@@ -117,19 +117,16 @@ class UsuarioResumen(BaseModel):
 
 
 class UsuarioConsultaColonia(BaseModel):
-    id: int = Field(alias="us_codigo")
-    nombre: str = Field(alias="us_nombre")
-    apellido: str = Field(alias="us_apellido")
-    codigo_colonia: Optional[int] = Field(alias="co_codigo")
-    documento: str = Field(alias="us_documento")
-    tipo_doc: str = Field(alias="us_tipo_doc")
-    nombre: str = Field(alias="us_nombre")
-    apellido: str = Field(alias="us_apellido")
-    genero: str = Field(alias="us_genero")
-    fecha_nacimiento: date = Field(alias="us_fecha_nacimiento")
-    celular: str = Field(alias="us_celular")
-    correo: str = Field(alias="us_correo")
-    role: int = Field(alias="ro_codigo")
-    codigo_colonia: Optional[int] = Field(alias="co_codigo")
-    
+    id: int 
+    nombre: str
+    apellido: str 
+    codigo_colonia: int
+    documento: str 
+    tipo_doc: str 
+    genero: str 
+    fecha_nacimiento: date 
+    celular: str
+    correo: str
+    role: int 
+
     model_config = {"from_attributes": True, "populate_by_name": True}
