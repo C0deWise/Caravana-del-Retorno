@@ -13,9 +13,15 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 from app.core.database import Base
-# Aqui importas tus modelos para que Alembic pueda detectarlos
-# from app.models import Usuario, Colonia, Rol etc...
+from app.colonias.models.colonia_model import Colonia
+from app.colonias.models.solicitud_colonia import SolicitudColonia
+from app.retornos.modelos.retorno_modelo import Retorno
+from app.retornos.modelos.registro_retorno_modelo import RegistroRetorno
+from app.usuarios.models.usuario import Usuario, Rol
+from app.usuarios.models.parentesco import Parentesco
 
+# Verificar que los modelos se cargan correctamente
+print("Modelos detectados:", list(Base.metadata.tables.keys()))
 config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))
 
 target_metadata = Base.metadata
