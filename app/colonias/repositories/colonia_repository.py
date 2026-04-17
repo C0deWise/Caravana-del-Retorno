@@ -66,7 +66,11 @@ class ColoniaRepository:
         colonia = await self.obtener_colonia_por_id(colonia_codigo)
         colonia.lider = lider_id
         usuario = await self.db.get(Usuario, lider_id)
-        usuario.ro_codigo = 2 #Revisar si es necesario cambiar el rol del usuario a lider
+        usuario.ro_codigo = 2 #Cambia rol a líder
+
+        if usuario.co_codigo is None:
+            usuario.co_codigo = colonia_codigo
+
         await self.db.commit()
         await self.db.refresh(colonia)
         return colonia
