@@ -4,6 +4,8 @@ Coordina la validación de reglas de negocio y la interacción con el
 repositorio de colonias, garantizando la integridad de los datos antes 
 de su persistencia en la base de datos.
 """
+from app.colonias.excepciones.excepciones import ColoniaInactiva, ColoniaNoExistente
+from app.colonias.models.colonia_model import ColoniaEstado
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta
 from app.colonias.repositories.colonia_repository import ColoniaRepository
@@ -83,3 +85,19 @@ class ColoniaService:
     async def obtener_colonias(self) -> list[ColoniaRespuesta]:
         colonias = await self.repositorio.obtener_colonias()
         return [ColoniaRespuesta.model_validate(colonia, from_attributes=True) for colonia in colonias]
+    
+    async def desactivar_colonia(self, colonia_codigo: int) -> ColoniaRespuesta:
+        colonia = await self.repositorio.obtener_colonia_por_id(colonia_codigo)
+        if not colonia:
+            raise ColoniaNoExistente(colonia_codigo)
+        
+        if colonia.estado == ColoniaEstado.INACTIVA:
+            raise ColoniaInactiva(colonia_codigo)
+         
+        tiene_miembros = await self.repositorio.tiene_miembros_colonia(colonia_codigo)
+        if tiene_miembros:
+            #Desasociar miembros de la colonia antes de desactivarla, incluye el cambio de rol de líder a usuario común
+            await self.repositorio.sacar_miembros_colonia(colonia_codigo)
+        
+        colonia_desactivada = await self.repositorio.desactivar_colonia(colonia)
+        return ColoniaRespuesta.model_validate(colonia_desactivada, from_attributes=True)
