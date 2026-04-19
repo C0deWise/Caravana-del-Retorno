@@ -19,7 +19,7 @@ from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear
 from app.colonias.services.colonia_services import ColoniaService
 from app.colonias.services.solicitud_colonias_services import SolicitudColoniaService
 from app.usuarios.services.usuario_servicio import UsuarioServicio
-
+from app.colonias.docs.docs_colonia import desactivar_colonia_docs
 
 from app.colonias.docs.docs_solicitud_colonia import (
     crear_solicitud_docs,
@@ -260,4 +260,15 @@ async def obtener_solicitudes_recientes_usuario(
 )
 async def asignar_lider(colonia_codigo: int, datos: ColoniaEstablecerLider, servicio: ColoniaService = Depends(get_colonia_service)) -> ColoniaRespuesta:
     """Endpoint para asignar un líder a una colonia existente"""
-    return await servicio.servicio_establecer_lider(colonia_codigo, datos.lider_id)
+    return await servicio.servicio_establecer_lider(colonia_codigo, datos.lider)
+
+@router.patch(
+    "/desactivar/{colonia_codigo}/",
+    response_model=ColoniaRespuesta, **desactivar_colonia_docs
+)
+async def desactivar_colonia(
+    colonia_codigo: int,
+    servicio: ColoniaService = Depends(get_colonia_service)
+) -> ColoniaRespuesta:
+    """Endpoint para desactivar una colonia existente"""
+    return await servicio.desactivar_colonia(colonia_codigo)

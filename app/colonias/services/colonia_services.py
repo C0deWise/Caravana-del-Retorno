@@ -4,6 +4,8 @@ Coordina la validación de reglas de negocio y la interacción con el
 repositorio de colonias, garantizando la integridad de los datos antes 
 de su persistencia en la base de datos.
 """
+from app.colonias.excepciones.excepciones import ColoniaInactiva, ColoniaNoExistente
+from app.colonias.models.colonia_model import ColoniaEstado
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta
 from app.colonias.repositories.colonia_repository import ColoniaRepository
