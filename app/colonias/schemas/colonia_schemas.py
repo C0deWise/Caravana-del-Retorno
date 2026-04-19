@@ -8,6 +8,7 @@ en el exterior.
 from pydantic import BaseModel, field_validator, model_validator, Field
 from typing import Optional
 import re
+from app.colonias.models.colonia_model import ColoniaEstado
 
 class ColoniaCrear (BaseModel):
     """Esquema de entrada para crear una colonia."""
@@ -74,15 +75,16 @@ class ColoniaCrear (BaseModel):
 class ColoniaRespuesta (BaseModel):
     """Esquema de respúesta para una colonia creada."""
 
-    codigo: int = Field(alias="co_codigo")
-    pais: str = Field(alias="co_pais")
-    departamento: Optional[str] = Field(None, alias="co_departamento")
-    ciudad: Optional[str] = Field(None, alias="co_ciudad")
-    lider: Optional[int] = None
+    codigo: int
+    pais: str
+    departamento: Optional[str] = None
+    ciudad: Optional[str] = None
+    estado: ColoniaEstado
+    lider: Optional[int]= None
 
-    model_config = {"from_attributes": True, "populate_by_name": True}
+    model_config = {"from_attributes": True}
 
 class ColoniaEstablecerLider (BaseModel):
     """Esquema de entrada para establecer un líder a una colonia."""
 
-    lider_id: int = None
+    lider: int = None

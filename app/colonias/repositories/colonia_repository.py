@@ -8,7 +8,7 @@ como capa de persistencia.
 from app.usuarios.models.usuario import Usuario
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.colonias.models.colonia_model import Colonia
+from app.colonias.models.colonia_model import Colonia, ColoniaEstado
 from app.colonias.schemas.colonia_schemas import ColoniaCrear
 
 class ColoniaRepository:
@@ -26,9 +26,9 @@ class ColoniaRepository:
             Colonia: Objeto de la colonia recién creado con su id generado.
         """
         colonia = Colonia(
-            co_pais=datos.pais,
-            co_departamento=datos.departamento,
-            co_ciudad=datos.ciudad,
+            pais=datos.pais,
+            departamento=datos.departamento,
+            ciudad=datos.ciudad,
             lider=datos.lider,
         )
         self.db.add(colonia)
@@ -50,15 +50,15 @@ class ColoniaRepository:
             Colonia | None: La colonia encontrada o None si no existe.
         """
         sentencia = select(Colonia).filter(
-            Colonia.co_pais == pais,
-            Colonia.co_departamento == departamento,
-            Colonia.co_ciudad == ciudad
+            Colonia.pais == pais,
+            Colonia.departamento == departamento,
+            Colonia.ciudad == ciudad
         )
         resultado = await self.db.execute(sentencia)
         return resultado.scalars().first()
     
     async def obtener_colonia_por_id(self, colonia_codigo: int) -> Colonia | None:
-        sentencia = select(Colonia).filter(Colonia.co_codigo == colonia_codigo)
+        sentencia = select(Colonia).filter(Colonia.codigo == colonia_codigo)
         resultado = await self.db.execute(sentencia)
         return resultado.scalars().first()
 
@@ -154,4 +154,3 @@ class ColoniaRepository:
         await self.db.commit()
         await self.db.refresh(colonia)
         return colonia
-        
