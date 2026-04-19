@@ -5,8 +5,15 @@ con documentación Swagger integrada.
 """
 
 from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoRespuesta
+from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
+from app.retornos.repositorios.persona_repositorio import PersonaRepositorio
+from app.retornos.repositorios.registro_retorno_grupo_repositorio import RegistroRetornoGrupoRepositorio
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
+from app.retornos.repositorios.retorno_grupo_usuario_repositorio import RetornoGrupoUsuarioRepositorio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
+from app.retornos.repositorios.solicitud_grupo_retorno_repositorio import SolicitudGrupoRetornoRepositorio
+from app.retornos.servicios.grupo_retorno_servicio import GrupoRetornoServicio
+from app.retornos.servicios.registro_retorno_grupo_servicio import RegistroRetornoGrupoServicio
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.services.usuario_servicio import UsuarioServicio
@@ -32,6 +39,25 @@ def obtener_registro_retorno_servicio(db: AsyncSession = Depends(get_db)) -> Reg
         usuario_servicio
     )
 
+def obtener_registro_retorno_grupo_servicio(db: AsyncSession = Depends(get_db)):
+    
+    repositorio_registro_grupo = RegistroRetornoGrupoRepositorio(db)
+    repositorio_persona = PersonaRepositorio(db)
+    return RegistroRetornoGrupoServicio(repositorio_registro_grupo, repositorio_persona)
+
+def obtener_grupo_retorno_servicio(db: AsyncSession = Depends(get_db)):
+    repositorio_retorno = RetornoRepository(db)
+    repositorio_grupos = GrupoRetornoRepositorio(db)
+    repositorio_solicitudes = SolicitudGrupoRetornoRepositorio(db)
+    repositorio_usuario_grupo = RetornoGrupoUsuarioRepositorio(db)
+    repositorio_usuario = UsuarioRepositorio(db)
+    return GrupoRetornoServicio(
+        repositorio_retorno,
+        repositorio_grupos,
+        repositorio_solicitudes,
+        repositorio_usuario_grupo,
+        repositorio_usuario
+    )
 
 def obtener_retorno_servicio(db: AsyncSession = Depends(get_db)) -> RetornoService:
     return RetornoService(db)

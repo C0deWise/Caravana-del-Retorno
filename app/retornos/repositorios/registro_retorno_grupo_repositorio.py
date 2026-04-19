@@ -1,4 +1,6 @@
-
+"""
+    registro_retorno_grupo_repositorio.py Repositorio para gestionar los registros de grupos de retorno.
+"""
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,5 +11,5 @@ class RegistroRetornoGrupoRepositorio:
     def __init__(self,db: AsyncSession):
         self.db = db
 
-    async def crear_grupo_retorno(self, datos: RegistroRetornoGrupoCrear):
+    async def crear_registro_grupo_retorno(self, datos: RegistroRetornoGrupoCrear):
         pass
