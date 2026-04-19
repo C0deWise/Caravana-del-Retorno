@@ -33,6 +33,10 @@ def obtener_registro_retorno_servicio(db: AsyncSession = Depends(get_db)) -> Reg
     )
 
 
+def obtener_retorno_servicio(db: AsyncSession = Depends(get_db)) -> RetornoService:
+    return RetornoService(db)
+
+
 @router.post(
     "/",
     response_model=RetornoResponse,
@@ -53,9 +57,8 @@ def obtener_registro_retorno_servicio(db: AsyncSession = Depends(get_db)) -> Reg
         },
     },
 )
-async def crear_retorno(data: RetornoCreate, db: AsyncSession = Depends(get_db)):
-    service = RetornoService(db)
-    return await service.crear_retorno(data)
+async def crear_retorno(data: RetornoCreate, servicio: RetornoService = Depends(obtener_retorno_servicio)):
+    return await servicio.crear_retorno(data)
 
 
 @router.get(
@@ -64,9 +67,8 @@ async def crear_retorno(data: RetornoCreate, db: AsyncSession = Depends(get_db))
     summary="Listar todos los retornos",
     description="Obtiene el listado completo de retornos registrados en el sistema.",
 )
-async def listar_retornos(db: AsyncSession = Depends(get_db)):
-    service = RetornoService(db)
-    return await service.listar_retornos()
+async def listar_retornos(servicio: RetornoService = Depends(obtener_retorno_servicio)):
+    return await servicio.listar_retornos()
 
 
 @router.get(
@@ -75,9 +77,8 @@ async def listar_retornos(db: AsyncSession = Depends(get_db)):
     summary="Obtener retorno por código",
     description="Busca y retorna un retorno específico usando su código primario. Retorna 404 si no existe.",
 )
-async def obtener_retorno(codigo: int, db: AsyncSession = Depends(get_db)):
-    service = RetornoService(db)
-    return await service.obtener_retorno(codigo)
+async def obtener_retorno(codigo: int, servicio: RetornoService = Depends(obtener_retorno_servicio)):
+    return await servicio.obtener_retorno(codigo)
 
 @router.post(
     "/registro",

@@ -4,7 +4,7 @@ from sqlalchemy.exc import OperationalError
 from app.core.database import check_db_connection
 
 @pytest.mark.asyncio
-@patch("app.core.database.engine")
+@patch("app.core.database.async_engine")
 async def test_check_db_connection_success(mock_engine):
     """
     Prueba que check_db_connection retorna True cuando la conexión es exitosa.
@@ -22,7 +22,7 @@ async def test_check_db_connection_success(mock_engine):
     mock_connection.execute.assert_called_once()
 
 @pytest.mark.asyncio
-@patch("app.core.database.engine")
+@patch("app.core.database.async_engine")
 async def test_check_db_connection_failure(mock_engine):
     """
     Prueba que check_db_connection retorna False cuando ocurre un OperationalError.
