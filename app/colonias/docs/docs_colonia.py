@@ -1,3 +1,7 @@
+"""
+Documentación para la función de desactivación de una colonia.
+"""
+
 from fastapi import status
 
 desactivar_colonia_docs = dict(

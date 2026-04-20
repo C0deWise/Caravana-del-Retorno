@@ -83,10 +83,29 @@ class ColoniaService:
         return ColoniaRespuesta.model_validate(colonia_actualizada, from_attributes=True)
     
     async def obtener_colonias(self) -> list[ColoniaRespuesta]:
+        """
+        Obtiene la lista de colonias existentes.
+        Parámetros:
+            db (Session): Sesión activa de SQLAlchemy.
+        Retorna:
+            list[ColoniaRespuesta]: Lista de colonias existentes.
+        """
         colonias = await self.repositorio.obtener_colonias()
         return [ColoniaRespuesta.model_validate(colonia, from_attributes=True) for colonia in colonias]
     
     async def desactivar_colonia(self, colonia_codigo: int) -> ColoniaRespuesta:
+        """
+        Desactiva una colonia existente. Si una colonia tiene miembros, se desasocian los miembros
+        antes de desactivar la colonia, incluye el cambio de rol a usuario l+ider a usuario común.
+        Parámetros:
+            db (Session): Sesión activa de SQLAlchemy.
+            colonia_codigo (int): Código de la colonia a desactivar.
+        Retorna:
+            ColoniaRespuesta: La colonia desactivada.
+        Excepciones:
+            HTTPException 404: Si la colonia no existe en la base de datos.
+            HTTPException 409: Si la colonia ya está inactiva.
+        """
         colonia = await self.repositorio.obtener_colonia_por_id(colonia_codigo)
         if not colonia:
             raise ColoniaNoExistente(colonia_codigo)
