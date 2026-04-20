@@ -1,4 +1,11 @@
-from sqlalchemy import Integer, String
+"""
+Módulo que define el modelo de datos para la entidad Colonia.
+Contiene la clase Colonia que representa la estructura de la tabla de colonias
+en la base de datos, incluyendo sus atributos y tipos de datos.
+"""
+import enum
+
+from sqlalchemy import Integer, String, Enum
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
