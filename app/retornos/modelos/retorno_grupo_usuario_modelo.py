@@ -7,11 +7,12 @@
 from sqlalchemy import ForeignKey, Integer, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.database import Base
 from app.retornos.modelos.grupo_retorno_modelo import GrupoRetorno
 from app.usuarios.models.usuario import Usuario
 
 
-class RetornoGrupoUsuario:
+class RetornoGrupoUsuario(Base):
     __tablename__ = 'usuario_grupo_retorno'
     ugr_codigo: Mapped[int] = mapped_column("ugr_codigo", Integer, primary_key=True, autoincrement=True)
     us_codigo: Mapped[int] = mapped_column("us_codigo", Integer, ForeignKey("usuario.us_codigo"), nullable=False)

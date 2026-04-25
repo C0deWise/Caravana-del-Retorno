@@ -6,12 +6,13 @@
 from sqlalchemy import ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.database import Base
 from app.retornos.modelos.grupo_retorno_modelo import GrupoRetorno
 from app.retornos.modelos.retorno_modelo import Retorno
 
 
-class RegistroRetornoGrupo:
-    _tablename_ = 'registro_retorno_grupo'
+class RegistroRetornoGrupo(Base):
+    __tablename__ = 'registro_retorno_grupo'
     regg_codigo: Mapped[int] = mapped_column("regg_codigo",Integer, primary_key=True, autoincrement=True)
     gr_codigo: Mapped[int] = mapped_column("gr_codigo", Integer, ForeignKey("grupo_retorno.gr_codigo"), nullable=False)
     re_codigo: Mapped[int] = mapped_column("re_codigo", Integer, ForeignKey("retorno.codigo"), nullable=False)

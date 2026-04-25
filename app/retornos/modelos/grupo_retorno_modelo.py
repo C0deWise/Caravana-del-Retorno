@@ -6,11 +6,11 @@
 
 from sqlalchemy import Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
+from app.core.database import Base
 from app.usuarios.models.usuario import Usuario
 
-class GrupoRetorno:
-    __tablename__ = 'registro_retorno'
+class GrupoRetorno(Base):
+    __tablename__ = 'grupo_retorno'
     gr_codigo: Mapped[int] = mapped_column("gr_codigo",Integer, primary_key=True, autoincrement=True)
     us_codigo_lider: Mapped[int] = mapped_column("us_codigo_lider", Integer, ForeignKey("usuario.us_codigo"), nullable=False)
 

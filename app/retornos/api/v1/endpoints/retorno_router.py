@@ -1,6 +1,7 @@
 """
 Endpoints HTTP para el módulo Retorno.
 Expone operaciones de creación y consulta bajo el prefijo /retornos,
+y operaciones de grupo de retorno bajo el prefijo /grupoRetorno,
 con documentación Swagger integrada.
 """
 
@@ -15,23 +16,34 @@ from app.retornos.repositorios.solicitud_grupo_retorno_repositorio import Solici
 from app.retornos.servicios.grupo_retorno_servicio import GrupoRetornoServicio
 from app.retornos.servicios.registro_retorno_grupo_servicio import RegistroRetornoGrupoServicio
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
+from app.retornos.esquemas.solicitud_grupo_retorno_esquema import SolicitudGrupoRetornoRespuesta, SolicitudGrupoRetornoEstado
+from app.retornos.esquemas.grupo_retorno_esquema import GrupoRetornoCrear, GrupoRetornoRespuesta
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.services.usuario_servicio import UsuarioServicio
-from fastapi import APIRouter, Depends, status
+from app.usuarios.schemas.usuario_esquemas import UsuarioSalida
+from fastapi import APIRouter, Depends, status, HTTPException, Body
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List
 from app.core.database import get_db
 from app.retornos.esquemas.retorno_esquemas import RetornoCreate, RetornoResponse
 from app.retornos.servicios.retorno_servicio import RetornoService
-
+from app.usuarios.repository.parentesco_repositorio import ParentescoRepositorio
+from app.retornos.esquemas.solicitud_grupo_retorno_esquema import SolicitudGrupoRetornoRespuesta, SolicitudGrupoRetornoEstado
 router = APIRouter(
     prefix="/retornos",
     tags=["Retornos"],
 )
 
+grupo_retorno_router = APIRouter(
+    prefix="/grupoRetorno",
+    tags=["Grupos de Retorno"],
+)
+
 def obtener_registro_retorno_servicio(db: AsyncSession = Depends(get_db)) -> RegistroRetornoServicio:
     repositorio = RegistroRetornoRepositorio(db)
     retorno_repositorio = RetornoRepository(db)
-    usuario_servicio = UsuarioServicio(UsuarioRepositorio(db), None)
+    
+    usuario_servicio = UsuarioServicio(UsuarioRepositorio(db), ParentescoRepositorio(db))
     
     return RegistroRetornoServicio(
         repositorio,
@@ -128,3 +140,102 @@ async def obtener_retorno(codigo: int, servicio: RetornoService = Depends(obtene
 )
 async def inscribir_usuario_en_retorno(registro: RegistroRetornoCrear, servicio: RegistroRetornoServicio = Depends(obtener_registro_retorno_servicio)):
     return await servicio.crear_registro_retorno(registro)
+
+
+@grupo_retorno_router.post(
+    "/",
+    response_model=GrupoRetornoRespuesta,
+    status_code=status.HTTP_201_CREATED,
+    summary="Crear un nuevo grupo de retorno",
+    description="Crea un nuevo grupo de retorno asignando un líder.",
+    responses={
+        404: {
+            "description": "El líder especificado no existe.",
+            "content": {"application/json": {"example": {"detail": "Usuario con ID 123 no encontrado"}}},
+        },
+    },
+)
+async def crear_grupo_retorno_endpoint(
+    data: GrupoRetornoCrear,
+    servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)
+):
+    """
+    Endpoint para crear un nuevo grupo de retorno.
+    """
+    return await servicio.crear_grupo_retorno(data)
+
+
+@grupo_retorno_router.get(
+    "/lider/{us_codigo_lider}",
+    response_model=List[GrupoRetornoRespuesta],
+    summary="Obtener grupos de retorno por código de líder",
+    description="Obtiene todos los grupos de retorno liderados por un usuario específico.",
+    responses={
+        404: {
+            "description": "El líder especificado no existe.",
+            "content": {"application/json": {"example": {"detail": "Usuario con ID 123 no encontrado"}}},
+        },
+    },
+)
+async def obtener_grupos_por_lider_endpoint(
+    us_codigo_lider: int,
+    servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)
+):
+    """
+    Endpoint para obtener grupos de retorno por el código del líder.
+    """
+    return await servicio.obtener_grupos_por_lider_id(us_codigo_lider)
+
+
+@grupo_retorno_router.get(
+    "/{gr_codigo}/lider",
+    response_model=UsuarioSalida, 
+    summary="Obtener líder de grupo por código de grupo",
+    description="Obtiene los detalles del líder de un grupo de retorno específico.",
+    responses={
+        404: {
+            "description": "El grupo de retorno no existe.",
+            "content": {"application/json": {"example": {"detail": "Grupo de retorno con código 123 no encontrado"}}},
+        },
+    },
+)
+async def obtener_lider_de_grupo_endpoint(
+    gr_codigo: int,
+    servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)
+):
+    return await servicio.obtener_lider_por_grupo_id(gr_codigo)
+
+@grupo_retorno_router.post(
+    "/solicitar-miembro",
+    response_model=SolicitudGrupoRetornoRespuesta,
+    status_code=status.HTTP_201_CREATED,
+    summary="Enviar solicitud individual a un usuario",
+    description="El líder envía una solicitud a un usuario registrado para que se una a su grupo de retorno.",
+    responses={
+        404: {"description": "Usuario o Grupo no encontrado."},
+        201: {
+            "description": "Solicitud enviada exitosamente.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "solgr_codigo": 1,
+                        "us_codigo": 123,
+                        "gr_codigo": 456,
+                        "solgr_time_stamp": "2026-04-25T03:45:31.000000+00:00",
+                        "solgr_estado": SolicitudGrupoRetornoEstado.PENDIENTE
+                    }
+                }
+            }
+        }
+    }
+)
+async def enviar_solicitud_individual_endpoint(
+    us_codigo: int = Body(..., embed=True),
+    gr_codigo: int = Body(..., embed=True),
+    servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)
+):
+    """
+    Endpoint para que un líder solicite la incorporación de un individuo a un grupo.
+    """
+    solicitud = await servicio.crear_solicitud_grupo_retorno(us_codigo, gr_codigo)
+    return solicitud

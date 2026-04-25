@@ -7,16 +7,15 @@
 
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
+from app.core.database import Base
 
-
-class Persona:
-
-    _tablename_ = 'persona'
-    pe_codigo: Mapped[int] = mapped_column("regg_codigo",Integer, primary_key=True, autoincrement=True)
-    pe_nombre: Mapped[str] = mapped_column("regg_nombre", String(100), nullable=False)
-    pe_apellido: Mapped[str] = mapped_column("regg_apellido", String(100), nullable=False)
-    pe_correo: Mapped[str] = mapped_column("regg_correo", String(100), unique=True, nullable=True)
-    pe_fecha_nacimiento: Mapped[str] = mapped_column("regg_fecha_nacimiento", String(100), nullable=False)
+class Persona(Base):
+    __tablename__ = 'persona'
+    pe_codigo: Mapped[int] = mapped_column("pe_codigo", Integer, primary_key=True, autoincrement=True)
+    pe_nombre: Mapped[str] = mapped_column("pe_nombre", String(100), nullable=False)
+    pe_apellido: Mapped[str] = mapped_column("pe_apellido", String(100), nullable=False)
+    pe_correo: Mapped[str] = mapped_column("pe_correo", String(100), unique=True, nullable=True)
+    pe_fecha_nacimiento: Mapped[str] = mapped_column("pe_fecha_nacimiento", String(100), nullable=False)
 
 
     def __repr__(self) -> str:

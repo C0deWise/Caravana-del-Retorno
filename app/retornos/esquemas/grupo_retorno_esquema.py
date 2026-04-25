@@ -6,10 +6,8 @@
 from pydantic import BaseModel
 class GrupoRetornoCrear(BaseModel):
     lider: int
-
     model_config = {"from_attributes": True}
 class GrupoRetornoRespuesta(BaseModel):
-    codigo: int
-    lider: int
-
+    gr_codigo: int
+    us_codigo_lider: int
     model_config = {"from_attributes": True}
