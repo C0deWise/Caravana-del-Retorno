@@ -10,18 +10,20 @@ from app.retornos.repositorios.solicitud_grupo_retorno_repositorio import Solici
 from app.retornos.esquemas.grupo_retorno_esquema import GrupoRetornoCrear, GrupoRetornoRespuesta
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno # Import SolicitudGrupoRetorno
+from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
 from app.usuarios.schemas.usuario_esquemas import UsuarioSalida # Para el esquema de respuesta del líder
 from app.usuarios.models.usuario import Usuario # Para el tipo de retorno del líder
 from fastapi import HTTPException, status
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
 
 class GrupoRetornoServicio:
-    def __init__(self, repositorio_retorno: RetornoRepository, repositorio_grupos: GrupoRetornoRepositorio, repositorio_solicitudes: SolicitudGrupoRetornoRepositorio , repositorio_usuario_grupo: RetornoGrupoUsuarioRepositorio, repositorio_usuario: UsuarioRepositorio = None): # type: ignore
+    def __init__(self, repositorio_retorno: RetornoRepository, repositorio_grupos: GrupoRetornoRepositorio, repositorio_solicitudes: SolicitudGrupoRetornoRepositorio , repositorio_usuario_grupo: RetornoGrupoUsuarioRepositorio, repositorio_usuario: UsuarioRepositorio, repositorio_registro_individual: RegistroRetornoRepositorio): # type: ignore
         self.repositorio_retorno = repositorio_retorno
         self.repositorio_grupos = repositorio_grupos
         self.repositorio_solicitudes = repositorio_solicitudes
         self.repositorio_usuario_grupo = repositorio_usuario_grupo
         self.repositorio_usuario = repositorio_usuario
+        self.repositorio_registro_individual = repositorio_registro_individual
 
     async def crear_grupo_retorno(self, datos):
         """
@@ -77,11 +79,41 @@ class GrupoRetornoServicio:
             )
 
         # Validar existencia del grupo
-        if not await self.existe_grupo_retorno(gr_codigo):
+        grupo = await self.repositorio_grupos.obtener_grupo_por_id(gr_codigo)
+        if not grupo:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"El grupo de retorno con ID {gr_codigo} no existe."
             )
+            
+        # Restricción: El líder no puede enviarse una solicitud a sí mismo
+        if grupo.us_codigo_lider == us_codigo:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="El líder del grupo no puede enviarse una solicitud de unión a sí mismo."
+            )
+            
+        # Obtener el último retorno para las validaciones de negocio
+        ultimo_retorno = await self.repositorio_retorno.obtener_ultimo_retorno()
+        if ultimo_retorno:
+            # Restricción 1: No debe estar en usuario_grupo_retorno para el retorno actual
+            en_grupo = await self.repositorio_usuario_grupo.existe_usuario_en_grupo_para_retorno(us_codigo, ultimo_retorno.codigo)
+            if en_grupo:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="El usuario ya pertenece a un grupo de retorno registrado para el evento actual."
+                )
+
+            # Restricción 2: No debe tener un registro individual (registro_retorno)
+            registro_individual = await self.repositorio_registro_individual.obtener_registro_retorno_por_usuario_y_retorno(
+                us_codigo, 
+                ultimo_retorno.codigo
+            )
+            if registro_individual:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="El usuario ya cuenta con un registro de retorno individual para el evento actual."
+                )
 
         return await self.repositorio_solicitudes.crear_solicitud_grupo_retorno(us_codigo, gr_codigo)
     

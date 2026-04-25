@@ -63,12 +63,14 @@ def obtener_grupo_retorno_servicio(db: AsyncSession = Depends(get_db)):
     repositorio_solicitudes = SolicitudGrupoRetornoRepositorio(db)
     repositorio_usuario_grupo = RetornoGrupoUsuarioRepositorio(db)
     repositorio_usuario = UsuarioRepositorio(db)
+    repositorio_registro_individual = RegistroRetornoRepositorio(db)
     return GrupoRetornoServicio(
         repositorio_retorno,
         repositorio_grupos,
         repositorio_solicitudes,
         repositorio_usuario_grupo,
-        repositorio_usuario
+        repositorio_usuario,
+        repositorio_registro_individual
     )
 
 def obtener_retorno_servicio(db: AsyncSession = Depends(get_db)) -> RetornoService:

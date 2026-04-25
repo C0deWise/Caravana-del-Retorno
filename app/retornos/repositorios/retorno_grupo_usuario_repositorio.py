@@ -4,6 +4,8 @@
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.retornos.modelos.retorno_grupo_usuario_modelo import RetornoGrupoUsuario
+from app.retornos.modelos.registro_retorno_grupo_modelo import RegistroRetornoGrupo
 from app.retornos.modelos.retorno_modelo import Retorno
 from app.retornos.esquemas.retorno_esquemas import RetornoCreate
 import datetime
@@ -21,3 +23,17 @@ class RetornoGrupoUsuarioRepositorio:
         """Permite a un usuario darse de baja de un grupo de retorno específico."""
         # Aquí se implementaría la lógica para eliminar la asociación entre el usuario y el grupo de retorno en la base de datos.
         pass
+
+    async def existe_usuario_en_grupo_para_retorno(self, us_codigo: int, re_codigo: int) -> bool:
+        """
+        Verifica si un usuario ya está en la tabla usuario_grupo_retorno 
+        vinculada a un grupo que ya tiene un registro para el retorno dado.
+        """
+        stmt = select(RetornoGrupoUsuario).join(
+            RegistroRetornoGrupo, RetornoGrupoUsuario.gr_codigo == RegistroRetornoGrupo.gr_codigo
+        ).where(
+            RetornoGrupoUsuario.us_codigo == us_codigo,
+            RegistroRetornoGrupo.re_codigo == re_codigo
+        )
+        result = await self.db.execute(stmt)
+        return result.scalars().first() is not None
