@@ -4,9 +4,15 @@ Coordina la validación de reglas de negocio y la interacción con el
 repositorio de colonias, garantizando la integridad de los datos antes 
 de su persistencia en la base de datos.
 """
-from app.colonias.excepciones.excepciones import ColoniaInactiva, ColoniaNoExistente
-from app.colonias.models.colonia_model import ColoniaEstado
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.colonias.excepciones.excepciones import (
+    ColoniaInactiva, 
+    ColoniaNoExistente,
+    ColoniaSinLiderAsignado,
+    UsuarioNoExistente, 
+    UsuarioYaEsLider,
+    UsuarioNoEsMiembroColonia)
+from app.colonias.models.colonia_model import ColoniaEstado
 from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta
 from app.colonias.repositories.colonia_repository import ColoniaRepository
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
@@ -101,3 +107,24 @@ class ColoniaService:
         
         colonia_desactivada = await self.repositorio.desactivar_colonia(colonia)
         return ColoniaRespuesta.model_validate(colonia_desactivada, from_attributes=True)
+    
+    async def cambiar_lider_colonia(self, colonia_codigo: int, nuevo_lider_id: int) -> ColoniaRespuesta:
+        colonia = await self.repositorio.obtener_colonia_por_id(colonia_codigo)
+        if not colonia:
+            raise ColoniaNoExistente(colonia_codigo)
+        
+        usuario_nuevo_lider = await self.usuario_servicio.obtener_usuario_por_id(nuevo_lider_id)
+        if not usuario_nuevo_lider:
+            raise UsuarioNoExistente(nuevo_lider_id)
+        
+        if usuario_nuevo_lider.co_codigo != colonia_codigo:
+            raise UsuarioNoEsMiembroColonia(nuevo_lider_id, colonia_codigo)
+
+        if colonia.lider is None:
+            raise ColoniaSinLiderAsignado(colonia_codigo)
+        
+        if colonia.lider == nuevo_lider_id:
+            raise UsuarioYaEsLider(nuevo_lider_id, colonia_codigo)
+
+        colonia_actualizada = await self.repositorio.cambiar_lider_colonia(colonia_codigo, nuevo_lider_id)
+        return ColoniaRespuesta.model_validate(colonia_actualizada, from_attributes=True)

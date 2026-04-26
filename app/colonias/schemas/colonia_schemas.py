@@ -80,11 +80,11 @@ class ColoniaRespuesta (BaseModel):
     departamento: Optional[str] = None
     ciudad: Optional[str] = None
     estado: ColoniaEstado
-    lider: Optional[int]= None
+    lider: Optional[int]= Field(default=None)
 
     model_config = {"from_attributes": True}
 
 class ColoniaEstablecerLider (BaseModel):
     """Esquema de entrada para establecer un líder a una colonia."""
 
-    lider: int = None
+    lider: int = Field(..., gt=0, description="ID del usuario a asignar como líder de la colonia")
