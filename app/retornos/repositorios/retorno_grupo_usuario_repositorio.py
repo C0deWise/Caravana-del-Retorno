@@ -2,13 +2,11 @@
     retorno_grupo_usuario_repositorio.py define el repositorio para gestionar la asociación de usuarios a grupos de retorno.
 """
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.retornos.modelos.retorno_grupo_usuario_modelo import RetornoGrupoUsuario
 from app.retornos.modelos.registro_retorno_grupo_modelo import RegistroRetornoGrupo
-from app.retornos.modelos.retorno_modelo import Retorno
-from app.retornos.esquemas.retorno_esquemas import RetornoCreate
-import datetime
+from app.usuarios.models.usuario import Usuario
 
 class RetornoGrupoUsuarioRepositorio:
     def __init__(self, db: AsyncSession):
@@ -37,3 +35,17 @@ class RetornoGrupoUsuarioRepositorio:
         )
         result = await self.db.execute(stmt)
         return result.scalars().first() is not None
+
+    async def obtener_miembros_por_grupo(self, gr_codigo: int) -> list[Usuario]:
+        """Obtiene la lista de usuarios que pertenecen a un grupo de retorno."""
+        stmt = select(Usuario).join(RetornoGrupoUsuario).where(RetornoGrupoUsuario.gr_codigo == gr_codigo)
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
+    async def contar_miembros_adicionales(self, gr_codigo: int) -> int:
+        """Cuenta cuántos miembros tiene el grupo (sin contar al líder)."""
+        stmt = select(func.count(RetornoGrupoUsuario.ugr_codigo)).where(
+            RetornoGrupoUsuario.gr_codigo == gr_codigo
+        )
+        result = await self.db.execute(stmt)
+        return result.scalar() or 0

@@ -5,13 +5,23 @@
 
 
 
-from sqlalchemy import Integer, String
+import enum
+
+from sqlalchemy import Enum, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
+
+
+class TipoDoc(str, enum.Enum):
+    """Enumeración para los tipos de documento de identidad."""
+    CC = "CC"
+    CE = "CE"
 
 class Persona(Base):
     __tablename__ = 'persona'
     pe_codigo: Mapped[int] = mapped_column("pe_codigo", Integer, primary_key=True, autoincrement=True)
+    pe_tipo_doc: Mapped[TipoDoc] = mapped_column(Enum(TipoDoc), nullable=False)
+    pe_documento: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     pe_nombre: Mapped[str] = mapped_column("pe_nombre", String(100), nullable=False)
     pe_apellido: Mapped[str] = mapped_column("pe_apellido", String(100), nullable=False)
     pe_correo: Mapped[str] = mapped_column("pe_correo", String(100), unique=True, nullable=True)

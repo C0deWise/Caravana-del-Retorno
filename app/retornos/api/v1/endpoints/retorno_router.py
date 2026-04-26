@@ -7,7 +7,6 @@ con documentación Swagger integrada.
 
 from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoRespuesta
 from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
-from app.retornos.repositorios.persona_repositorio import PersonaRepositorio
 from app.retornos.repositorios.registro_retorno_grupo_repositorio import RegistroRetornoGrupoRepositorio
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
 from app.retornos.repositorios.retorno_grupo_usuario_repositorio import RetornoGrupoUsuarioRepositorio
@@ -18,6 +17,7 @@ from app.retornos.servicios.registro_retorno_grupo_servicio import RegistroRetor
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
 from app.retornos.esquemas.solicitud_grupo_retorno_esquema import SolicitudGrupoRetornoRespuesta, SolicitudGrupoRetornoEstado
 from app.retornos.esquemas.grupo_retorno_esquema import GrupoRetornoCrear, GrupoRetornoRespuesta
+from app.retornos.esquemas.registro_retorno_grupo_esquema import RegistroRetornoGrupoCrear, RegistroRetornoGrupoRespuesta
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.usuarios.schemas.usuario_esquemas import UsuarioSalida
@@ -52,10 +52,13 @@ def obtener_registro_retorno_servicio(db: AsyncSession = Depends(get_db)) -> Reg
     )
 
 def obtener_registro_retorno_grupo_servicio(db: AsyncSession = Depends(get_db)):
-    
     repositorio_registro_grupo = RegistroRetornoGrupoRepositorio(db)
-    repositorio_persona = PersonaRepositorio(db)
-    return RegistroRetornoGrupoServicio(repositorio_registro_grupo, repositorio_persona)
+    repositorio_grupo = GrupoRetornoRepositorio(db)
+    repositorio_retorno = RetornoRepository(db)
+    repositorio_usuario_grupo = RetornoGrupoUsuarioRepositorio(db)
+    return RegistroRetornoGrupoServicio(
+        repositorio_registro_grupo, repositorio_grupo, repositorio_retorno, repositorio_usuario_grupo
+    )
 
 def obtener_grupo_retorno_servicio(db: AsyncSession = Depends(get_db)):
     repositorio_retorno = RetornoRepository(db)
@@ -241,3 +244,34 @@ async def enviar_solicitud_individual_endpoint(
     """
     solicitud = await servicio.crear_solicitud_grupo_retorno(us_codigo, gr_codigo)
     return solicitud
+
+@grupo_retorno_router.post(
+    "/registro",
+    response_model=RegistroRetornoGrupoRespuesta,
+    status_code=status.HTTP_201_CREATED,
+    summary="Registrar un grupo en un retorno",
+    description="Asocia un grupo completo a un retorno vigente, validando que tenga integrantes adicionales al líder."
+)
+async def registrar_grupo_en_retorno_endpoint(
+    datos: RegistroRetornoGrupoCrear,
+    servicio: RegistroRetornoGrupoServicio = Depends(obtener_registro_retorno_grupo_servicio)
+):
+    """
+    Endpoint para registrar la participación de un grupo en el evento de retorno.
+    """
+    return await servicio.crear_registro_retorno_grupo(datos)
+
+@grupo_retorno_router.get(
+    "/{gr_codigo}/miembros",
+    response_model=List[UsuarioSalida],
+    summary="Ver usuarios pertenecientes a un grupo",
+    description="Lista todos los usuarios que han aceptado unirse y forman parte activa de un grupo de retorno."
+)
+async def obtener_miembros_grupo_endpoint(
+    gr_codigo: int,
+    servicio: RegistroRetornoGrupoServicio = Depends(obtener_registro_retorno_grupo_servicio)
+):
+    """
+    Endpoint para obtener la lista de integrantes de un grupo.
+    """
+    return await servicio.obtener_usuarios_por_grupo(gr_codigo)
