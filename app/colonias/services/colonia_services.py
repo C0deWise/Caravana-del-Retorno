@@ -128,9 +128,26 @@ class ColoniaService:
         return ColoniaRespuesta.model_validate(colonia_desactivada, from_attributes=True)
     
     async def cambiar_lider_colonia(self, colonia_codigo: int, nuevo_lider_id: int) -> ColoniaRespuesta:
+        """
+        Cambia el líder de una colonia existente. Verifica que la colonia exista, tenga un líder asignado previamente,
+        que el nuevo líder exista, sea miembro de la colonia y sea diferente al líder actual antes de realizar el cambio.
+        Parámetros:
+            db (Session): Sesión activa de SQLAlchemy.
+            colonia_codigo (int): Código de la colonia a actualizar.
+            nuevo_lider_id (int): ID del nuevo líder a asignar.
+        Retorna:
+            ColoniaRespuesta: La colonia actualizada con el nuevo líder.
+        Excepciones:
+            HTTPException 404: Si la colonia o el nuevo líder no existen en la base de datos.
+            HTTPException 409: Si la colonia no tiene un líder asignado, el nuevo líder no es 
+                            miembro de la colonia o ya es el líder actual.
+        """
         colonia = await self.repositorio.obtener_colonia_por_id(colonia_codigo)
         if not colonia:
             raise ColoniaNoExistente(colonia_codigo)
+        
+        if colonia.lider is None:
+            raise ColoniaSinLiderAsignado(colonia_codigo)
         
         usuario_nuevo_lider = await self.usuario_servicio.obtener_usuario_por_id(nuevo_lider_id)
         if not usuario_nuevo_lider:
@@ -138,9 +155,6 @@ class ColoniaService:
         
         if usuario_nuevo_lider.co_codigo != colonia_codigo:
             raise UsuarioNoEsMiembroColonia(nuevo_lider_id, colonia_codigo)
-
-        if colonia.lider is None:
-            raise ColoniaSinLiderAsignado(colonia_codigo)
         
         if colonia.lider == nuevo_lider_id:
             raise UsuarioYaEsLider(nuevo_lider_id, colonia_codigo)
