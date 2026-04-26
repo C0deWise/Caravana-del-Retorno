@@ -161,3 +161,4 @@ class ColoniaService:
 
         colonia_actualizada = await self.repositorio.cambiar_lider_colonia(colonia_codigo, nuevo_lider_id)
         return ColoniaRespuesta.model_validate(colonia_actualizada, from_attributes=True)
+ 
