@@ -1,24 +1,32 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
-from datetime import date
 from app.retornos.modelos.persona_modelo import TipoDoc
 
-class PersonaCrear(BaseModel):
-    tipo_doc: TipoDoc
-    documento: str
-    nombre: str
-    apellido: str
-    correo: Optional[EmailStr] = None
-    fecha_nacimiento: date
-    cod_registro_grupo: int = Field(..., description="ID del registro del grupo en el retorno (regg_codigo)")
-
-class PersonaRespuesta(BaseModel):
-    pe_codigo: int
+class PersonaBase(BaseModel):
     pe_tipo_doc: TipoDoc
-    pe_documento: str
-    pe_nombre: str
-    pe_apellido: str
-    pe_correo: Optional[str]
-    pe_fecha_nacimiento: str
-    regg_codigo: int
-    model_config = {"from_attributes": True}
+    pe_documento: str = Field(..., min_length=5, max_length=20)
+    pe_nombre: str = Field(..., min_length=2, max_length=100)
+    pe_apellido: str = Field(..., min_length=2, max_length=100)
+    pe_correo: Optional[EmailStr] = None
+    pe_fecha_nacimiento: str = Field(..., description="Formato YYYY-MM-DD")
+
+class PersonaCrear(PersonaBase):
+    pass
+
+class PersonaRespuesta(PersonaBase):
+    pe_codigo: int
+
+    class Config:
+        from_attributes = True
+
+class PersonaGrupoAsociar(BaseModel):
+    pe_codigo: int
+    gr_codigo: int
+
+class PersonaGrupoRespuesta(BaseModel):
+    pgr_codigo: int
+    pe_codigo: int
+    gr_codigo: int
+
+    class Config:
+        from_attributes = True

@@ -33,9 +33,9 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
-# ─────────────────────────────────────────
+
 #  Lifespan
-# ─────────────────────────────────────────
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
@@ -73,7 +73,7 @@ app = FastAPI(
 )
 
 
-# ─────────────────────────────────────────
+
 #  Middleware
 # ─────────────────────────────────────────
 app.add_middleware(
@@ -92,9 +92,10 @@ app.add_middleware(
 from app.colonias.api.v1.router import router as colonia_router
 from app.retornos.api.v1.router import api_router as retornos_module_router
 from app.usuarios.api.v1.usuario_router import router as usuario_router
-app.include_router(colonia_router, prefix="/api/v1")
-app.include_router(usuario_router, prefix="/api/v1")
-app.include_router(retornos_module_router, prefix="/api/v1")
+prefix = "/api/v1"
+app.include_router(colonia_router, prefix=prefix)
+app.include_router(usuario_router, prefix=prefix)
+app.include_router(retornos_module_router, prefix=prefix)
 
 
 # ─────────────────────────────────────────
