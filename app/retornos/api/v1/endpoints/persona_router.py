@@ -4,6 +4,7 @@ from app.core.database import get_db
 from app.retornos.esquemas.persona_esquema import PersonaCrear, PersonaRespuesta, PersonaGrupoAsociar, PersonaGrupoRespuesta
 from app.retornos.repositorios.persona_repositorio import PersonaRepositorio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
+from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
 from app.retornos.repositorios.registro_retorno_grupo_repositorio import RegistroRetornoGrupoRepositorio
 from app.retornos.servicios.persona_servicio import PersonaServicio
 from typing import List
@@ -13,8 +14,8 @@ router = APIRouter(prefix="/personas", tags=["Personas (Asistentes No Usuarios)"
 def get_persona_servicio(db: AsyncSession = Depends(get_db)):
     repo = PersonaRepositorio(db)
     repo_retorno = RetornoRepository(db)
-    repo_reg_grupo = RegistroRetornoGrupoRepositorio(db)
-    return PersonaServicio(repo, repo_retorno, repo_reg_grupo)
+    repo_grupo = GrupoRetornoRepositorio(db) # Correctly instantiate GrupoRetornoRepositorio
+    return PersonaServicio(repo, repo_retorno, repo_grupo) # Pass the correct repository
 
 @router.post("/", response_model=PersonaRespuesta, status_code=status.HTTP_201_CREATED)
 async def crear_persona(datos: PersonaCrear, servicio: PersonaServicio = Depends(get_persona_servicio)):

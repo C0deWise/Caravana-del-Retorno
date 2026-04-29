@@ -28,6 +28,7 @@ from app.retornos.modelos.persona_modelo import Persona
 from app.retornos.modelos.registro_retorno_grupo_modelo import RegistroRetornoGrupo
 from app.retornos.modelos.retorno_grupo_usuario_modelo import RetornoGrupoUsuario
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
+from app.retornos.modelos.persona_grupo_retorno_modelo import persona_grupo_retorno
 
 config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))
 

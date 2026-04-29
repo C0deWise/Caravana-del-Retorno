@@ -28,10 +28,10 @@ class RetornoGrupoUsuarioRepositorio:
         vinculada a un grupo que ya tiene un registro para el retorno dado.
         """
         stmt = select(RetornoGrupoUsuario).join(
-            RegistroRetornoGrupo, RetornoGrupoUsuario.gr_codigo == RegistroRetornoGrupo.gr_codigo
+            RegistroRetornoGrupo, RetornoGrupoUsuario.gr_codigo == RegistroRetornoGrupo.cod_grupo
         ).where(
             RetornoGrupoUsuario.us_codigo == us_codigo,
-            RegistroRetornoGrupo.re_codigo == re_codigo
+            RegistroRetornoGrupo.retorno == re_codigo
         )
         result = await self.db.execute(stmt)
         return result.scalars().first() is not None

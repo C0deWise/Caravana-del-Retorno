@@ -15,12 +15,12 @@ class RegistroRetornoGrupoRepositorio:
     async def crear_registro_grupo_retorno(self, datos: RegistroRetornoGrupoCrear) -> RegistroRetornoGrupo:
         """Crea un nuevo registro de un grupo en un retorno."""
         nuevo_registro = RegistroRetornoGrupo(
-            gr_codigo=datos.cod_grupo,
-            re_codigo=datos.retorno,
-            reggr_num_hospedaje=datos.num_hospedaje,
-            reggr_num_transporte=datos.num_transporte,
-            reggr_num_parqueadero=datos.num_parqueadero,
-            reggr_anotacion=datos.anotacion
+            cod_grupo=datos.cod_grupo,
+            retorno=datos.retorno,
+            num_hospedaje=datos.num_hospedaje,
+            num_transporte=datos.num_transporte,
+            num_parqueadero=datos.num_parqueadero,
+            anotacion=datos.anotacion
         )
         self.db.add(nuevo_registro)
         await self.db.commit()
@@ -30,8 +30,8 @@ class RegistroRetornoGrupoRepositorio:
     async def obtener_registro_por_grupo_y_retorno(self, gr_codigo: int, re_codigo: int) -> RegistroRetornoGrupo | None:
         """Verifica si un grupo ya está registrado en un retorno específico."""
         stmt = select(RegistroRetornoGrupo).where(
-            RegistroRetornoGrupo.gr_codigo == gr_codigo,
-            RegistroRetornoGrupo.re_codigo == re_codigo
+            RegistroRetornoGrupo.cod_grupo == gr_codigo,
+            RegistroRetornoGrupo.retorno == re_codigo
         )
         result = await self.db.execute(stmt)
         return result.scalars().first()
