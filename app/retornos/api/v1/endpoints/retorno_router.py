@@ -6,6 +6,7 @@ con documentación Swagger integrada.
 """
 
 from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoRespuesta
+from app.retornos.esquemas.solicitud_retorno_grupo_esquema import SolicitudRetornoGrupoLiderRespuesta, SolicitudRetornoGrupoRespuesta, SolicitudRetornoGrupoUsuarioRespuesta
 from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
 from app.retornos.repositorios.registro_retorno_grupo_repositorio import RegistroRetornoGrupoRepositorio
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
@@ -275,3 +276,38 @@ async def obtener_miembros_grupo_endpoint(
     Endpoint para obtener la lista de integrantes de un grupo.
     """
     return await servicio.obtener_usuarios_por_grupo(gr_codigo)
+@grupo_retorno_router.patch("/solicitudes/aceptar/{solicitud_id}", 
+              response_model= SolicitudRetornoGrupoRespuesta,
+              status_code= status.HTTP_200_OK,
+              summary="Aceptar solicitud de grupo de retorno", 
+              description="Acepta una solicitud pendiente para unirse a un grupo de retorno específico. " \
+              "Cambia el estado de la solicitud a aceptada y agrega al usuario al grupo.")
+async def aceptar_solicitud_grupo_retorno(solicitud_id: int, servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)):
+    return await servicio.aceptar_solicitud_grupo_retorno(solicitud_id)
+
+@grupo_retorno_router.patch("/solicitudes/rechazar/{solicitud_id}", 
+              response_model= SolicitudRetornoGrupoRespuesta,
+              status_code= status.HTTP_200_OK,
+              summary="Rechazar solicitud de grupo de retorno", 
+              description="Rechaza una solicitud pendiente para unirse a un grupo de retorno específico. " \
+              "Cambia el estado de la solicitud a rechazada.")
+async def rechazar_solicitud_grupo_retorno(solicitud_id: int, servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)):
+    return await servicio.rechazar_solicitud_grupo_retorno(solicitud_id)
+
+@grupo_retorno_router.get("/solicitudes/recientes/usuario/{usuario_id}",
+            response_model=list[SolicitudRetornoGrupoUsuarioRespuesta],
+            status_code=status.HTTP_200_OK,
+            summary="Obtener solicitudes de grupos de retorno por usuario",
+            description="Obtiene las solicitudes de ingreso a grupos de retorno recientes (ultimos 30 días) dirigidas a un usuario específico, ordenadas por fecha de creación más reciente primero.")
+async def obtener_solicitudes_recientes_grupo_por_usuario(usuario_id: int, servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)):
+    return await servicio.obtener_solicitudes_recientes_por_usuario(usuario_id)
+
+@grupo_retorno_router.get("/solicitudes/grupo/{grupo_retorno_id}",
+            response_model=list[SolicitudRetornoGrupoLiderRespuesta],
+            status_code=status.HTTP_200_OK,
+            summary="Obtener solicitudes de grupos de retorno por grupo de retorno",
+            description="Obtiene las solicitudes de ingreso a grupos de retorno enviadas por el lider del grupo.")
+async def obtener_solicitudes_grupo_por_lider(grupo_retorno_id: int, servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)):
+    return await servicio.obtener_solicitudes_por_grupo_retorno(grupo_retorno_id)
+
+    

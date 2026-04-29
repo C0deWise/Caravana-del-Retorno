@@ -3,6 +3,8 @@
     y la asociación de usuarios a grupos de retorno. 
 """
 
+from app.retornos.esquemas.solicitud_retorno_grupo_esquema import SolicitudRetornoGrupoLiderRespuesta, SolicitudRetornoGrupoRespuesta, SolicitudRetornoGrupoUsuarioRespuesta
+from app.retornos.excepciones.registro_retorno_excepciones import SolicitudGrupoRetornoEstadoInvalido, SolicitudGrupoRetornoNoExistente
 from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
 from app.retornos.repositorios.retorno_grupo_usuario_repositorio import RetornoGrupoUsuarioRepositorio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
@@ -15,7 +17,7 @@ from app.usuarios.schemas.usuario_esquemas import UsuarioSalida # Para el esquem
 from app.usuarios.models.usuario import Usuario # Para el tipo de retorno del líder
 from fastapi import HTTPException, status
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
-
+from app.retornos.esquemas.solicitud_grupo_retorno_esquema import SolicitudGrupoRetornoEstado 
 class GrupoRetornoServicio:
     def __init__(self, repositorio_retorno: RetornoRepository, repositorio_grupos: GrupoRetornoRepositorio, repositorio_solicitudes: SolicitudGrupoRetornoRepositorio , repositorio_usuario_grupo: RetornoGrupoUsuarioRepositorio, repositorio_usuario: UsuarioRepositorio, repositorio_registro_individual: RegistroRetornoRepositorio): # type: ignore
         self.repositorio_retorno = repositorio_retorno
@@ -117,11 +119,60 @@ class GrupoRetornoServicio:
 
         return await self.repositorio_solicitudes.crear_solicitud_grupo_retorno(us_codigo, gr_codigo)
     
-    async def aceptar_solicitud_grupo_retorno(self, datos):
-        pass
+    async def aceptar_solicitud_grupo_retorno(self, sol_codigo:int):
+        solicitud = await self.repositorio_solicitudes.obtener_solicitud_por_id(sol_codigo)
+        if not solicitud:
+            raise SolicitudGrupoRetornoNoExistente(sol_codigo)
+        if solicitud.solgr_estado != SolicitudGrupoRetornoEstado.PENDIENTE:
+            raise SolicitudGrupoRetornoEstadoInvalido(solicitud.solgr_codigo, solicitud.solgr_estado.value)
+        solicitud_aceptada = await self.repositorio_solicitudes.aceptar_solicitud_grupo_retorno(sol_codigo)
+        if solicitud_aceptada:
+            await self.repositorio_usuario_grupo.asociar_usuario_a_grupo_retorno(solicitud.us_codigo, solicitud.gr_codigo)
+        await self._rechazar_solicitudes_pendientes_por_usuario(solicitud.us_codigo)
+        return SolicitudRetornoGrupoRespuesta(
+            id=solicitud_aceptada.solgr_codigo,
+            usuario_id=solicitud_aceptada.us_codigo,
+            grupo_id=solicitud_aceptada.gr_codigo,
+            estado=solicitud_aceptada.solgr_estado,
+            timestamp=solicitud_aceptada.solgr_time_stamp
+        )
+    
+    async def rechazar_solicitud_grupo_retorno(self, sol_codigo:int):
+        solicitud = await self.repositorio_solicitudes.obtener_solicitud_por_id(sol_codigo)
+        if not solicitud:
+            raise Exception(SolicitudGrupoRetornoNoExistente(sol_codigo))
+        if solicitud.solgr_estado != SolicitudGrupoRetornoEstado.PENDIENTE:
+            raise Exception(SolicitudGrupoRetornoEstadoInvalido(solicitud.solgr_codigo, solicitud.solgr_estado))
+        solicitud_rechazada = await self.repositorio_solicitudes.rechazar_solicitud_grupo_retorno(sol_codigo)
+        return SolicitudRetornoGrupoRespuesta(
+            id=solicitud_rechazada.solgr_codigo,  
+            usuario_id=solicitud_rechazada.us_codigo,
+            grupo_id=solicitud_rechazada.gr_codigo,
+            estado=solicitud_rechazada.solgr_estado,
+            timestamp=solicitud_rechazada.solgr_time_stamp) 
+    
+    async def obtener_solicitudes_por_grupo_retorno(self, grupo_retorno_id):
+        solicitudes = await self.repositorio_solicitudes.obtener_solicitudes_por_grupo_retorno(grupo_retorno_id)
+        return [SolicitudRetornoGrupoLiderRespuesta(
+            id=solicitud.solgr_codigo,
+            usuario_id=solicitud.us_codigo,
+            grupo_id=solicitud.gr_codigo,
+            correo_usuario=solicitud.usuario.us_correo,
+            estado=solicitud.solgr_estado,
+            timestamp=solicitud.solgr_time_stamp
+        ) for solicitud in solicitudes]
 
-    async def rechazar_solicitud_grupo_retorno(self, datos):
-        pass
+    async def obtener_solicitudes_recientes_por_usuario(self, usuario_id):
+        solicitudes_recientes = await self.repositorio_solicitudes.obtener_solicitudes_recientes_por_usuario(usuario_id)
+        return [SolicitudRetornoGrupoUsuarioRespuesta(
+            id=solicitud.solgr_codigo,
+            usuario_id=solicitud.us_codigo,
+            grupo_id=solicitud.gr_codigo,
+            nombre_lider=f"{solicitud.grupo.lider.us_nombre} {solicitud.grupo.lider.us_apellido}",
+            estado=solicitud.solgr_estado,
+            timestamp=solicitud.solgr_time_stamp
+        ) for solicitud in solicitudes_recientes]
 
-    async def _asociar_usuario_a_grupo_retorno(self, datos):
-        pass
+    async def _rechazar_solicitudes_pendientes_por_usuario(self, usuario_id):
+        await self.repositorio_solicitudes.rechazar_solicitudes_pendientes_por_usuario(usuario_id)
+        

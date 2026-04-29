@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
 from app.retornos.modelos.grupo_retorno_modelo import GrupoRetorno
 from app.retornos.modelos.retorno_modelo import Retorno
-
+from app.core.database import Base
 
 class RegistroRetornoGrupo(Base):
     __tablename__ = 'registro_retorno_grupo'
