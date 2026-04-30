@@ -17,6 +17,7 @@ from app.usuarios.models.parentesco import Parentesco
 from app.retornos.api.v1.endpoints.retorno_router import router as retornos_router
 from app.colonias.models.solicitud_colonia import SolicitudColonia
 from app.retornos.modelos.registro_retorno_modelo import RegistroRetorno
+from app.multimedia.modelos.multimedia_modelo import Multimedia
 from scripts.seed_roles import seed_roles
 import app.core.scheduler as scheduler
 
@@ -83,9 +84,11 @@ app.add_middleware(
 from app.colonias.api.v1.router import router as colonia_router
 from app.retornos.api.v1.endpoints.retorno_router import router as retornos_router
 from app.usuarios.api.v1.usuario_router import router as usuario_router
+from app.multimedia.api.v1.endpoints.multimedia_router import router as multimedia_router
 app.include_router(colonia_router, prefix="/api/v1")
 app.include_router(usuario_router, prefix="/api/v1")
 app.include_router(retornos_router, prefix="/api/v1")
+app.include_router(multimedia_router, prefix="/api/v1")
 
 # ─────────────────────────────────────────
 #  Core endpoints

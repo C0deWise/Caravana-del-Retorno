@@ -19,6 +19,7 @@ from app.retornos.modelos.retorno_modelo import Retorno
 from app.retornos.modelos.registro_retorno_modelo import RegistroRetorno
 from app.usuarios.models.usuario import Usuario, Rol
 from app.usuarios.models.parentesco import Parentesco
+from app.multimedia.modelos.multimedia_modelo import Multimedia
 
 # Verificar que los modelos se cargan correctamente
 print("Modelos detectados:", list(Base.metadata.tables.keys()))
