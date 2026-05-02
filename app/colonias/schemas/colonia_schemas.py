@@ -99,6 +99,7 @@ class ColoniaSacarMiembro (BaseModel):
     miembro_id: int = Field(..., gt=0, description="ID del usuario a sacar de la colonia") 
 
 class UsuarioRemovidoColonia(BaseModel):
+    """Esquema de respuesta para un usuario removido de una colonia."""
     id: int = Field(validation_alias="us_codigo")
     tipo_doc: TipoDoc = Field(validation_alias="us_tipo_doc")
     documento: str = Field(validation_alias="us_documento")
@@ -115,6 +116,7 @@ class UsuarioRemovidoColonia(BaseModel):
     model_config = {"from_attributes": True, "populate_by_name": True}
 
 class UsuarioRemovidoColoniaRespuesta(BaseModel):
+    """Esquema de respuesta para la acción de remover un usuario de una colonia."""
     mensaje: str = Field(..., description="Mensaje de confirmación")
     usuario: UsuarioRemovidoColonia = Field(..., description="Datos del usuario removido")
 

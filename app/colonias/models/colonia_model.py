@@ -1,3 +1,10 @@
+"""
+Modelo de datos para la entidad Colonia.
+Este módulo define la clase Colonia, que representa una colonia en la aplicación. La clase incluye
+atributos como código, país, departamento, ciudad, estado y líder. Además, se define un enumerado 
+para el estado de la colonia, que puede ser "activa" o "inactiva".
+"""
+
 import enum
 
 from sqlalchemy import Integer, String, Enum

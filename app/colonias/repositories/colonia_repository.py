@@ -126,6 +126,14 @@ class ColoniaRepository:
         return colonia
     
     async def remover_miembro_colonia(self, usuario: Usuario) -> Usuario:
+        """
+        Desasocia un usuario de su colonia actual, definiendo su colonia como None.
+        Parámetros:
+            db (AsyncSession): Sesión activa de SQLAlchemy.
+            usuario (Usuario): El usuario a desasociar de su colonia.
+        Retorna:
+            Usuario: El usuario actualizado con su colonia desasociada.
+        """
         usuario.co_codigo = None
 
         await self.db.commit()

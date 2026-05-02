@@ -145,37 +145,57 @@ cambiar_lider_colonia_docs = dict(
 
 sacar_miembro_colonia_docs = dict(
     status_code=status.HTTP_200_OK,
-    summary="Sacar un miembro de una colonia",
+    summary="Remover un miembro de una colonia",
     description="""
-    Saca un miembro existente de una colonia.
+    Remueve un miembro de una colonia, desasociándolo de la misma.
+    
+    **Historia de Usuario:**
+    Yo como Líder de colonia quiero remover a un miembro de mi colonia 
+    para corregir asignaciones incorrectas de vinculación a la colonia.
 
-    Requiere el código de la colonia (path) y el ID del miembro a sacar (body).
+    **Parámetros requeridos:**
+    - **colonia_codigo** (int, path): Código único de la colonia
+    - **miembro_id** (int, body): ID del usuario a remover
 
-    Reglas:
-    - El usuario (miembro a sacar) debe existir.
-    - El usuario debe ser miembro de la colonia (`co_codigo == colonia_codigo`).
-    - El usuario no debe estar inscrito en un retorno activo.
+    **Validaciones y Reglas de Negocio:**
 
-    Efectos:
-    - Se desasocia al usuario de la colonia (`co_codigo` se establece en None).
+    1. **Usuario debe existir**: El usuario con el ID especificado debe estar registrado en el sistema.
+    
+    2. **Usuario debe ser miembro de la colonia**: El usuario debe tener `co_codigo == colonia_codigo`.
+    
+    3. **Usuario no puede estar en Retorno activo**: No se puede remover a un usuario que esté inscrito 
+       en un retorno con estado ACTIVO.
+    
+    4. **No auto-remoción**: El usuario líder no puede removerse a sí mismo de la colonia.
+
+    **Efectos de la operación:**
+    - Se desasocia al usuario de la colonia (se establece `co_codigo = NULL`)
+    - El usuario pierde acceso a la colonia
+    - Otros datos del usuario permanecen sin cambios
+
+    **Nota:** Este endpoint requiere autenticación y rol de líder (pendiente de implementar).
     """,
     responses={
         200: {
-            "description": "El miembro ha sido sacado de la colonia exitosamente.",
+            "description": "Miembro removido exitosamente de la colonia.",
             "content": {
                 "application/json": {
                     "example": {
-                        "id": 1, 
-                        "nombre": "Juan",
-                        "apellido": "Pérez",
-                        "codigo_colonia": None,
-                        "documento": "123456789",
-                        "tipo_doc": "CC",
-                        "genero": "M",
-                        "fecha_nacimiento": "1990-01-01", 
-                        "celular": "1234567890",
-                        "correo": "juan.perez@example.com",
-                        "role": 1
+                        "mensaje": "El usuario Ana Quira ha sido removido exitosamente de la colonia.",
+                        "usuario": {
+                            "id": 2,
+                            "nombre": "Ana",
+                            "apellido": "Quira",
+                            "codigo_colonia": None,
+                            "documento": "1061692075",
+                            "tipo_doc": "CC",
+                            "genero": "F",
+                            "fecha_nacimiento": "2004-10-21",
+                            "celular": "+57 3172361353",
+                            "correo": "ana.quira@gmail.com",
+                            "codigo_rol": 1,
+                            "pais": "Colombia"
+                        }
                     }
                 }
             },
@@ -198,24 +218,31 @@ sacar_miembro_colonia_docs = dict(
             },
         },
         409: {
-            "description": "Conflicto de negocio (usuario no es miembro o usuario está inscrito en retorno activo).",
+            "description": "Conflicto de negocio - No se puede remover al usuario.",
             "content": {
                 "application/json": {
                     "examples": {
                         "usuario_no_es_miembro": {
                             "summary": "Usuario no pertenece a la colonia",
-                            "value": {"detail": "El usuario con ID 2 no es miembro de la colonia con ID 1."}
+                            "value": {"detail": "El usuario con ID 2 no es miembro de la colonia con ID 1."},
+                            "description": "**Criterio de aceptación 5**: El usuario seleccionado no pertenece a tu colonia."
                         },
                         "usuario_inscrito_retorno_activo": {
-                            "summary": "Usuario inscrito en retorno activo",
-                            "value": {"detail": "El usuario con ID 2 está inscrito en un retorno activo y no puede ser sacado de la colonia."}
+                            "summary": "Usuario inscrito en Retorno activo",
+                            "value": {"detail": "El usuario con ID 2 está inscrito en un retorno activo y no puede ser sacado de la colonia."},
+                            "description": "**Criterio de aceptación 2**: El usuario está inscrito en un Retorno activo."
+                        },
+                        "auto_remocion": {
+                            "summary": "Intento de auto-remoción",
+                            "value": {"detail": "No puedes removerte a ti mismo de la colonia"},
+                            "description": "**Criterio de aceptación 7**: El usuario es el líder e intenta removerse a sí mismo."
                         },
                     }
                 }
             },
         },
         422: {
-            "description": "Body inválido (por ejemplo, no se envió el campo `miembro_id`).",
+            "description": "Body inválido o campos faltantes.",
             "content": {
                 "application/json": {
                     "example": {

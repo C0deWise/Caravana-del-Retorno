@@ -24,7 +24,7 @@ from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
-from app.colonias.docs.docs_colonia import desactivar_colonia_docs, cambiar_lider_colonia_docs
+from app.colonias.docs.docs_colonia import desactivar_colonia_docs, cambiar_lider_colonia_docs, sacar_miembro_colonia_docs
 
 from app.colonias.docs.docs_solicitud_colonia import (
     crear_solicitud_docs,
@@ -295,6 +295,7 @@ async def cambiar_lider_colonia(
 @router.patch(
     "/sacar-miembro/{colonia_codigo}/",
     response_model=UsuarioRemovidoColoniaRespuesta,
+    **sacar_miembro_colonia_docs
 )
 async def sacar_miembro_colonia(
     colonia_codigo: int,

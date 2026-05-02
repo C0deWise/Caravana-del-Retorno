@@ -1,3 +1,10 @@
+"""
+Módulo de excepciones personalizadas para el manejo de errores específicos en la aplicación de colonias.
+Este módulo define excepciones que pueden ser lanzadas en diferentes partes de la aplicación para indicar 
+situaciones específicas, como la no existencia de una colonia, problemas con el estado de una solicitud, o
+conflictos relacionados con usuarios y colonias.
+"""
+
 from fastapi import HTTPException, status
 
 class SolicitudNoEncontrada(Exception):

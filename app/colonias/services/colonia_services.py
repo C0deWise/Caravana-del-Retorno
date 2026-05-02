@@ -133,6 +133,22 @@ class ColoniaService:
         return ColoniaRespuesta.model_validate(colonia_actualizada, from_attributes=True)
 
     async def remover_miembro_colonia(self, colonia_id: int, usuario_id: int) -> UsuarioRemovidoColoniaRespuesta:
+        """
+        Remueve a un miembro específico de una colonia, teniendo en cuenta que el usuario exista, pertenezca a
+        una colonia y no este inscrito a un retorno activo. Para el rol de líder no se puede remover a sí mismo, 
+        se debe cambiar el líder primero para luego removerlo como miembro.
+        Parámetros:
+            colonia_id (int): El código de la colonia de la cual se desea remover al usuario.
+            usuario_id (int): El ID del usuario que se desea remover de la colonia.
+        Retorna:
+            UsuarioRemovidoColoniaRespuesta: Un mensaje de confirmación junto con los datos del usuario removido.
+        Excepciones:
+            ColoniaNoExistente: Si la colonia con el ID proporcionado no existe.
+            UsuarioNoExistente: Si el usuario con el ID proporcionado no existe.
+            UsuarioNoEsMiembroColonia: Si el usuario no es miembro de la colonia especificada.
+            AutoRemocionUsuarioColonia: Si el usuario a remover es el líder de la colonia.
+            UsuarioInscritoRetornoActivo: Si el usuario tiene registros de retorno activos.
+        """
         usuario = await self.usuario_servicio.obtener_usuario_por_id(usuario_id)
         if not usuario:
             raise UsuarioNoExistente(usuario_id)
