@@ -15,7 +15,7 @@ from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear, Parentesco
 from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.usuarios.docs.registro_doc import registrar_docs, registrar_body
 from app.usuarios.docs.solicitud_parentesco_doc import solicitar_parentesco_docs, solicitar_parentesco_body
-from app.usuarios.schemas.usuario_esquemas import UsuarioCrear, UsuarioSalida, UsuarioNombre, UsuarioDetallado
+from app.usuarios.schemas.usuario_esquemas import UsuarioConsultaColonia, UsuarioCrear, UsuarioSalida, UsuarioNombre, UsuarioDetallado
 from app.usuarios.docs.registro_doc import registrar_body, registrar_docs
 from app.usuarios.docs.listar_parentescos_doc import listar_parentescos_docs
 
@@ -155,3 +155,11 @@ async def listar_parentescos_usuario(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
+
+@router.get("/colonia/{colonia}", response_model=list[UsuarioConsultaColonia], summary="Buscar usuarios por colonia")
+async def buscar_usuario_por_colonia(
+    colonia: int, 
+    servicio: UsuarioServicio = Depends(get_usuario_servicio),
+):
+    """Busca y devuelve una lista de usuarios miembros  en una colonia específica."""
+    return await servicio.buscar_por_colonia(colonia)
