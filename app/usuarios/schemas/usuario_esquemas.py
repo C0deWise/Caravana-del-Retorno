@@ -114,3 +114,19 @@ class UsuarioResumen(BaseModel):
     nombre: str = Field(alias="us_nombre")
     apellido: str = Field(alias="us_apellido")
     model_config = {"from_attributes": True, "populate_by_name": True}
+
+
+class UsuarioConsultaColonia(BaseModel):
+    id: int 
+    nombre: str
+    apellido: str 
+    codigo_colonia: int
+    documento: str 
+    tipo_doc: str 
+    genero: str 
+    fecha_nacimiento: date 
+    celular: str
+    correo: str
+    role: int 
+
+    model_config = {"from_attributes": True, "populate_by_name": True}

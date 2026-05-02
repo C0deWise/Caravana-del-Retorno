@@ -30,6 +30,9 @@ from app.retornos.modelos.retorno_grupo_usuario_modelo import RetornoGrupoUsuari
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
 from app.retornos.modelos.persona_grupo_retorno_modelo import persona_grupo_retorno
 
+
+# Verificar que los modelos se cargan correctamente
+print("Modelos detectados:", list(Base.metadata.tables.keys()))
 config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))
 
 target_metadata = Base.metadata

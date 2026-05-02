@@ -72,6 +72,10 @@ class ColoniaService:
         if not usuario_lider:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Usuario con ID {lider_id} no encontrado")
+        
+        if colonia.lider != 0:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail=f"La colonia con código {colonia_codigo} ya tiene un líder asignado")
 
         colonia_actualizada = await self.repositorio.establecer_lider_colonia(colonia_codigo, lider_id)
         return ColoniaRespuesta.model_validate(colonia_actualizada, from_attributes=True)

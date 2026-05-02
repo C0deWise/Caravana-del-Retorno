@@ -10,7 +10,7 @@ from sqlalchemy import select
 from app.usuarios.models.usuario import Usuario
 from app.usuarios.repository.parentesco_repositorio import ParentescoRepositorio
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
-from app.usuarios.schemas.usuario_esquemas import UsuarioCrear
+from app.usuarios.schemas.usuario_esquemas import UsuarioConsultaColonia, UsuarioCrear
 from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear
 
 # Contexto para el cifrado y verificación de contraseñas utilizando el algoritmo bcrypt.
@@ -169,3 +169,25 @@ class UsuarioServicio:
     async def listar_parentescos_usuario(self, codigo_usuario: int):
         """Lista todas las relaciones de parentesco de un usuario."""
         return await self.repositorio_parentesco.listar_parentescos_usuario(codigo_usuario)
+    
+    async def buscar_por_colonia(self, colonia: int) -> list[Usuario]:
+        """Busca usuarios miembros por colonia."""
+        usuarios: list[Usuario] = await self.repositorio.buscar_por_colonia(colonia)
+        usuarios_consulta: list[UsuarioConsultaColonia] = []
+        for u in usuarios:
+            usuario_consulta = UsuarioConsultaColonia(
+                id = u.us_codigo,
+                nombre=u.us_nombre,
+                apellido=u.us_apellido,
+                codigo_colonia=u.co_codigo,
+                documento = u.us_documento,
+                genero = u.us_genero,
+                fecha_nacimiento = u.us_fecha_nacimiento,
+                correo=u.us_correo,
+                tipo_doc = u.us_tipo_doc,
+                celular=u.us_celular,
+                role = u.ro_codigo
+            )
+            usuarios_consulta.append(usuario_consulta)
+        return usuarios_consulta
+
