@@ -7,25 +7,25 @@ from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
 from app.retornos.repositorios.registro_retorno_grupo_repositorio import RegistroRetornoGrupoRepositorio
 from app.retornos.servicios.persona_servicio import PersonaServicio
-from typing import List
+from typing import List, Annotated
 
 router = APIRouter(prefix="/personas", tags=["Personas (Asistentes No Usuarios)"])
 
-def get_persona_servicio(db: AsyncSession = Depends(get_db)):
+def get_persona_servicio(db: Annotated[AsyncSession, Depends(get_db)]):
     repo = PersonaRepositorio(db)
     repo_retorno = RetornoRepository(db)
     repo_grupo = GrupoRetornoRepositorio(db) # Correctly instantiate GrupoRetornoRepositorio
     return PersonaServicio(repo, repo_retorno, repo_grupo) # Pass the correct repository
 
 @router.post("/", response_model=PersonaRespuesta, status_code=status.HTTP_201_CREATED)
-async def crear_persona(datos: PersonaCrear, servicio: PersonaServicio = Depends(get_persona_servicio)):
+async def crear_persona(datos: PersonaCrear, servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
     """Crea una persona que asistirá a un retorno."""
     return await servicio.crear_persona(datos)
 
 @router.post("/asociar-grupo", response_model=PersonaGrupoRespuesta, status_code=status.HTTP_201_CREATED)
 async def asociar_persona_a_grupo(
     datos: PersonaGrupoAsociar, 
-    servicio: PersonaServicio = Depends(get_persona_servicio)
+    servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]
 ):
     """Relaciona una persona con un grupo de retorno."""
     return await servicio.asociar_persona_a_grupo(datos.pe_codigo, datos.gr_codigo)
@@ -33,7 +33,7 @@ async def asociar_persona_a_grupo(
 @router.get("/grupo/{gr_codigo}", response_model=List[PersonaRespuesta])
 async def obtener_personas_de_grupo(
     gr_codigo: int, 
-    servicio: PersonaServicio = Depends(get_persona_servicio)
+    servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]
 ):
     """Lista todas las personas que pertenecen a un grupo específico."""
     return await servicio.listar_personas_por_grupo(gr_codigo)
