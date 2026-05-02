@@ -4,7 +4,7 @@
 """
 
 from app.retornos.esquemas.solicitud_retorno_grupo_esquema import SolicitudRetornoGrupoLiderRespuesta, SolicitudRetornoGrupoRespuesta, SolicitudRetornoGrupoUsuarioRespuesta
-from app.retornos.excepciones.registro_retorno_excepciones import SolicitudGrupoRetornoEstadoInvalido, SolicitudGrupoRetornoNoExistente
+from app.retornos.excepciones.registro_retorno_excepciones import SolicitudGrupoRetornoEstadoInvalido, SolicitudGrupoRetornoNoExistente, UsuarioNoPerteneceAlaMismaColonia
 from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
 from app.retornos.repositorios.retorno_grupo_usuario_repositorio import RetornoGrupoUsuarioRepositorio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
@@ -19,7 +19,7 @@ from fastapi import HTTPException, status
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
 from app.retornos.esquemas.solicitud_grupo_retorno_esquema import SolicitudGrupoRetornoEstado 
 class GrupoRetornoServicio:
-    def __init__(self, repositorio_retorno: RetornoRepository, repositorio_grupos: GrupoRetornoRepositorio, repositorio_solicitudes: SolicitudGrupoRetornoRepositorio , repositorio_usuario_grupo: RetornoGrupoUsuarioRepositorio, repositorio_usuario: UsuarioRepositorio, repositorio_registro_individual: RegistroRetornoRepositorio): # type: ignore
+    def __init__(self, repositorio_retorno: RetornoRepository = None, repositorio_grupos: GrupoRetornoRepositorio = None, repositorio_solicitudes: SolicitudGrupoRetornoRepositorio = None, repositorio_usuario_grupo: RetornoGrupoUsuarioRepositorio = None, repositorio_usuario: UsuarioRepositorio = None, repositorio_registro_individual: RegistroRetornoRepositorio = None): # type: ignore
         self.repositorio_retorno = repositorio_retorno
         self.repositorio_grupos = repositorio_grupos
         self.repositorio_solicitudes = repositorio_solicitudes
@@ -123,6 +123,10 @@ class GrupoRetornoServicio:
         solicitud = await self.repositorio_solicitudes.obtener_solicitud_por_id(sol_codigo)
         if not solicitud:
             raise SolicitudGrupoRetornoNoExistente(sol_codigo)
+        lider_grupo = solicitud.grupo.lider
+        usuario_solicitud = solicitud.usuario
+        if lider_grupo.co_codigo != usuario_solicitud.co_codigo:
+            raise UsuarioNoPerteneceAlaMismaColonia(solicitud.us_codigo, solicitud.grupo.us_codigo_lider)
         if solicitud.solgr_estado != SolicitudGrupoRetornoEstado.PENDIENTE:
             raise SolicitudGrupoRetornoEstadoInvalido(solicitud.solgr_codigo, solicitud.solgr_estado.value)
         solicitud_aceptada = await self.repositorio_solicitudes.aceptar_solicitud_grupo_retorno(sol_codigo)
