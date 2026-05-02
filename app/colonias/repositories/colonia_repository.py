@@ -124,3 +124,10 @@ class ColoniaRepository:
         await self.db.commit()
         await self.db.refresh(colonia)
         return colonia
+    
+    async def remover_miembro_colonia(self, usuario: Usuario) -> Usuario:
+        usuario.co_codigo = None
+
+        await self.db.commit()
+        await self.db.refresh(usuario)
+        return usuario

@@ -142,3 +142,93 @@ cambiar_lider_colonia_docs = dict(
         },
     },
 )
+
+sacar_miembro_colonia_docs = dict(
+    status_code=status.HTTP_200_OK,
+    summary="Sacar un miembro de una colonia",
+    description="""
+    Saca un miembro existente de una colonia.
+
+    Requiere el código de la colonia (path) y el ID del miembro a sacar (body).
+
+    Reglas:
+    - El usuario (miembro a sacar) debe existir.
+    - El usuario debe ser miembro de la colonia (`co_codigo == colonia_codigo`).
+    - El usuario no debe estar inscrito en un retorno activo.
+
+    Efectos:
+    - Se desasocia al usuario de la colonia (`co_codigo` se establece en None).
+    """,
+    responses={
+        200: {
+            "description": "El miembro ha sido sacado de la colonia exitosamente.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 1, 
+                        "nombre": "Juan",
+                        "apellido": "Pérez",
+                        "codigo_colonia": None,
+                        "documento": "123456789",
+                        "tipo_doc": "CC",
+                        "genero": "M",
+                        "fecha_nacimiento": "1990-01-01", 
+                        "celular": "1234567890",
+                        "correo": "juan.perez@example.com",
+                        "role": 1
+                    }
+                }
+            },
+        },
+        404: {
+            "description": "Colonia o usuario no encontrado.",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "colonia_no_encontrada": {
+                            "summary": "Colonia no encontrada",
+                            "value": {"detail": "Colonia con ID 999 no encontrada."}
+                        },
+                        "usuario_no_encontrado": {
+                            "summary": "Usuario no encontrado",
+                            "value": {"detail": "Usuario con ID 999 no encontrado."}
+                        }
+                    }
+                }
+            },
+        },
+        409: {
+            "description": "Conflicto de negocio (usuario no es miembro o usuario está inscrito en retorno activo).",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "usuario_no_es_miembro": {
+                            "summary": "Usuario no pertenece a la colonia",
+                            "value": {"detail": "El usuario con ID 2 no es miembro de la colonia con ID 1."}
+                        },
+                        "usuario_inscrito_retorno_activo": {
+                            "summary": "Usuario inscrito en retorno activo",
+                            "value": {"detail": "El usuario con ID 2 está inscrito en un retorno activo y no puede ser sacado de la colonia."}
+                        },
+                    }
+                }
+            },
+        },
+        422: {
+            "description": "Body inválido (por ejemplo, no se envió el campo `miembro_id`).",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": [
+                            {
+                                "loc": ["body", "miembro_id"],
+                                "msg": "Field required",
+                                "type": "missing"
+                            }
+                        ]
+                    }
+                }
+            },
+        },
+    },
+)

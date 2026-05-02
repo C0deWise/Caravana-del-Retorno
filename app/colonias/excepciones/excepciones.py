@@ -49,4 +49,17 @@ class UsuarioYaEsLider(HTTPException):
         super().__init__(
             status_code= status.HTTP_409_CONFLICT,
             detail=f"El usuario con ID {usuario_id} ya es líder actual de la colonia con ID {colonia_id}.")
+        
+class UsuarioInscritoRetornoActivo(HTTPException):
+    def __init__(self, usuario_id):
+        self.usuario_id = usuario_id
+        super().__init__(
+            status_code= status.HTTP_409_CONFLICT,
+            detail=f"El usuario con ID {usuario_id} no puede ser removido de la colonia porque esta inscrito en retornos activos.")
     
+class AutoRemocionUsuarioColonia(HTTPException):
+    def __init__(self, usuario_id):
+        self.usuario_id = usuario_id
+        super().__init__(
+            status_code= status.HTTP_409_CONFLICT,
+            detail=f"No puedes removerte a ti mismo de la colonia")
