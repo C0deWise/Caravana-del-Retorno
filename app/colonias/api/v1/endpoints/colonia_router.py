@@ -170,6 +170,16 @@ async def rechazar_solicitud_colonia(codigo: int, servicio: SolicitudColoniaServ
 async def obtener_colonias(servicio: ColoniaService = Depends(get_colonia_service)):
     return await servicio.obtener_colonias()
 
+@router.get(
+    "/{colonia_codigo}",
+    response_model = ColoniaRespuesta,
+    status_code = status.HTTP_200_OK,
+    summary = "Obtener información de una colonia",
+    description = "Obtiene la información detallada de una colonia específica por su código",
+)
+async def obtener_colonia(colonia_codigo: int, servicio: ColoniaService = Depends(get_colonia_service)):
+    return await servicio.obtener_colonia(colonia_codigo)
+
 @router.post(
     "/crear-solicitud",
     response_model=SolicitudColoniaRespuesta, **crear_solicitud_docs
