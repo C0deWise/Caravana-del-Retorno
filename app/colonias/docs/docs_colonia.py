@@ -54,3 +54,36 @@ desactivar_colonia_docs = dict(
         }
     }
 )
+
+obtener_colonias_activas_docs = dict(
+    summary="Obtener colonias activas",
+    description="Obtiene una lista de todas las colonias que están actualmente activas.",
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {
+            "description": "Lista de colonias activas obtenida exitosamente.",
+            "content": {
+                "application/json": {
+                    "example": [
+                        {
+                            "codigo": 1,
+                            "pais": "Colombia",
+                            "departamento": "Antioquia",
+                            "ciudad": "Medellín",
+                            "estado": "activa",
+                            "lider": 10
+                        },
+                        {
+                            "codigo": 2,
+                            "pais": "Colombia",
+                            "departamento": "Cundinamarca",
+                            "ciudad": "Bogotá",
+                            "estado": "activa",
+                            "lider": 15
+                        }
+                    ]
+                }
+            },
+        }
+    }
+)

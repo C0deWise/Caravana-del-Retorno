@@ -19,7 +19,7 @@ from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear
 from app.colonias.services.colonia_services import ColoniaService
 from app.colonias.services.solicitud_colonias_services import SolicitudColoniaService
 from app.usuarios.services.usuario_servicio import UsuarioServicio
-from app.colonias.docs.docs_colonia import desactivar_colonia_docs
+from app.colonias.docs.docs_colonia import desactivar_colonia_docs, obtener_colonias_activas_docs
 
 from app.colonias.docs.docs_solicitud_colonia import (
     crear_solicitud_docs,
@@ -272,3 +272,11 @@ async def desactivar_colonia(
 ) -> ColoniaRespuesta:
     """Endpoint para desactivar una colonia existente"""
     return await servicio.desactivar_colonia(colonia_codigo)
+
+@router.get(
+    "/colonias-activas/",
+    response_model=list[ColoniaRespuesta], **obtener_colonias_activas_docs
+)
+async def obtener_colonias_activas(servicio: ColoniaService = Depends(get_colonia_service)) -> list[ColoniaRespuesta]:
+    """Endpoint para obtener la lista de colonias activas"""
+    return await servicio.obtener_colonias_activas()

@@ -96,6 +96,18 @@ class ColoniaRepository:
         resultado = await self.db.execute(sentencia)
         return resultado.scalars().all()
     
+    async def obtener_colonias_activas(self) -> list[Colonia]:
+        """
+        Obtiene todas las colonias activas en la base de datos.
+        Parámetros:
+            db (AsyncSession): Sesión activa de SQLAlchemy.
+        Retorna:
+            list[Colonia]: Lista de objetos Colonia activas.
+        """
+        sentencia = select(Colonia).filter(Colonia.estado == ColoniaEstado.ACTIVA)
+        resultado = await self.db.execute(sentencia)
+        return resultado.scalars().all()
+    
     async def tiene_miembros_colonia(self, colonia_codigo: int) -> bool:
         """
         Verifica si una colonia tiene miembros asociados. Identificando si el usuario 
