@@ -30,3 +30,8 @@ class RegistroRetornoDarseDeBaja(BaseModel):
     retorno: int
 
     model_config = {"from_attributes": True}
+
+class RegistroRetornoDarseDeBajaRespuesta(BaseModel):
+    mensaje: str
+    model_config = {"from_attributes": True}
+
