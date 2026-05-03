@@ -18,7 +18,7 @@ class ColoniaNoExistente(HTTPException):
         self.colonia_id = colonia_id
         super().__init__(
             status_code= status.HTTP_404_NOT_FOUND,
-            detail=f"Colonia con ID {colonia_id} no encontrada.")
+            detail=f"La colonia con ID {colonia_id} no existe.")
         
 class ColoniaInactiva(HTTPException):
     def __init__(self, colonia_id):
@@ -39,7 +39,7 @@ class UsuarioNoExistente(HTTPException):
         self.usuario_id = usuario_id
         super().__init__(
             status_code= status.HTTP_404_NOT_FOUND,
-            detail=f"Usuario con ID {usuario_id} no encontrado.")
+            detail=f"El usuario con ID {usuario_id} no existe.")
 
 class UsuarioNoEsMiembroColonia(HTTPException):
     def __init__(self, usuario_id, colonia_id):
@@ -69,4 +69,8 @@ class AutoRemocionUsuarioColonia(HTTPException):
         self.usuario_id = usuario_id
         super().__init__(
             status_code= status.HTTP_409_CONFLICT,
-            detail=f"No puedes removerte a ti mismo de la colonia")
+            detail=(
+                f"El usuario con ID {usuario_id} es el líder actual de la colonia y no puede removerse a sí mismo. "
+                f"Para remover al líder, primero debe asignar un nuevo líder a la colonia."
+            )
+        )
