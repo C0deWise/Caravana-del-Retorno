@@ -22,7 +22,7 @@ class RegistroRetornoGrupo(Base):
     anotacion: Mapped[str] = mapped_column("reggr_anotacion", String(500), nullable=True)
     
 
-    # ─────────────────────────────────────────
+
     #  Relaciones
     # ─────────────────────────────────────────
     retorno_rel: Mapped["Retorno"] = relationship(Retorno)
