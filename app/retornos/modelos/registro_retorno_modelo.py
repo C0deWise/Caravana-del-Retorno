@@ -4,7 +4,7 @@ Aquí se mapea la tabla de registro a un retorno en la base de datos, definiendo
 sus columnas y relaciones.
 """
 
-from sqlalchemy import Integer, Boolean, ForeignKey, UniqueConstraint
+from sqlalchemy import Integer, Boolean, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
 
@@ -17,6 +17,7 @@ class RegistroRetorno(Base):
     num_hospedaje: Mapped[int] = mapped_column("reg_num_hospedaje", Integer, nullable=False, default=0)
     num_transporte: Mapped[int] = mapped_column("reg_num_transporte", Integer, nullable=False, default=0)
     num_parqueadero: Mapped[int] = mapped_column("reg_num_parqueadero", Integer, nullable=False, default=0)
+    anotacion: Mapped[str] = mapped_column("reg_anotacion", String(500), nullable=True)
 
     __table_args__ = (
         UniqueConstraint("us_codigo", "re_codigo", name="uk1_uk2_registro_retorno"),
