@@ -116,3 +116,16 @@ class SolicitudColoniaRepository:
         )
         await self.db.commit()
         return resultado.rowcount
+    
+    async def rechazar_solicitudes_pendientes_por_usuario(self, usuario_id: int):
+        stmt = (
+            update(SolicitudColonia)
+            .where(
+                SolicitudColonia.us_codigo == usuario_id,
+                SolicitudColonia.so_estado == EstadoSolicitud.pendiente
+            )
+            .values(so_estado=EstadoSolicitud.rechazada)
+        )
+
+        await self.db.execute(stmt)
+        await self.db.commit()

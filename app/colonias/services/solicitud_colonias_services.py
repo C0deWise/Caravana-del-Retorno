@@ -23,8 +23,13 @@ class SolicitudColoniaService:
         )
 
     async def crear_solicitud(self, data: SolicitudColoniaCrear) -> SolicitudColoniaRespuesta:
+
         solicitud = await self.repositorio.crear_solicitud_colonia(data)
+       
         return self._mapear_solicitud(solicitud)
+
+    async def _rechazar_solicitudes_colonia_pendientes_por_usuario(self, cod_usuario: int) -> int:
+        return await self.repositorio.rechazar_solicitudes_pendientes_por_usuario(cod_usuario)
 
     async def obtener_solicitudes_pendientes_colonia(self, cod_colonia: int) -> list[SolicitudColoniaRespuesta]:
         solicitudes = await self.repositorio.obtener_solicitudes_pendientes_por_colonia(cod_colonia)
@@ -45,6 +50,7 @@ class SolicitudColoniaService:
         """Acepta una solicitud pendiente, cambiando su estado a 'aceptada'."""
         try:
             solicitud = await self.repositorio.aceptar_solicitud_colonia(codigo)
+            await self._rechazar_solicitudes_colonia_pendientes_por_usuario(solicitud.us_codigo)
             return self._mapear_solicitud(solicitud)
         except SolicitudNoEncontrada as e:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
