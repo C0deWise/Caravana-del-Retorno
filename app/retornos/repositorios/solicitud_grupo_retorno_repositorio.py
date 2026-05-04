@@ -85,8 +85,5 @@ class SolicitudGrupoRetornoRepositorio:
             )
             return result.scalars().all()
         
-        async def obtener_solicitudes_pendientes_por_usuario(self, usuario_id: int):
-            result = await self.db.execute(
-                select(SolicitudGrupoRetorno).filter(SolicitudGrupoRetorno.us_codigo == usuario_id, SolicitudGrupoRetorno.solgr_estado == SolicitudGrupoRetornoEstado.PENDIENTE).order_by(SolicitudGrupoRetorno.solgr_time_stamp.desc())
-            )
+        
         

@@ -83,7 +83,7 @@ async def test_aceptar_solicitud_no_existente_lanza_excepcion():
     servicio, repo_sol, _ = _make_servicio()
     repo_sol.obtener_solicitud_por_id = AsyncMock(return_value=None)
 
-    with pytest.raises(SolicitudGrupoRetornoNoExistente) as exc_info:
+    with pytest.raises(SolicitudGrupoRetornoNoExistente):
         await servicio.aceptar_solicitud_grupo_retorno(sol_codigo=1)
 
     repo_sol.obtener_solicitud_por_id.assert_awaited_once_with(1)
@@ -187,7 +187,7 @@ async def test_rechazar_solicitud_no_existente_lanza_excepcion():
     servicio, repo_sol, _ = _make_servicio()
     repo_sol.obtener_solicitud_por_id = AsyncMock(return_value=None)
 
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(SolicitudGrupoRetornoNoExistente):
         await servicio.rechazar_solicitud_grupo_retorno(sol_codigo=5)
 
     repo_sol.obtener_solicitud_por_id.assert_awaited_once_with(5)
