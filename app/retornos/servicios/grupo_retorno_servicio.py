@@ -144,9 +144,9 @@ class GrupoRetornoServicio:
     async def rechazar_solicitud_grupo_retorno(self, sol_codigo:int):
         solicitud = await self.repositorio_solicitudes.obtener_solicitud_por_id(sol_codigo)
         if not solicitud:
-            raise Exception(SolicitudGrupoRetornoNoExistente(sol_codigo))
+            raise SolicitudGrupoRetornoNoExistente(sol_codigo)
         if solicitud.solgr_estado != SolicitudGrupoRetornoEstado.PENDIENTE:
-            raise Exception(SolicitudGrupoRetornoEstadoInvalido(solicitud.solgr_codigo, solicitud.solgr_estado))
+            raise SolicitudGrupoRetornoEstadoInvalido(solicitud.solgr_codigo, solicitud.solgr_estado)
         solicitud_rechazada = await self.repositorio_solicitudes.rechazar_solicitud_grupo_retorno(sol_codigo)
         return SolicitudRetornoGrupoRespuesta(
             id=solicitud_rechazada.solgr_codigo,  
