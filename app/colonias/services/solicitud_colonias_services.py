@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.colonias.excepciones.excepciones import SolicitudEstadoInvalido, SolicitudNoEncontrada
 from app.colonias.models.solicitud_colonia import SolicitudColonia
 from app.colonias.repositories.solicitud_colonia_repository import SolicitudColoniaRepository 
-from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear, SolicitudColoniaRespuesta
+from app.colonias.schemas.colonia_solicitud_schemas import MiembroRegistradoColoniaRespuesta, SolicitudColoniaCrear, SolicitudColoniaRespuesta
 
 class SolicitudColoniaService:
 
@@ -22,9 +22,21 @@ class SolicitudColoniaService:
             apellido_usuario=solicitud.usuario.us_apellido,
         )
 
+    def _mapear_miembro_registrado(self, usuario) -> MiembroRegistradoColoniaRespuesta:
+        return MiembroRegistradoColoniaRespuesta(
+            codigo_usuario=usuario.us_codigo,
+            nombre_usuario=usuario.us_nombre,
+            apellido_usuario=usuario.us_apellido,
+            codigo_colonia=usuario.co_codigo
+        )
     async def crear_solicitud(self, data: SolicitudColoniaCrear) -> SolicitudColoniaRespuesta:
-        solicitud = await self.repositorio.crear_solicitud_colonia(data)
-        return self._mapear_solicitud(solicitud)
+        if await self.repositorio.obtener_colonia_tiene_lider(data.codigo_colonia):
+            solicitud = await self.repositorio.crear_solicitud_colonia(data)
+            return self._mapear_solicitud(solicitud)
+        else:
+           usuario =  await self.repositorio.actualizar_colonia_usuario(data.codigo_usuario, data.codigo_colonia)
+           return self._mapear_miembro_registrado(usuario)
+        
 
     async def obtener_solicitudes_pendientes_colonia(self, cod_colonia: int) -> list[SolicitudColoniaRespuesta]:
         solicitudes = await self.repositorio.obtener_solicitudes_pendientes_por_colonia(cod_colonia)
