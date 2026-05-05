@@ -10,7 +10,8 @@ class RegistroRetornoGrupoCrear(BaseModel):
     cod_grupo: int
     num_hospedaje: int
     num_transporte: int
-    num_parqueadero: int
+    num_parqueadero_carro: int
+    num_parqueadero_moto: int
     anotacion: Optional[str] = None
 
     model_config = {"from_attributes": True}
@@ -21,7 +22,8 @@ class RegistroRetornoGrupoRespuesta(BaseModel):
     cod_grupo: int
     num_hospedaje: int
     num_transporte: int
-    num_parqueadero: int
+    num_parqueadero_carro: int
+    num_parqueadero_moto: int
     anotacion: Optional[str] = None
 
     model_config = {"from_attributes": True}

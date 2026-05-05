@@ -18,7 +18,8 @@ class RegistroRetornoGrupo(Base):
     retorno: Mapped[int] = mapped_column("re_codigo", Integer, ForeignKey("retorno.codigo"), nullable=False)
     num_hospedaje: Mapped[int] = mapped_column("reggr_num_hospedaje", Integer, nullable=False, default=0)
     num_transporte: Mapped[int] = mapped_column("reggr_num_transporte", Integer, nullable=False, default=0)
-    num_parqueadero: Mapped[int] = mapped_column("reggr_num_parqueadero", Integer, nullable=False, default=0)
+    num_parqueadero_carro: Mapped[int] = mapped_column("reggr_num_parqueadero_carro", Integer, nullable=False, default=0)
+    num_parqueadero_moto: Mapped[int] = mapped_column("reggr_num_parqueadero_moto", Integer, nullable=False, default=0)
     anotacion: Mapped[str] = mapped_column("reggr_anotacion", String(500), nullable=True)
     
 
@@ -33,6 +34,6 @@ class RegistroRetornoGrupo(Base):
         return (
             f"RegistroRetornoGrupo(regg_codigo={self.regg_codigo!r}, cod_grupo={self.cod_grupo!r}, "
             f"retorno={self.retorno!r}, num_hospedaje={self.num_hospedaje!r}, "
-            f"num_transporte={self.num_transporte!r}, num_parqueadero={self.num_parqueadero!r}, "
-            f"anotacion={self.anotacion!r})"
+            f"num_transporte={self.num_transporte!r}, num_parqueadero_carro={self.num_parqueadero_carro!r}, "
+            f"num_parqueadero_moto={self.num_parqueadero_moto!r}, anotacion={self.anotacion!r})"
         )
