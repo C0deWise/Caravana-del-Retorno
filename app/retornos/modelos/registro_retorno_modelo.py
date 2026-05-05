@@ -16,7 +16,9 @@ class RegistroRetorno(Base):
     retorno: Mapped[int] = mapped_column("re_codigo", Integer, ForeignKey("retorno.codigo"), nullable=False)
     num_hospedaje: Mapped[int] = mapped_column("reg_num_hospedaje", Integer, nullable=False, default=0)
     num_transporte: Mapped[int] = mapped_column("reg_num_transporte", Integer, nullable=False, default=0)
-    num_parqueadero: Mapped[int] = mapped_column("reg_num_parqueadero", Integer, nullable=False, default=0)
+    num_parqueadero_carro: Mapped[int] = mapped_column("reg_num_parqueadero_carro", Integer, nullable=False, default=0)
+    num_parqueadero_moto: Mapped[int] = mapped_column("reg_num_parqueadero_moto", Integer, nullable=False, default=0)
+
     anotacion: Mapped[str] = mapped_column("reg_anotacion", String(500), nullable=True)
 
     __table_args__ = (
