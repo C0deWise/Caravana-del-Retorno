@@ -69,3 +69,12 @@ class RetornoTransicionNoPermitidaError(HTTPException):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=detail
         )
+
+class RetornoYaEnEstadoSolicitadoError(HTTPException):
+    """Se lanza cuando se intenta cambiar a un estado que ya tiene el retorno."""
+    def __init__(self, estado: str):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"El retorno ya se encuentra en estado '{estado}'. "
+            f"No es necesario cambiar de estado."
+        )
