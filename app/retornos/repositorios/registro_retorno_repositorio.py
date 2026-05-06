@@ -20,7 +20,8 @@ class RegistroRetornoRepositorio:
             retorno=registro_retorno.retorno,
             num_hospedaje=registro_retorno.num_hospedaje,
             num_transporte=registro_retorno.num_transporte,
-            num_parqueadero=registro_retorno.num_parqueadero
+            num_parqueadero=registro_retorno.num_parqueadero,
+            anotacion=registro_retorno.anotacion
         )
         self.db.add(nuevo_registro)
         await self.db.commit()
