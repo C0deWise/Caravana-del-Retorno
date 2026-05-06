@@ -4,6 +4,7 @@
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.retornos.modelos.grupo_retorno_modelo import GrupoRetorno
 from app.retornos.modelos.registro_retorno_grupo_modelo import RegistroRetornoGrupo
 from app.retornos.esquemas.registro_retorno_grupo_esquema import RegistroRetornoGrupoCrear
 
@@ -35,3 +36,15 @@ class RegistroRetornoGrupoRepositorio:
         )
         result = await self.db.execute(stmt)
         return result.scalars().first()
+
+    async def existe_lider_con_grupo_registrado_en_retorno(self, us_codigo_lider: int, re_codigo: int) -> bool:
+        """Verifica si el líder ya tiene un grupo registrado en un retorno específico."""
+        stmt = select(RegistroRetornoGrupo).join(
+            GrupoRetorno,
+            GrupoRetorno.gr_codigo == RegistroRetornoGrupo.cod_grupo
+        ).where(
+            GrupoRetorno.us_codigo_lider == us_codigo_lider,
+            RegistroRetornoGrupo.retorno == re_codigo
+        )
+        result = await self.db.execute(stmt)
+        return result.scalars().first() is not None

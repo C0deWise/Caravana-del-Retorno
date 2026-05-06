@@ -12,7 +12,8 @@ def mocks():
         "solicitudes": MagicMock(),
         "usuario_grupo": MagicMock(),
         "usuario": MagicMock(),
-        "registro_individual": MagicMock()
+        "registro_individual": MagicMock(),
+        "registro_grupo": MagicMock()
     }
 
 @pytest.fixture
@@ -24,8 +25,36 @@ def servicio(mocks):
         mocks["solicitudes"],
         mocks["usuario_grupo"],
         mocks["usuario"],
-        mocks["registro_individual"]
+        mocks["registro_individual"],
+        mocks["registro_grupo"]
     )
+
+@pytest.mark.asyncio
+async def test_crear_grupo_retorno_lider_ya_registrado_individual(servicio, mocks):
+    """No permite crear grupo si el líder ya tiene registro individual en el retorno actual."""
+    mocks["usuario"].obtener_usuario_por_id = AsyncMock(return_value=MagicMock())
+    mocks["retorno"].obtener_ultimo_retorno = AsyncMock(return_value=MagicMock(codigo=10))
+    mocks["registro_individual"].obtener_registro_retorno_por_usuario_y_retorno = AsyncMock(return_value=MagicMock())
+
+    with pytest.raises(HTTPException) as exc:
+        await servicio.crear_grupo_retorno(MagicMock(lider=1))
+
+    assert exc.value.status_code == status.HTTP_400_BAD_REQUEST
+    assert "registro de retorno individual" in exc.value.detail
+
+@pytest.mark.asyncio
+async def test_crear_grupo_retorno_lider_ya_registrado_grupal(servicio, mocks):
+    """No permite crear grupo si el líder ya está inscrito de forma grupal en el retorno actual."""
+    mocks["usuario"].obtener_usuario_por_id = AsyncMock(return_value=MagicMock())
+    mocks["retorno"].obtener_ultimo_retorno = AsyncMock(return_value=MagicMock(codigo=10))
+    mocks["registro_individual"].obtener_registro_retorno_por_usuario_y_retorno = AsyncMock(return_value=None)
+    mocks["registro_grupo"].existe_lider_con_grupo_registrado_en_retorno = AsyncMock(return_value=True)
+
+    with pytest.raises(HTTPException) as exc:
+        await servicio.crear_grupo_retorno(MagicMock(lider=1))
+
+    assert exc.value.status_code == status.HTTP_400_BAD_REQUEST
+    assert "inscrito de forma grupal" in exc.value.detail
 
 @pytest.mark.asyncio
 async def test_crear_solicitud_usuario_no_existe(servicio, mocks):

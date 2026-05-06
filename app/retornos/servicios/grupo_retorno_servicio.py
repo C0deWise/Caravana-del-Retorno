@@ -11,19 +11,21 @@ from app.retornos.esquemas.grupo_retorno_esquema import GrupoRetornoCrear, Grupo
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno # Import SolicitudGrupoRetorno
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
+from app.retornos.repositorios.registro_retorno_grupo_repositorio import RegistroRetornoGrupoRepositorio
 from app.usuarios.schemas.usuario_esquemas import UsuarioSalida # Para el esquema de respuesta del líder
 from app.usuarios.models.usuario import Usuario # Para el tipo de retorno del líder
 from fastapi import HTTPException, status
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
 
 class GrupoRetornoServicio:
-    def __init__(self, repositorio_retorno: RetornoRepository, repositorio_grupos: GrupoRetornoRepositorio, repositorio_solicitudes: SolicitudGrupoRetornoRepositorio , repositorio_usuario_grupo: RetornoGrupoUsuarioRepositorio, repositorio_usuario: UsuarioRepositorio, repositorio_registro_individual: RegistroRetornoRepositorio): # type: ignore
+    def __init__(self, repositorio_retorno: RetornoRepository, repositorio_grupos: GrupoRetornoRepositorio, repositorio_solicitudes: SolicitudGrupoRetornoRepositorio , repositorio_usuario_grupo: RetornoGrupoUsuarioRepositorio, repositorio_usuario: UsuarioRepositorio, repositorio_registro_individual: RegistroRetornoRepositorio, repositorio_registro_grupo: RegistroRetornoGrupoRepositorio | None = None): # type: ignore
         self.repositorio_retorno = repositorio_retorno
         self.repositorio_grupos = repositorio_grupos
         self.repositorio_solicitudes = repositorio_solicitudes
         self.repositorio_usuario_grupo = repositorio_usuario_grupo
         self.repositorio_usuario = repositorio_usuario
         self.repositorio_registro_individual = repositorio_registro_individual
+        self.repositorio_registro_grupo = repositorio_registro_grupo
 
     async def crear_grupo_retorno(self, datos):
         """
@@ -36,6 +38,29 @@ class GrupoRetornoServicio:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Usuario con ID {datos.lider} no encontrado"
             )
+
+        ultimo_retorno = await self.repositorio_retorno.obtener_ultimo_retorno()
+        if ultimo_retorno:
+            registro_individual = await self.repositorio_registro_individual.obtener_registro_retorno_por_usuario_y_retorno(
+                datos.lider,
+                ultimo_retorno.codigo
+            )
+            if registro_individual:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="El usuario líder ya cuenta con un registro de retorno individual para el evento actual."
+                )
+
+            if self.repositorio_registro_grupo:
+                lider_ya_registrado_en_grupo = await self.repositorio_registro_grupo.existe_lider_con_grupo_registrado_en_retorno(
+                    datos.lider,
+                    ultimo_retorno.codigo
+                )
+                if lider_ya_registrado_en_grupo:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="El usuario líder ya está inscrito de forma grupal para el evento actual."
+                    )
         
         nuevo_grupo = await self.repositorio_grupos.crear_grupo_retorno(datos)
         return GrupoRetornoRespuesta.model_validate(nuevo_grupo)
