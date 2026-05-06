@@ -13,7 +13,7 @@ from app.usuarios.services.usuario_servicio import UsuarioServicio
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
-from app.retornos.esquemas.retorno_esquemas import RetornoCreate, RetornoResponse
+from app.retornos.esquemas.retorno_esquemas import RetornoCreate, RetornoResponse, CambiarEstadoRetorno
 from app.retornos.servicios.retorno_servicio import RetornoService
 
 router = APIRouter(
@@ -78,6 +78,30 @@ async def listar_retornos(db: AsyncSession = Depends(get_db)):
 async def obtener_retorno(codigo: int, db: AsyncSession = Depends(get_db)):
     service = RetornoService(db)
     return await service.obtener_retorno(codigo)
+
+@router.patch(
+    "/{codigo}/estado",
+    response_model=RetornoResponse,
+    summary="Cambiar estado de un retorno",
+    description=(
+        "Actualiza el estado de un retorno existente. "
+        "Las transiciones permitidas son: ACTIVO -> EN_CURSO -> FINALIZADO. "
+        "No se permiten transiciones inversas ni cambios desde FINALIZADO."
+    ),
+    responses={
+        200: {
+            "description": "Estado del retorno actualizado exitosamente.",
+            "content": {"application/json": {"example": {"codigo": 1, "anio": 2024, "estado": "EN_CURSO"}}},
+        },
+        400: {
+            "description": "Transición de estado no permitida.",
+            "content": {"application/json": {"example": {"detail": "No se puede cambiar de estado 'ACTIVO' a 'FINALIZADO'. Un retorno FINALIZADO no puede cambiar de estado."}}},
+        },
+    }
+)
+async def cambiar_estado_retorno(codigo: int, nuevo_estado: CambiarEstadoRetorno, db: AsyncSession = Depends(get_db)):
+    service = RetornoService(db)
+    return await service.cambiar_estado_retorno(codigo, nuevo_estado.estado)
 
 @router.post(
     "/registro",
