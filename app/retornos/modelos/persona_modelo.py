@@ -7,7 +7,7 @@
 
 import enum
 
-from sqlalchemy import Enum, Integer, String
+from sqlalchemy import Enum, Integer, String, Date
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
 
@@ -25,7 +25,7 @@ class Persona(Base):
     pe_nombre: Mapped[str] = mapped_column("pe_nombre", String(100), nullable=False)
     pe_apellido: Mapped[str] = mapped_column("pe_apellido", String(100), nullable=False)
     pe_correo: Mapped[str] = mapped_column("pe_correo", String(100), unique=True, nullable=True)
-    pe_fecha_nacimiento: Mapped[str] = mapped_column("pe_fecha_nacimiento", String(100), nullable=False)
+    pe_fecha_nacimiento: Mapped[Date] = mapped_column("pe_fecha_nacimiento", Date, nullable=False)
 
 
     def __repr__(self) -> str:

@@ -1,3 +1,5 @@
+from datetime import date
+
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from app.retornos.modelos.persona_modelo import TipoDoc
@@ -8,7 +10,7 @@ class PersonaBase(BaseModel):
     pe_nombre: str = Field(..., min_length=2, max_length=100)
     pe_apellido: str = Field(..., min_length=2, max_length=100)
     pe_correo: Optional[EmailStr] = None
-    pe_fecha_nacimiento: str = Field(..., description="Formato YYYY-MM-DD")
+    pe_fecha_nacimiento: date
 
 class PersonaCrear(PersonaBase):
     pass

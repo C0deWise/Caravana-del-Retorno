@@ -4,6 +4,8 @@
 """
 
 
+import enum
+
 from sqlalchemy import ForeignKey, Integer, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -11,6 +13,11 @@ from app.core.database import Base
 from app.retornos.modelos.grupo_retorno_modelo import GrupoRetorno
 from app.usuarios.models.usuario import Usuario
 
+class Edades(str, enum.Enum):
+    """Enumeración para el género de los usuarios."""
+    menores = "menores"
+    adultos = "adultos"
+    adultos_mayores = "adultos mayores"
 
 class RetornoGrupoUsuario(Base):
     __tablename__ = 'usuario_grupo_retorno'

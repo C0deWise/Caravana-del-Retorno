@@ -2,10 +2,11 @@
 
 
 
-from sqlalchemy import select, func, case
+from sqlalchemy import select, func, case, String, extract, Integer, Date
 from datetime import date
 
 from app.retornos.modelos.registro_retorno_modelo import RegistroRetorno
+from app.retornos.modelos.retorno_grupo_usuario_modelo import Edades
 from app.usuarios.models.usuario import Usuario
 
 
@@ -17,21 +18,21 @@ class UsuarioRetornoReporteRepositorio:
 
     async def obtener_asistentes_detallado_retorno(self, re_codigo: int, co_codigo: int):
         stmt = (
-            select(Usuario)
-            .join(RegistroRetorno, RegistroRetorno.us_codigo == Usuario.us_codigo)
-            .where(RegistroRetorno.retorno == re_codigo and Usuario.colonia == co_codigo)
+            select(Usuario, RegistroRetorno)
+            .join(RegistroRetorno, RegistroRetorno.usuario == Usuario.us_codigo)
+            .where(RegistroRetorno.retorno == re_codigo, Usuario.co_codigo == co_codigo)
         )
         result = await self.db.execute(stmt)
-        return result.scalars().all()
+        return result.all()
     
-    async def obtener_cantidad_asistentes_detallado_retorno(self, re_codigo: int, co_codigo: int):
+    async def obtener_cantidad_asistentes_individuales_retorno(self, re_codigo: int, co_codigo: int):
         stmt = (
-            select(Usuario.us_codigo, func.count(Usuario.us_codigo).label("cantidad"))
-            .join(RegistroRetorno, RegistroRetorno.us_codigo == Usuario.us_codigo)
-            .where(RegistroRetorno.retorno == re_codigo and Usuario.colonia == co_codigo)
+            select(func.count(Usuario.us_codigo).label("cantidad"))
+            .join(RegistroRetorno, RegistroRetorno.usuario == Usuario.us_codigo)
+            .where(RegistroRetorno.retorno == re_codigo, Usuario.co_codigo == co_codigo)
         )
         result = await self.db.execute(stmt)
-        return {row[0].value: row[1] for row in result.all()}
+        return result.scalar() or 0
 
     async def obtener_cantidad_generos_usuarios_asistentes_por_retorno(self, re_codigo: int):
         stmt = (
@@ -45,11 +46,13 @@ class UsuarioRetornoReporteRepositorio:
 
     async def obtener_cantidad_asistentes_por_grupos_edad_retorno(self, re_codigo: int):
         # Calcular edad y categorizar en grupos
-        edad_grupo = case(
-            (func.cast((func.julianday(date.today()) - func.julianday(Usuario.us_fecha_nacimiento)) / 365.25, int) < 18, "menores"),
-            (func.cast((func.julianday(date.today()) - func.julianday(Usuario.us_fecha_nacimiento)) / 365.25, int) < 60, "adultos"),
-            else_="adultos_mayores"
-        )
+        fecha_nac = func.cast(Usuario.us_fecha_nacimiento, Date)
+        edad = func.cast(extract('year', func.age(fecha_nac)), Integer)
+        edad_grupo = func.cast(case(
+            (edad < 18, Edades.menores.value),
+            (edad < 60, Edades.adultos.value),
+            else_=Edades.adultos_mayores.value
+        ), String)
         
         stmt = (
             select(edad_grupo.label("grupo_edad"), func.count(Usuario.us_codigo).label("cantidad"))

@@ -13,7 +13,7 @@ class ColoniaReporteRepositorio:
     async def obtener_lider_colonia(self, co_codigo: int):
         result = await self.db.execute(
             select(Usuario)
-            .where(Usuario.colonia == co_codigo and Usuario.us_rol == 2)
+            .where(Usuario.co_codigo == co_codigo, Usuario.ro_codigo == 2)
         )
         return result.scalars().first()
     
