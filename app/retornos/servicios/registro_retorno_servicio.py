@@ -9,7 +9,7 @@ from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetor
 from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoRespuesta
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.usuarios.services.usuario_servicio import UsuarioServicio
-from app.retornos.excepciones.registro_retorno_excepciones import RetornoNoExistente, RetornoEstadoFinalizado, UsuarioNoExistente, UsuarioSinColonia, UsuarioYaRegistrado
+from app.retornos.excepciones.registro_retorno_excepciones import RetornoEstadoInvalido, RetornoNoExistente, UsuarioNoExistente, UsuarioSinColonia, UsuarioYaRegistrado
 
 class RegistroRetornoServicio:
     def __init__(
@@ -21,6 +21,20 @@ class RegistroRetornoServicio:
         self.repositorio = repositorio 
         self.retorno_repositorio = retorno_repositorio
         self.usuario_servicio = usuario_servicio
+
+    def _validar_retorno(self, retorno, codigo_retorno):
+        if not retorno:
+            raise RetornoNoExistente(codigo_retorno)
+        
+        if retorno.estado != "activo":
+            raise RetornoEstadoInvalido(codigo_retorno, retorno.estado.value)
+
+    def _validar_usuario(self, usuario, usuario_id):
+        if not usuario:
+            raise UsuarioNoExistente(usuario_id)
+
+        if not usuario.co_codigo:
+            raise UsuarioSinColonia(usuario_id)
 
     async def crear_registro_retorno(self, data: RegistroRetornoCrear) -> RegistroRetornoRespuesta:
         """
@@ -38,16 +52,10 @@ class RegistroRetornoServicio:
             - UsuarioYaRegistrado: Si el usuario ya está registrado en el retorno especificado.
         """
         retorno = await self.retorno_repositorio.get_by_codigo(data.retorno)
-        if not retorno:
-            raise RetornoNoExistente(data.retorno)
-        
-        if retorno.estado == "finalizado":
-            raise RetornoEstadoFinalizado(data.retorno)
-        
-        usuario = await self.usuario_servicio.obtener_usuario_por_id(data.usuario)
+        self._validar_retorno(retorno, data.retorno)
 
-        if not usuario:
-            raise UsuarioNoExistente(data.usuario)
+        usuario = await self.usuario_servicio.obtener_usuario_por_id(data.usuario)
+        self._validar_usuario(usuario, data.usuario)
 
         if not usuario.co_codigo:
             raise UsuarioSinColonia(data.usuario)

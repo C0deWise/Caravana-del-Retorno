@@ -14,11 +14,11 @@ class RetornoNoExistente(HTTPException):
             detail=f"El retorno con código {retorno_id} no existe."
         )
 
-class RetornoEstadoFinalizado(HTTPException):
-    def __init__(self, retorno_id: int):
+class RetornoEstadoInvalido(HTTPException):
+    def __init__(self, retorno_id: int, retorno_estado: str):
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"No es posible inscribir en el retorno con código {retorno_id} porque ya ha finalizado."
+            detail=f"No es posible inscribir en el retorno con código {retorno_id} porque su estado es '{retorno_estado}'."
         )
 
 class UsuarioNoExistente(HTTPException):

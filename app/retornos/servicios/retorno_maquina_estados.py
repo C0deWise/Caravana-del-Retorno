@@ -21,7 +21,7 @@ class RetornoEstadoTransicion:
         """Lanza una excepción si la transición de estado no es válida."""
 
         if estado_actual == nuevo_estado:
-            raise RetornoYaEnEstadoSolicitadoError(estado_actual)
+            raise RetornoYaEnEstadoSolicitadoError(estado_actual.value)
 
         transiciones = RetornoEstadoTransicion.TRANSICIONES_VALIDAS.get(estado_actual, [])
         print(f"Validando transición de '{estado_actual}' a '{nuevo_estado}'. Transiciones permitidas: {transiciones}")
