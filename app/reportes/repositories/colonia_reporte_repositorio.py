@@ -3,6 +3,7 @@
 from sqlalchemy import select
 
 from app.colonias.models.colonia_model import Colonia
+from app.retornos.modelos.retorno_modelo import Retorno
 from app.usuarios.models.usuario import Usuario
 
 
@@ -22,3 +23,17 @@ class ColoniaReporteRepositorio:
             select(Colonia).distinct()
         )
         return result.scalars().all()
+    
+    async def obtener_colonia(self, co_codigo: int):
+        result = await self.db.execute(
+            select(Colonia)
+            .where(Colonia.co_codigo == co_codigo)
+        )
+        return result.scalars().first()
+    
+    async def obtener_retorno(self, re_codigo: int):
+        result = await self.db.execute(
+            select(Retorno)
+            .where(Retorno.codigo == re_codigo)
+        )
+        return result.scalars().first()

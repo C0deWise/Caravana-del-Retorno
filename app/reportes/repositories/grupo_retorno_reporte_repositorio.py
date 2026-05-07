@@ -56,6 +56,21 @@ class GrupoReportoReporteRepositorio:
         result = await self.db.execute(stmt)
         return [(row[0], row[1]) for row in result.all()]
     
+    async def obtener_total_necesidades_retorno(self, co_codigo:int, re_codigo: int):
+        stmt = (
+            select(
+                func.sum(RegistroRetornoGrupo.num_hospedaje).label("total_hospedaje"),
+                func.sum(RegistroRetornoGrupo.num_transporte).label("total_transporte"),
+                func.sum(RegistroRetornoGrupo.num_parqueadero_carro).label("total_parqueadero_carros"),
+                func.sum(RegistroRetornoGrupo.num_parqueadero_moto).label("total_parqueadero_motos")
+            )
+            .join(GrupoRetorno, GrupoRetorno.gr_codigo == RegistroRetornoGrupo.cod_grupo)
+            .join(Usuario, Usuario.us_codigo == GrupoRetorno.us_codigo_lider)
+            .where(RegistroRetornoGrupo.retorno == re_codigo, Usuario.co_codigo == co_codigo)
+        )
+        result = await self.db.execute(stmt)
+        return result.fetchone() or (0, 0, 0, 0)
+
     async def obtener_cantidad_grupos_retorno(self, re_codigo: int, co_codigo: int):
         stmt = (
             select(func.count(RegistroRetornoGrupo.cod_grupo).label("cantidad"))

@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reporte de Asistencia — Colonia</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:       #111827;
+      --muted:     #6b7280;
+      --border:    #e5e7eb;
+      --bg:        #f9fafb;
+      --white:     #ffffff;
+      --accent:    #1d4ed8;
+      --accent-lt: #eff6ff;
+      --green:     #16a34a;
+      --green-lt:  #f0fdf4;
+      --amber:     #d97706;
+      --amber-lt:  #fffbeb;
+      --red:       #dc2626;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── PRINT ── */
+    @media print {
+      body { background: white; font-size: 12px; }
+      .page { box-shadow: none; margin: 0; max-width: none; border-radius: 0; }
+      .no-print { display: none; }
+    }
+
+    /* ── LAYOUT ── */
+    .page {
+      max-width: 900px;
+      margin: 2rem auto;
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+      overflow: hidden;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: var(--accent);
+      color: white;
+      padding: 2rem 2.5rem 1.6rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: start;
+      gap: 1rem;
+    }
+    .header-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem;
+      line-height: 1.25;
+      letter-spacing: -.01em;
+    }
+    .header-sub {
+      margin-top: .35rem;
+      font-size: .85rem;
+      opacity: .8;
+      font-weight: 500;
+    }
+    .header-badge {
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 8px;
+      padding: .45rem 1rem;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .header-badge .badge-num {
+      display: block;
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem;
+      line-height: 1;
+    }
+    .header-badge .badge-lbl {
+      font-size: .7rem;
+      opacity: .85;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    /* ── LIDER ── */
+    .lider-bar {
+      background: var(--accent-lt);
+      border-bottom: 1px solid #bfdbfe;
+      padding: .75rem 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      font-size: .85rem;
+      color: var(--accent);
+      font-weight: 500;
+    }
+    .lider-bar svg { flex-shrink: 0; }
+
+    /* ── STATS GRID ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--border);
+    }
+    .stat {
+      padding: 1.4rem 1rem;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .stat:last-child { border-right: none; }
+    .stat-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .stat-lbl {
+      margin-top: .3rem;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* ── SECTION ── */
+    .section { padding: 1.8rem 2.5rem; }
+    .section + .section { border-top: 1px solid var(--border); }
+    .section-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      margin-left: .5rem;
+    }
+
+    /* ── TABLES ── */
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: var(--bg); }
+    th {
+      text-align: left;
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--muted);
+      font-weight: 600;
+      padding: .55rem .75rem;
+      border-bottom: 2px solid var(--border);
+    }
+    td {
+      padding: .6rem .75rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: #f8faff; }
+
+    /* grupo sub-rows */
+    tr.grupo-header { background: #f0f7ff; }
+    tr.grupo-header td { font-weight: 600; color: var(--accent); border-top: 2px solid #bfdbfe; }
+    tr.grupo-header:first-of-type td { border-top: none; }
+    tr.miembro td { padding-left: 2rem; color: var(--muted); font-size: .88em; }
+    tr.invitado td { padding-left: 2rem; font-style: italic; color: #6366f1; font-size: .88em; }
+
+    /* checkmarks */
+    .chk-yes {
+      display: inline-block;
+      width: 18px; height: 18px;
+      background: var(--green-lt);
+      color: var(--green);
+      border-radius: 4px;
+      text-align: center;
+      line-height: 18px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .chk-no {
+      display: inline-block;
+      width: 18px; height: 18px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+
+    /* ── NEEDS BAR ── */
+    .needs-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .75rem;
+      margin-top: .5rem;
+    }
+    .need-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .9rem 1rem;
+      text-align: center;
+    }
+    .need-card .need-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem;
+      color: var(--amber);
+    }
+    .need-card .need-lbl {
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--muted);
+      font-weight: 600;
+      margin-top: .15rem;
+    }
+
+    /* ── PRINT BUTTON ── */
+    .print-btn {
+      display: block;
+      margin: 1rem auto 2rem;
+      padding: .6rem 1.8rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9rem;
+      font-weight: 600;
+    }
+    .print-btn:hover { background: #1e40af; }
+
+    /* column widths */
+    .col-id    { width: 48px; }
+    .col-num   { width: 60px; text-align: center; }
+    .col-chk   { width: 40px; text-align: center; }
+    .col-notes { width: 180px; }
+
+    /* ── GRUPOS: celdas con rowspan ── */
+    td.cell-span {
+      vertical-align: middle;
+      text-align: center;
+      background: #f0f7ff;
+      border-right: 1px solid #bfdbfe;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    td.cell-span-notes {
+      vertical-align: middle;
+      background: #f0f7ff;
+      font-weight: 400;
+      color: var(--ink);
+      font-size: .88em;
+    }
+
+    /* número de necesidad en grupos */
+    .num-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      height: 22px;
+      padding: 0 5px;
+      border-radius: 5px;
+      font-size: .82rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .num-badge.has  { background: var(--green-lt);  color: var(--green); }
+    .num-badge.none { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ── HEADER ── -->
+  <div class="header">
+    <div>
+      <div class="header-title">Reporte de Asistencia al Retorno</div>
+      <div class="header-sub">Colonia: {{ colonia.co_ciudad if colonia.co_ciudad else colonia.co_pais }}</div>
+      <div class="header-sub">Retorno: {{ retorno.anio if retorno.anio else "—" }}</div>
+    </div>
+    <div class="header-badge">
+      <span class="badge-num">{{ cantidad_total_asistentes }}</span>
+      <span class="badge-lbl">Asistentes totales</span>
+    </div>
+  </div>
+
+  <!-- ── LIDER ── -->
+  {% if lider %}
+  <div class="lider-bar">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>
+    <span>Líder de Colonia:</span>
+    <strong>{{ (lider.us_nombre + ' ' + lider.us_apellido) if lider else "—" }}</strong>
+    {% if lider and lider.us_celular %}
+    &nbsp;·&nbsp; {{ lider.us_celular }}
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- ── STATS ── -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num">{{ cantidad_total_asistentes }}</div>
+      <div class="stat-lbl">Total asistentes</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">{{ cantidad_grupos }}</div>
+      <div class="stat-lbl">Grupos</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">{{ cantidad_asistentes_individuales }}</div>
+      <div class="stat-lbl">Individuales</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">{{ cantidad_total_invitados }}</div>
+      <div class="stat-lbl">Invitados</div>
+    </div>
+  </div>
+
+  <!-- ── GRUPOS ── -->
+  <div class="section">
+    <div class="section-title">Grupos</div>
+    <table>
+      <thead>
+        <tr>
+          <th class="col-id"> id</th>
+          <th class="col-num">Miembros</th>
+          <th>Nombre / Líder</th>
+          <th class="col-num">H</th>
+          <th class="col-num">T</th>
+          <th class="col-num">PC</th>
+          <th class="col-num">PM</th>
+          <th class="col-notes">Notas</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for grupo in reportes_grupos %}
+        {# Número de filas que ocupa este grupo (mínimo 1: la fila del líder) #}
+        {% set n_miembros = grupo.nombre_usuarios | length %}
+        {% set total_rows = n_miembros + 1 %}
+
+        {# ── Primera fila: líder + celdas con rowspan ── #}
+        <tr class="grupo-header">
+          {# #, Miembros y Notas abarcan verticalmente todo el grupo #}
+          <td class="cell-span" rowspan="{{ total_rows }}">{{ grupo.cod_grupo}}</td>
+          <td class="cell-span" rowspan="{{ total_rows }}">{{ n_miembros + 1 }}</td>
+          <td>Líder: {{ grupo.lider_nombre }}
+            {% if grupo.lider_celular %}
+            <span style="color:var(--muted);font-weight:400;font-size:.85em"> · {{ grupo.lider_celular }}</span>
+            {% endif %}
+          </td>
+          {# H, T, PC, PM: numéricos con badge de color #}
+          <td class="col-num">
+            <span class="num-badge {{ 'has' if grupo.num_hospedaje > 0 else 'none' }}">{{ grupo.num_hospedaje }}</span>
+          </td>
+          <td class="col-num">
+            <span class="num-badge {{ 'has' if grupo.num_transporte > 0 else 'none' }}">{{ grupo.num_transporte }}</span>
+          </td>
+          <td class="col-num">
+            <span class="num-badge {{ 'has' if grupo.num_parqueadero_carros > 0 else 'none' }}">{{ grupo.num_parqueadero_carros }}</span>
+          </td>
+          <td class="col-num">
+            <span class="num-badge {{ 'has' if grupo.num_parqueadero_motos > 0 else 'none' }}">{{ grupo.num_parqueadero_motos }}</span>
+          </td>
+          <td class="cell-span-notes" rowspan="{{ total_rows }}">{{ grupo.notas if grupo.notas else "" }}</td>
+        </tr>
+
+        {# ── Filas de miembros: solo columna de nombre (las otras tienen rowspan) ── #}
+        {% if grupo.nombre_usuarios %}
+          {% for nombre_miembro in grupo.nombre_usuarios %}
+          <tr class="miembro">
+            {# NO repetir #, Miembros ni Notas — están cubiertos por rowspan #}
+            <td>{{ nombre_miembro }}</td>
+            <td class="col-num"></td>
+            <td class="col-num"></td>
+            <td class="col-num"></td>
+            <td class="col-num"></td>
+          </tr>
+          {% endfor %}
+        {% endif %}
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:1.5rem">Sin grupos registrados</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── INDIVIDUALES ── -->
+  <div class="section">
+    <div class="section-title">Inscripciones Individuales</div>
+    <table>
+      <thead>
+        <tr>
+          <th class="col-id">#</th>
+          <th>Nombre</th>
+          <th>Celular</th>
+          <th class="col-chk">H</th>
+          <th class="col-chk">T</th>
+          <th class="col-chk">PC</th>
+          <th class="col-chk">PM</th>
+          <th class="col-notes">Notas</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for reg in reportes_individuales %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ reg.nombre }}</td>
+          <td>{{ reg.celular if reg.celular else "—" }}</td>
+          <td class="col-chk">
+            {% if reg.num_hospedaje > 0 %}<span class="chk-yes">✓</span>{% else %}<span class="chk-no"></span>{% endif %}
+          </td>
+          <td class="col-chk">
+            {% if reg.num_transporte > 0 %}<span class="chk-yes">✓</span>{% else %}<span class="chk-no"></span>{% endif %}
+          </td>
+          <td class="col-chk">
+            {% if reg.num_parqueadero_carros > 0 %}<span class="chk-yes">✓</span>{% else %}<span class="chk-no"></span>{% endif %}
+          </td>
+          <td class="col-chk">
+            {% if reg.num_parqueadero_motos > 0 %}<span class="chk-yes">✓</span>{% else %}<span class="chk-no"></span>{% endif %}
+          </td>
+          <td>{{ reg.notas if reg.notas else "" }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:1.5rem">Sin asistentes individuales</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── NECESIDADES ── -->
+   
+  <div class="section">
+    <div class="section-title">Resumen de Necesidades</div>
+    <div class="needs-grid">
+      <div class="need-card">
+        <div class="need-num">
+           {{ necesidades_totales.num_hospedaje if necesidades_totales.num_hospedaje else 0   }}
+        </div>
+        <div class="need-lbl">Hospedaje</div>
+      </div>
+      <div class="need-card">
+        <div class="need-num" style="color:var(--accent)">
+          {{ necesidades_totales.num_transporte if necesidades_totales.num_transporte else 0   }}
+        </div>
+        <div class="need-lbl">Transporte</div>
+      </div>
+      <div class="need-card">
+        <div class="need-num" style="color:var(--green)">
+          {{ necesidades_totales.num_parqueadero_carros if necesidades_totales.num_parqueadero_carros else 0   }}
+
+        </div>
+        <div class="need-lbl">PC (Parqueadero Carros)</div>
+      </div>
+      <div class="need-card">
+        <div class="need-num" style="color:#7c3aed">
+          {{ necesidades_totales.num_parqueadero_motos if necesidades_totales.num_parqueadero_motos else 0   }}
+        </div>
+        <div class="need-lbl">PM (Parqueadero Motos)</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<div class="no-print" style="text-align:center">
+  <button class="print-btn" onclick="window.print()">🖨 Imprimir / Exportar PDF</button>
+</div>
+
+</body>
+</html>

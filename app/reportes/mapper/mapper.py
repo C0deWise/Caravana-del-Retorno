@@ -96,10 +96,11 @@ class RegistroRetornoGrupoDetalladoMapper:
         grupo_retorno = registro_grupo.grupo_retorno_rel
         lider = grupo_retorno.lider
 
-        # Combinar nombres
+        # Combinar nombres, omitiendo al líder
         nombres_asistentes = [
             f"{usuario.us_nombre} {usuario.us_apellido}"
             for usuario in usuarios_del_grupo
+            if usuario.us_codigo != lider.us_codigo
         ] + [
             f"{persona.pe_nombre} {persona.pe_apellido}"
             for persona in personas_del_grupo

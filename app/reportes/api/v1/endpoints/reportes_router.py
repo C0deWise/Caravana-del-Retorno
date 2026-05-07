@@ -2,7 +2,7 @@
 
 
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 from app.core.database import get_db
@@ -29,8 +29,8 @@ router = APIRouter(prefix="/reportes", tags=["Reportes"])
             status_code = status.HTTP_200_OK,
             summary = "Generar el informe de asistencia de una colonia a un retorno",
             )
-async def generar_reporte_asistencia_colonia(retorno_id:int, colonia_id:int, servicio: Annotated[ReportesService, Depends(get_reportes_servicio)]):
-    reporte_pdf = await servicio.generar_reporte_asistencia_retorno_colonia(colonia_id, retorno_id)
+async def generar_reporte_asistencia_colonia(request: Request, retorno_id:int, colonia_id:int, servicio: Annotated[ReportesService, Depends(get_reportes_servicio)]):
+    reporte_pdf = await servicio.generar_reporte_asistencia_retorno_colonia(request, colonia_id, retorno_id)
     return reporte_pdf
 
 
@@ -38,6 +38,6 @@ async def generar_reporte_asistencia_colonia(retorno_id:int, colonia_id:int, ser
             status_code = status.HTTP_200_OK,
             summary = "Generar el informe de asistencia general de un retorno",
             )
-async def generar_reporte_asistencia_general(retorno_id:int, servicio: Annotated[ReportesService, Depends(get_reportes_servicio)]):
-    reporte_pdf = await servicio.generar_reporte_general_retorno(retorno_id)
+async def generar_reporte_asistencia_general(request: Request,retorno_id:int, servicio: Annotated[ReportesService, Depends(get_reportes_servicio)]):
+    reporte_pdf = await servicio.generar_reporte_general_retorno(request, retorno_id)
     return reporte_pdf

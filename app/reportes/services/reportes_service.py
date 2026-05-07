@@ -3,7 +3,12 @@
 
 import logging
 
+from fastapi import Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+
 from app.reportes.mapper.mapper import RegistroRetornoGrupoDetalladoMapper, RegistroRetornoIndividualDetalladoMapper
+from app.reportes.models.necesidades_totales_modelo import NecesidadesTotales
 from app.reportes.repositories.colonia_reporte_repositorio import ColoniaReporteRepositorio
 from app.reportes.repositories.grupo_retorno_reporte_repositorio import GrupoReportoReporteRepositorio
 from app.reportes.repositories.persona_reporte_repositorio import PersonaReporteRepositorio
@@ -17,6 +22,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+templates = Jinja2Templates(directory="app/reportes/templates")
+
 class ReportesService:
     def __init__(self, repositorio_colonia: ColoniaReporteRepositorio, repositorio_usuario: UsuarioRetornoReporteRepositorio, repositorio_grupo: GrupoReportoReporteRepositorio, repositorio_persona: PersonaReporteRepositorio):
         self.repositorio_colonia = repositorio_colonia
@@ -24,14 +31,19 @@ class ReportesService:
         self.repositorio_grupo = repositorio_grupo
         self.repositorio_persona = repositorio_persona
 
-    async def generar_reporte_asistencia_retorno_colonia(self, cod_colonia:int, cod_retorno:int):
+    async def generar_reporte_asistencia_retorno_colonia(self, request: Request, cod_colonia:int, cod_retorno:int):
         lider_colonia = await self.repositorio_colonia.obtener_lider_colonia(cod_colonia)
+        colonia = await self.repositorio_colonia.obtener_colonia(cod_colonia)
+        retorno = await self.repositorio_colonia.obtener_retorno(cod_retorno)
         
         # Obtener datos de asistentes
         asistentes_usuario_grupo = await self.repositorio_grupo.obtener_registro_asistentes_detallado_retorno(cod_colonia, cod_retorno)
         asistentes_persona_grupo = await self.repositorio_persona.obtener_asistentes_colonia_retorno(cod_retorno, cod_colonia)
-        asistentes_usuario = await self.repositorio_usuario.obtener_asistentes_detallado_retorno(cod_colonia, cod_retorno)
+        asistentes_usuario = await self.repositorio_usuario.obtener_asistentes_detallado_retorno(cod_retorno, cod_colonia)
         
+        logger.info(f"asistentes usuario grupo, colonia {cod_colonia}: usuarios: {asistentes_usuario_grupo}")
+        logger.info(f"asistentes persona grupo, colonia {cod_colonia}: usuarios: {asistentes_persona_grupo}")
+        logger.info(f"asistentes usuario, colonia {cod_colonia}: usuarios: {asistentes_usuario}")
         # Calcular cantidades
         cantidad_total_asistentes = len(asistentes_usuario) + len(asistentes_usuario_grupo) + len(asistentes_persona_grupo)
         cantidad_total_invitados = len(asistentes_persona_grupo)
@@ -51,7 +63,7 @@ class ReportesService:
         )
         reportes_individuales = RegistroRetornoIndividualDetalladoMapper.mapear_usuarios_asistentes(asistentes_usuario)
         print (reportes_grupos)
-        return {
+        respuesta = {
             "lider": lider_colonia,
             "cantidad_usuarios_en_grupo": cantidad_usuarios_en_grupo,
             "cantidad_total_asistentes": cantidad_total_asistentes,
@@ -61,9 +73,39 @@ class ReportesService:
             "cantidad_grupos": cantidad_grupos,
             "reportes_grupos": reportes_grupos,
             "reportes_individuales": reportes_individuales
+            }
+        
+        necesidades_totales_individuales = await self.repositorio_usuario.obtener_necesidades_totales_retorno(cod_retorno, cod_colonia)
+        logger.info(f"Necesidades totales individuales: {necesidades_totales_individuales._mapping}")
+        logger.info(f"necesidades_totales_individuales._mapping.keys(): {list(necesidades_totales_individuales._mapping.keys())}")
+        necesidades_totales_grupo = await self.repositorio_grupo.obtener_total_necesidades_retorno(cod_colonia, cod_retorno)
+        total_hospedaje = (necesidades_totales_individuales.total_hospedaje or 0) + (necesidades_totales_grupo.total_hospedaje or 0)
+        total_transporte = (necesidades_totales_individuales.total_transporte or 0) + (necesidades_totales_grupo.total_transporte or 0)
+        total_pc = (necesidades_totales_individuales.total_parqueadero_carros or 0) + (necesidades_totales_grupo.total_parqueadero_carros or 0)
+        total_pm = (necesidades_totales_individuales.total_parqueadero_motos or 0) + (necesidades_totales_grupo.total_parqueadero_motos or 0)
+        logger.info(f"total necesidades - hospedaje: {total_hospedaje}, transporte: {total_transporte}, parqueadero carros: {total_pc}, parqueadero motos: {total_pm}")
+        necesidades_totales = NecesidadesTotales(num_parqueadero_motos=total_pm, num_parqueadero_carros=total_pc, num_hospedaje=total_hospedaje, num_transporte=total_transporte)
+        logger.info(f"Reporte colonia {cod_colonia} — retorno {cod_retorno} generado.")
+ 
+        context = {
+            "request":                        request,
+            "colonia":                        colonia,
+            "necesidades_totales":            necesidades_totales,
+            "retorno":                         retorno,
+            "lider":                          lider_colonia,
+            "cantidad_usuarios_en_grupo":     cantidad_usuarios_en_grupo,
+            "cantidad_total_asistentes":      cantidad_total_asistentes,
+            "cantidad_total_asistentes_grupo": cantidad_asistentes_grupo,
+            "cantidad_total_invitados":       cantidad_total_invitados,
+            "cantidad_asistentes_individuales": cantidad_asistentes_individuales,
+            "cantidad_grupos":                cantidad_grupos,
+            "reportes_grupos":                reportes_grupos,
+            "reportes_individuales":          reportes_individuales,
         }
+ 
+        return templates.TemplateResponse("reporte_colonia.html", context)
 
-    async def generar_reporte_general_retorno(self, cod_retorno:int):
+    async def generar_reporte_general_retorno(self, request: Request,cod_retorno:int):
         colonias = list(await self.repositorio_colonia.obtener_colonias())
         asistencia_colonia = []
         for colonia in colonias:
@@ -96,8 +138,19 @@ class ReportesService:
         for grupo in grupos_edad:
             asistencia_edad[grupo] = asistencia_edad_usuario.get(grupo, 0) + asistencia_edad_usuario_grupo.get(grupo, 0) + asistencia_edad_persona.get(grupo, 0)
         
-        return {
+        respuesta = {
             "asistencia_colonia": asistencia_colonia,
             "asistencia_genero": asistencia_genero,
             "asistencia_edad": asistencia_edad
+            }
+        
+        logger.info(f"Reporte general — retorno {cod_retorno} generado.")
+ 
+        context = {
+            "request":           request,
+            "asistencia_colonia": asistencia_colonia,
+            "asistencia_genero":  asistencia_genero,
+            "asistencia_edad":    asistencia_edad,
         }
+ 
+        return templates.TemplateResponse("reporte_general.html", context)

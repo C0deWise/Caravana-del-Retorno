@@ -111,7 +111,7 @@ async def seed_data() -> None:
                     "us_contrasenia": "hashed_password_2",
                     "us_nombre": "María",
                     "us_apellido": "García",
-                    "us_genero": Genero.F,
+                    "us_genero": Genero.OTRO,
                     "us_fecha_nacimiento": date(1992, 8, 20),
                     "us_pais": "Colombia",
                     "us_departamento": "Antioquia",
@@ -336,7 +336,7 @@ async def seed_data() -> None:
             reg2 = RegistroRetorno(
                 usuario=usuarios[2].us_codigo,
                 retorno=retorno.codigo,
-                num_hospedaje=2,
+                num_hospedaje=1,
                 num_transporte=1,
                 num_parqueadero_carro=0,
                 num_parqueadero_moto=1,
