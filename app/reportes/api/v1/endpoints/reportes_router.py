@@ -1,6 +1,11 @@
 
-
-
+"""
+reportes_router.py
+=================
+Propósito: Define los endpoints (rutas) de la API para generar reportes de retornos.
+          Incluye endpoints para generar reportes de asistencia por colonia
+          y reportes generales de retornos.
+"""
 
 from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession

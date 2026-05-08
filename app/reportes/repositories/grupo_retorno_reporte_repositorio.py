@@ -1,6 +1,11 @@
 
-
-
+"""
+gupo_retorno_reporte_repositorio.py
+===================================
+Propósito: Repositorio de datos para obtener información de grupos de retorno.
+          Consulta información sobre grupos de retorno, sus líderes y asistentes,
+          incluyendo necesidades de transporte y hospedaje a nivel de grupo.
+"""
 
 from datetime import date
 

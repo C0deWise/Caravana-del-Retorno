@@ -1,6 +1,11 @@
 
-
-
+"""
+usuario_retorno_reporte_repositorio.py
+======================================
+Propósito: Repositorio de datos para obtener información de asistentes individuales a retornos.
+          Consulta la base de datos para obtener detalles de usuarios que asisten de forma
+          individual y sus necesidades de hospedaje, transporte y parqueadero.
+"""
 
 from sqlalchemy import select, func, case, String, extract, Integer, Date
 from datetime import date

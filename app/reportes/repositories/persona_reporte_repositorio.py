@@ -1,5 +1,11 @@
 
-
+"""
+persona_reporte_repositorio.py
+=============================
+Propósito: Repositorio de datos para obtener información de personas que asisten a retornos.
+          Consulta información demográfica de personas (género, edad, grupos de edad)
+          que participan en los retornos, agrupadas por colonias.
+"""
 
 from datetime import date
 

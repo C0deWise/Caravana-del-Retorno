@@ -1,5 +1,11 @@
 
-
+"""
+necesidades_totales_modelo.py
+=============================
+Propósito: Modelo Pydantic que define la estructura de datos para el total de necesidades
+          en un retorno. Contiene agregados de hospedaje, transporte y parqueadero
+          para todos los asistentes.
+"""
 
 from pydantic import BaseModel
 

@@ -1,9 +1,10 @@
 """
-Mapper para convertir datos de asistentes a reportes detallados.
-Transforma información de registros de grupos y asistentes (usuarios y personas)
-en objetos RegistroRetornoGrupoDetallado.
-
-Este mapper es puro: solo transforma datos sin lógica de acceso a base de datos.
+mapper.py
+=========
+Propósito: Mapper para convertir datos de asistentes a modelos de reportes detallados.
+          Transforma información de registros de grupos y asistentes (usuarios y personas)
+          en objetos RegistroRetornoGrupoDetallado y RegistroRetornoUsuarioDetallado.
+          Este mapper es puro: solo transforma datos sin lógica de acceso a base de datos.
 """
 
 from typing import Union

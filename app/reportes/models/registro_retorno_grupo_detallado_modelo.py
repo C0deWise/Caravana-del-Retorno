@@ -1,6 +1,11 @@
 
-
-
+"""
+registro_retorno_grupo_detallado_modelo.py
+==========================================
+Propósito: Modelo Pydantic que define la estructura de datos para grupos de asistentes
+          en un retorno. Contiene información del grupo, su líder, miembros,
+          y necesidades agrupadas.
+"""
 
 from pydantic import BaseModel
 

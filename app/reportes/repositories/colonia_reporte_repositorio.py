@@ -1,4 +1,11 @@
 
+"""
+colonia_reporte_repositorio.py
+=============================
+Propósito: Repositorio de datos para obtener información de colonias y retornos.
+          Consulta datos de colonias, sus líderes y retornos asociados
+          necesarios para la generación de reportes.
+"""
 
 from sqlalchemy import select
 

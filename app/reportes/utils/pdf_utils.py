@@ -1,7 +1,9 @@
 """
 pdf_utils.py
-------------
-Utilidad para renderizar plantillas Jinja2 y convertirlas a PDF con WeasyPrint.
+============
+Propósito: Utilidad para renderizar plantillas Jinja2 y convertirlas a PDF con WeasyPrint.
+          Proporciona funciones para convertir HTML renderizado de plantillas en archivos PDF
+          que pueden ser descargados como respuesta HTTP.
 
 Instalación requerida:
     pip install weasyprint==62.3 pydyf==0.11.0

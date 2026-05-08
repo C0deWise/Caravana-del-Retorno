@@ -1,4 +1,11 @@
 
+"""
+registro_retorno_usuario_detallado_modelo.py
+============================================
+Propósito: Modelo Pydantic que define la estructura de datos para asistentes individuales
+          en un retorno. Contiene información de contacto, necesidades de transporte
+          y hospedaje, y notas adicionales.
+"""
 
 from pydantic import BaseModel
 

@@ -1,5 +1,11 @@
 
-
+"""
+reportes_service.py
+==================
+Propósito: Servicio de negocio para la generación de reportes de retornos.
+          Coordina la obtención de datos de múltiples repositorios, mapea la información
+          y genera reportes PDF con asistencia, necesidades y estadísticas de retornos.
+"""
 
 import logging
 
