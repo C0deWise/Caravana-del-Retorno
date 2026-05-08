@@ -28,7 +28,8 @@ class PersonaRepositorio:
             pe_nombre=datos.pe_nombre,
             pe_apellido=datos.pe_apellido,
             pe_correo=datos.pe_correo,
-            pe_fecha_nacimiento=datos.pe_fecha_nacimiento
+            pe_fecha_nacimiento=datos.pe_fecha_nacimiento,
+            pe_genero=datos.pe_genero
         )
         self.db.add(nueva_persona)
         await self.db.commit()

@@ -17,6 +17,12 @@ class TipoDoc(str, enum.Enum):
     CC = "CC"
     CE = "CE"
 
+class Genero(str, enum.Enum):
+    """Enumeración para el género de los usuarios."""
+    F = "F"
+    M = "M"
+    OTRO = "otro"
+
 class Persona(Base):
     __tablename__ = 'persona'
     pe_codigo: Mapped[int] = mapped_column("pe_codigo", Integer, primary_key=True, autoincrement=True)
@@ -26,6 +32,8 @@ class Persona(Base):
     pe_apellido: Mapped[str] = mapped_column("pe_apellido", String(100), nullable=False)
     pe_correo: Mapped[str] = mapped_column("pe_correo", String(100), unique=True, nullable=True)
     pe_fecha_nacimiento: Mapped[Date] = mapped_column("pe_fecha_nacimiento", Date, nullable=False)
+
+    pe_genero: Mapped[Genero] = mapped_column(Enum(Genero), nullable=False)
 
 
     def __repr__(self) -> str:
