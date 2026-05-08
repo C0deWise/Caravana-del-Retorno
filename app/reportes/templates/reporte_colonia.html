@@ -12,13 +12,15 @@
       --border:    #e5e7eb;
       --bg:        #f9fafb;
       --white:     #ffffff;
-      --accent:    #1d4ed8;
-      --accent-lt: #eff6ff;
-      --green:     #16a34a;
-      --green-lt:  #f0fdf4;
-      --amber:     #d97706;
-      --amber-lt:  #fffbeb;
-      --red:       #dc2626;
+
+      /* ── Paleta Florencia ── */
+      --accent:    #c0392b;   /* rojo                          */
+      --accent-lt: #fdf2f2;   /* rojo claro fondo              */
+      --accent-bd: #f5b7b1;   /* rojo borde                    */
+      --green:     #1a7a3c;   /* verde                         */
+      --green-lt:  #eafaf1;   /* verde claro fondo             */
+      --green-bd:  #a9dfbf;   /* verde borde                   */
+      --yellow:    #f1c40f;   /* amarillo — solo decoración    */
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,7 +33,6 @@
       line-height: 1.6;
     }
 
-    /* ── PRINT ── */
     @media print {
       body { background: white; font-size: 12px; }
       .page { box-shadow: none; margin: 0; max-width: none; border-radius: 0; }
@@ -48,59 +49,83 @@
       overflow: hidden;
     }
 
-    /* ── HEADER ── */
+    /* ── FRANJA TRICOLOR ── */
+    .tricolor {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      height: 6px;
+    }
+    .tricolor-r { background: var(--accent); }
+    .tricolor-y { background: var(--yellow); }
+    .tricolor-g { background: var(--green);  }
+
+    /* ── HEADER sin fondo de color ── */
     .header {
-      background: var(--accent);
-      color: white;
-      padding: 2rem 2.5rem 1.6rem;
+      background: var(--white);
+      color: var(--ink);
+      padding: 1.6rem 2.5rem 1.4rem;
       display: grid;
       grid-template-columns: 1fr auto;
-      align-items: start;
-      gap: 1rem;
+      align-items: center;
+      gap: 1.5rem;
+      border-bottom: 1px solid var(--border);
     }
     .header-title {
       font-family: 'DM Serif Display', serif;
-      font-size: 1.6rem;
+      font-size: 1.5rem;
       line-height: 1.25;
       letter-spacing: -.01em;
+      color: var(--accent);
     }
     .header-sub {
-      margin-top: .35rem;
+      margin-top: .3rem;
       font-size: .85rem;
-      opacity: .8;
+      color: var(--muted);
       font-weight: 500;
     }
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .5rem;
+    }
+    .header-escudo {
+      width: 150px;
+      height: 150px;
+      object-fit: contain;
+    }
     .header-badge {
-      background: rgba(255,255,255,.18);
-      border: 1px solid rgba(255,255,255,.3);
+      background: var(--accent-lt);
+      border: 1px solid var(--accent-bd);
       border-radius: 8px;
-      padding: .45rem 1rem;
+      padding: .4rem .9rem;
       text-align: center;
       white-space: nowrap;
     }
     .header-badge .badge-num {
       display: block;
       font-family: 'DM Serif Display', serif;
-      font-size: 1.6rem;
+      font-size: 1.5rem;
       line-height: 1;
+      color: var(--accent);
     }
     .header-badge .badge-lbl {
-      font-size: .7rem;
-      opacity: .85;
+      font-size: .65rem;
+      color: var(--muted);
       text-transform: uppercase;
       letter-spacing: .05em;
     }
 
     /* ── LIDER ── */
     .lider-bar {
-      background: var(--accent-lt);
-      border-bottom: 1px solid #bfdbfe;
-      padding: .75rem 2.5rem;
+      background: var(--green-lt);
+      border-bottom: 1px solid var(--green-bd);
+      padding: .7rem 2.5rem;
       display: flex;
       align-items: center;
       gap: .6rem;
       font-size: .85rem;
-      color: var(--accent);
+      color: var(--green);
       font-weight: 500;
     }
     .lider-bar svg { flex-shrink: 0; }
@@ -112,7 +137,7 @@
       border-bottom: 1px solid var(--border);
     }
     .stat {
-      padding: 1.4rem 1rem;
+      padding: 1.3rem 1rem;
       text-align: center;
       border-right: 1px solid var(--border);
     }
@@ -125,7 +150,7 @@
     }
     .stat-lbl {
       margin-top: .3rem;
-      font-size: .75rem;
+      font-size: .72rem;
       text-transform: uppercase;
       letter-spacing: .04em;
       color: var(--muted);
@@ -139,6 +164,7 @@
       font-family: 'DM Serif Display', serif;
       font-size: 1.1rem;
       margin-bottom: 1rem;
+      color: var(--ink);
       display: flex;
       align-items: center;
       gap: .5rem;
@@ -146,9 +172,10 @@
     .section-title::after {
       content: '';
       flex: 1;
-      height: 1px;
-      background: var(--border);
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--yellow), var(--green));
       margin-left: .5rem;
+      border-radius: 99px;
     }
 
     /* ── TABLES ── */
@@ -170,14 +197,13 @@
       vertical-align: top;
     }
     tbody tr:last-child td { border-bottom: none; }
-    tbody tr:hover { background: #f8faff; }
+    tbody tr:hover { background: var(--accent-lt); }
 
     /* grupo sub-rows */
-    tr.grupo-header { background: #f0f7ff; }
-    tr.grupo-header td { font-weight: 600; color: var(--accent); border-top: 2px solid #bfdbfe; }
+    tr.grupo-header { background: var(--accent-lt); }
+    tr.grupo-header td { font-weight: 600; color: var(--accent); border-top: 2px solid var(--accent-bd); }
     tr.grupo-header:first-of-type td { border-top: none; }
     tr.miembro td { padding-left: 2rem; color: var(--muted); font-size: .88em; }
-    tr.invitado td { padding-left: 2rem; font-style: italic; color: #6366f1; font-size: .88em; }
 
     /* checkmarks */
     .chk-yes {
@@ -199,7 +225,7 @@
       border-radius: 4px;
     }
 
-    /* ── NEEDS BAR ── */
+    /* ── NECESIDADES ── */
     .needs-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -208,6 +234,7 @@
     }
     .need-card {
       border: 1px solid var(--border);
+      border-top: 3px solid var(--accent);
       border-radius: 8px;
       padding: .9rem 1rem;
       text-align: center;
@@ -215,7 +242,7 @@
     .need-card .need-num {
       font-family: 'DM Serif Display', serif;
       font-size: 1.6rem;
-      color: var(--amber);
+      color: var(--accent);
     }
     .need-card .need-lbl {
       font-size: .7rem;
@@ -240,7 +267,7 @@
       font-size: .9rem;
       font-weight: 600;
     }
-    .print-btn:hover { background: #1e40af; }
+    .print-btn:hover { background: #a93226; }
 
     /* column widths */
     .col-id    { width: 48px; }
@@ -252,20 +279,19 @@
     td.cell-span {
       vertical-align: middle;
       text-align: center;
-      background: #f0f7ff;
-      border-right: 1px solid #bfdbfe;
+      background: var(--accent-lt);
+      border-right: 1px solid var(--accent-bd);
       font-weight: 600;
       color: var(--accent);
     }
     td.cell-span-notes {
       vertical-align: middle;
-      background: #f0f7ff;
+      background: var(--accent-lt);
       font-weight: 400;
       color: var(--ink);
       font-size: .88em;
     }
 
-    /* número de necesidad en grupos */
     .num-badge {
       display: inline-flex;
       align-items: center;
@@ -278,13 +304,20 @@
       font-weight: 700;
       line-height: 1;
     }
-    .num-badge.has  { background: var(--green-lt);  color: var(--green); }
+    .num-badge.has  { background: var(--green-lt); color: var(--green); }
     .num-badge.none { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
   </style>
 </head>
 <body>
 
 <div class="page">
+
+  <!-- ── FRANJA TRICOLOR ── -->
+  <div class="tricolor">
+    <div class="tricolor-r"></div>
+    <div class="tricolor-y"></div>
+    <div class="tricolor-g"></div>
+  </div>
 
   <!-- ── HEADER ── -->
   <div class="header">
@@ -293,9 +326,9 @@
       <div class="header-sub">Colonia: {{ colonia.co_ciudad if colonia.co_ciudad else colonia.co_pais }}</div>
       <div class="header-sub">Retorno: {{ retorno.anio if retorno.anio else "—" }}</div>
     </div>
-    <div class="header-badge">
-      <span class="badge-num">{{ cantidad_total_asistentes }}</span>
-      <span class="badge-lbl">Asistentes totales</span>
+    <div class="header-right">
+      <img class="header-escudo" src="resources/escudo_florencia.png" alt="Escudo Florencia" />
+      
     </div>
   </div>
 
@@ -341,7 +374,7 @@
     <table>
       <thead>
         <tr>
-          <th class="col-id"> id</th>
+          <th class="col-id">ID</th>
           <th class="col-num">Miembros</th>
           <th>Nombre / Líder</th>
           <th class="col-num">H</th>
@@ -353,21 +386,17 @@
       </thead>
       <tbody>
         {% for grupo in reportes_grupos %}
-        {# Número de filas que ocupa este grupo (mínimo 1: la fila del líder) #}
         {% set n_miembros = grupo.nombre_usuarios | length %}
         {% set total_rows = n_miembros + 1 %}
 
-        {# ── Primera fila: líder + celdas con rowspan ── #}
         <tr class="grupo-header">
-          {# #, Miembros y Notas abarcan verticalmente todo el grupo #}
-          <td class="cell-span" rowspan="{{ total_rows }}">{{ grupo.cod_grupo}}</td>
+          <td class="cell-span" rowspan="{{ total_rows }}">{{ grupo.cod_grupo }}</td>
           <td class="cell-span" rowspan="{{ total_rows }}">{{ n_miembros + 1 }}</td>
           <td>Líder: {{ grupo.lider_nombre }}
             {% if grupo.lider_celular %}
             <span style="color:var(--muted);font-weight:400;font-size:.85em"> · {{ grupo.lider_celular }}</span>
             {% endif %}
           </td>
-          {# H, T, PC, PM: numéricos con badge de color #}
           <td class="col-num">
             <span class="num-badge {{ 'has' if grupo.num_hospedaje > 0 else 'none' }}">{{ grupo.num_hospedaje }}</span>
           </td>
@@ -383,11 +412,9 @@
           <td class="cell-span-notes" rowspan="{{ total_rows }}">{{ grupo.notas if grupo.notas else "" }}</td>
         </tr>
 
-        {# ── Filas de miembros: solo columna de nombre (las otras tienen rowspan) ── #}
         {% if grupo.nombre_usuarios %}
           {% for nombre_miembro in grupo.nombre_usuarios %}
           <tr class="miembro">
-            {# NO repetir #, Miembros ni Notas — están cubiertos por rowspan #}
             <td>{{ nombre_miembro }}</td>
             <td class="col-num"></td>
             <td class="col-num"></td>
@@ -447,33 +474,23 @@
   </div>
 
   <!-- ── NECESIDADES ── -->
-   
   <div class="section">
     <div class="section-title">Resumen de Necesidades</div>
     <div class="needs-grid">
       <div class="need-card">
-        <div class="need-num">
-           {{ necesidades_totales.num_hospedaje if necesidades_totales.num_hospedaje else 0   }}
-        </div>
+        <div class="need-num">{{ necesidades_totales.num_hospedaje if necesidades_totales.num_hospedaje else 0 }}</div>
         <div class="need-lbl">Hospedaje</div>
       </div>
-      <div class="need-card">
-        <div class="need-num" style="color:var(--accent)">
-          {{ necesidades_totales.num_transporte if necesidades_totales.num_transporte else 0   }}
-        </div>
+      <div class="need-card" style="border-top-color:var(--green)">
+        <div class="need-num" style="color:var(--green)">{{ necesidades_totales.num_transporte if necesidades_totales.num_transporte else 0 }}</div>
         <div class="need-lbl">Transporte</div>
       </div>
       <div class="need-card">
-        <div class="need-num" style="color:var(--green)">
-          {{ necesidades_totales.num_parqueadero_carros if necesidades_totales.num_parqueadero_carros else 0   }}
-
-        </div>
+        <div class="need-num">{{ necesidades_totales.num_parqueadero_carros if necesidades_totales.num_parqueadero_carros else 0 }}</div>
         <div class="need-lbl">PC (Parqueadero Carros)</div>
       </div>
-      <div class="need-card">
-        <div class="need-num" style="color:#7c3aed">
-          {{ necesidades_totales.num_parqueadero_motos if necesidades_totales.num_parqueadero_motos else 0   }}
-        </div>
+      <div class="need-card" style="border-top-color:var(--green)">
+        <div class="need-num" style="color:var(--green)">{{ necesidades_totales.num_parqueadero_motos if necesidades_totales.num_parqueadero_motos else 0 }}</div>
         <div class="need-lbl">PM (Parqueadero Motos)</div>
       </div>
     </div>

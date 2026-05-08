@@ -8,19 +8,23 @@
   <style>
     :root {
       --ink:       #111827;
-      --muted:     #6b7280;
+      --muted:     #2b2c2f;
       --border:    #e5e7eb;
       --bg:        #f9fafb;
       --white:     #ffffff;
-      --accent:    #1d4ed8;
-      --accent-lt: #eff6ff;
-      --green:     #16a34a;
-      --green-lt:  #f0fdf4;
-      --rose:      #e11d48;
-      --rose-lt:   #fff1f2;
-      --purple:    #7c3aed;
-      --purple-lt: #f5f3ff;
-      --amber:     #d97706;
+
+      /* ── Paleta Florencia ── */
+      --accent:    #c0392b;   /* rojo                          */
+      --accent-lt: #fdf2f2;   /* rojo claro fondo              */
+      --accent-bd: #f5b7b1;   /* rojo borde                    */
+      --green:     #1a7a3c;   /* verde                         */
+      --green-lt:  #eafaf1;   /* verde claro fondo             */
+      --green-bd:  #a9dfbf;   /* verde borde                   */
+      --yellow:    #f1c40f;   /* amarillo — solo decoración    */
+      --rose:      #c0392b;
+      --rose-lt:   #fdf2f2;
+      --purple:    #6d3d8c;
+      --purple-lt: #f5f0fa;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -50,24 +54,45 @@
       overflow: hidden;
     }
 
-    /* ── HEADER ── */
+    /* ── FRANJA TRICOLOR ── */
+    .tricolor {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      height: 6px;
+    }
+    .tricolor-r { background: var(--accent); }
+    .tricolor-y { background: var(--yellow); }
+    .tricolor-g { background: var(--green);  }
+
+    /* ── HEADER sin fondo de color ── */
     .header {
-      background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
-      color: white;
-      padding: 2rem 2.5rem 1.6rem;
+      background: var(--white);
+      color: var(--ink);
+      padding: 1.6rem 2.5rem 1.4rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 1.5rem;
+      border-bottom: 1px solid var(--border);
     }
     .header-eyebrow {
       font-size: .75rem;
       text-transform: uppercase;
       letter-spacing: .1em;
-      opacity: .7;
+      color: var(--muted);
       font-weight: 600;
       margin-bottom: .4rem;
     }
     .header-title {
       font-family: 'DM Serif Display', serif;
-      font-size: 1.7rem;
+      font-size: 1.6rem;
       line-height: 1.2;
+      color: var(--accent);
+    }
+    .header-escudo {
+      width: 150px;
+      height: 150px;
+      object-fit: contain;
     }
 
     /* ── TOP STATS ── */
@@ -96,28 +121,24 @@
       font-weight: 600;
     }
 
-    /* ── TWO COLUMNS GRID ── */
+    /* ── TWO COLUMNS ── */
     .two-col {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0;
     }
     @media (max-width: 600px) {
-      .two-col { grid-template-columns: 1fr; }
-      .top-stats { grid-template-columns: 1fr; }
+      .two-col    { grid-template-columns: 1fr; }
+      .top-stats  { grid-template-columns: 1fr; }
     }
 
     /* ── SECTION ── */
-    .section {
-      padding: 1.8rem 2.5rem;
-    }
-    .section + .section {
-      border-top: 1px solid var(--border);
-    }
+    .section { padding: 1.8rem 2.5rem; }
+    .section + .section { border-top: 1px solid var(--border); }
     .section-title {
       font-family: 'DM Serif Display', serif;
       font-size: 1.05rem;
       margin-bottom: 1.1rem;
+      color: var(--ink);
       display: flex;
       align-items: center;
       gap: .5rem;
@@ -125,9 +146,10 @@
     .section-title::after {
       content: '';
       flex: 1;
-      height: 1px;
-      background: var(--border);
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--yellow), var(--green));
       margin-left: .5rem;
+      border-radius: 99px;
     }
 
     /* ── COLONIAS BAR CHART ── */
@@ -138,7 +160,7 @@
       margin-bottom: .2rem;
       font-size: .82rem;
     }
-    .bar-label .name { font-weight: 500; }
+    .bar-label .name  { font-weight: 500; }
     .bar-label .count { color: var(--muted); }
     .bar-track {
       height: 10px;
@@ -150,8 +172,7 @@
     .bar-fill {
       height: 100%;
       border-radius: 99px;
-      background: linear-gradient(90deg, #1d4ed8, #3b82f6);
-      transition: width .6s ease;
+      background: linear-gradient(90deg, var(--accent), #e74c3c);
     }
 
     /* ── DONUT ── */
@@ -160,14 +181,12 @@
       align-items: center;
       gap: 1.5rem;
     }
-    .donut-chart {
-      flex-shrink: 0;
-    }
+    .donut-chart { flex-shrink: 0; }
     .donut-legend { flex: 1; }
     .legend-item {
       display: flex;
       align-items: center;
-      gap: .5rem;
+      gap: .75rem;
       margin-bottom: .45rem;
       font-size: .85rem;
     }
@@ -176,9 +195,9 @@
       border-radius: 50%;
       flex-shrink: 0;
     }
-    .legend-name { flex: 1; }
-    .legend-count { font-weight: 600; }
-    .legend-pct { color: var(--muted); font-size: .78rem; }
+    .legend-name  { flex: 1; margin-right: auto;}
+    .legend-count { font-weight: 600; margin-left: 12px;}
+    .legend-pct   { color: var(--muted); font-size: .78rem; margin-left: 12px;}
 
     /* ── AGE TABLE ── */
     table { width: 100%; border-collapse: collapse; }
@@ -197,8 +216,8 @@
       border-bottom: 1px solid var(--border);
     }
     tbody tr:last-child td { border-bottom: none; }
-    tbody tr:hover { background: #f8faff; }
-    .td-num { font-family: 'DM Serif Display', serif; font-size: 1.1rem; }
+    tbody tr:hover { background: var(--accent-lt); }
+    .td-num   { font-family: 'DM Serif Display', serif; font-size: 1.1rem; }
     .td-range { color: var(--muted); font-size: .82rem; }
 
     /* badge pill */
@@ -209,9 +228,8 @@
       font-size: .72rem;
       font-weight: 600;
     }
-    .pill-blue   { background: var(--accent-lt); color: var(--accent); }
-    .pill-green  { background: var(--green-lt);  color: var(--green); }
-    .pill-rose   { background: var(--rose-lt);   color: var(--rose); }
+    .pill-red    { background: var(--accent-lt); color: var(--accent); }
+    .pill-green  { background: var(--green-lt);  color: var(--green);  }
     .pill-purple { background: var(--purple-lt); color: var(--purple); }
 
     .print-btn {
@@ -227,32 +245,37 @@
       font-size: .9rem;
       font-weight: 600;
     }
-    .print-btn:hover { background: #1e40af; }
+    .print-btn:hover { background: #a93226; }
   </style>
 </head>
 <body>
 
-{# ── Calcular totales para porcentajes ── #}
+{# ── Calcular totales ── #}
 {% set total_asistentes = asistencia_colonia | sum(attribute='cantidad_asistentes') %}
 {% set total_colonias   = asistencia_colonia | length %}
 {% set max_asistentes   = asistencia_colonia | map(attribute='cantidad_asistentes') | max if asistencia_colonia else 1 %}
+{% set total_genero     = asistencia_genero.values() | sum %}
+{% set total_edad       = asistencia_edad.values() | sum %}
 
-{# Totales género #}
-{% set genero_items = asistencia_genero.items() | list %}
-{% set total_genero = asistencia_genero.values() | sum %}
-
-{# Totales edad #}
-{% set total_edad = asistencia_edad.values() | sum %}
-
-{# Colores para género #}
-{% set genero_colores = ['#1d4ed8', '#e11d48', '#7c3aed', '#16a34a'] %}
+{# Colores paleta Florencia para el donut de género #}
+{% set genero_colores = ['#ff5946', '#3da160', '#a763d4', '#e67e22'] %}
 
 <div class="page">
 
+  <!-- ── FRANJA TRICOLOR ── -->
+  <div class="tricolor">
+    <div class="tricolor-r"></div>
+    <div class="tricolor-y"></div>
+    <div class="tricolor-g"></div>
+  </div>
+
   <!-- ── HEADER ── -->
   <div class="header">
-    <div class="header-eyebrow">Informe de asistencia</div>
-    <div class="header-title">Reporte General al Retorno</div>
+    <div>
+      <div class="header-eyebrow">Informe de asistencia</div>
+      <div class="header-title">Reporte General al Retorno</div>
+    </div>
+    <img class="header-escudo" src="resources/escudo_florencia.png" alt="Escudo Florencia" />
   </div>
 
   <!-- ── TOP STATS ── -->
@@ -273,7 +296,6 @@
     <!-- ── COLONIAS ── -->
     <div class="section" style="border-right: 1px solid var(--border);">
       <div class="section-title">Asistencia por Colonia</div>
-
       {% if asistencia_colonia %}
         {% for item in asistencia_colonia | sort(attribute='cantidad_asistentes', reverse=True) %}
         {% set pct = ((item.cantidad_asistentes / max_asistentes) * 100) | round(1) %}
@@ -295,51 +317,33 @@
     <!-- ── GÉNERO ── -->
     <div class="section">
       <div class="section-title">Distribución por Género</div>
-
       {% if asistencia_genero %}
       <div class="donut-section">
-        <!-- SVG Donut -->
         <svg class="donut-chart" width="110" height="110" viewBox="0 0 110 110">
-          {% set cx = 55 %}
-          {% set cy = 55 %}
-          {% set r  = 40 %}
-          {% set stroke_w = 20 %}
+          {% set cx = 55 %}{% set cy = 55 %}{% set r = 40 %}{% set stroke_w = 20 %}
           {% set circum = 2 * 3.14159 * r %}
-
           {% set ns = namespace(offset=0) %}
           {% for key, val in asistencia_genero.items() %}
             {% set pct_g = (val / total_genero * 100) if total_genero > 0 else 0 %}
             {% set dash  = (pct_g / 100 * circum) | round(2) %}
             {% set gap   = (circum - dash) | round(2) %}
             {% set color = genero_colores[loop.index0 % (genero_colores | length)] %}
-            <circle
-              cx="{{ cx }}" cy="{{ cy }}" r="{{ r }}"
-              fill="none"
-              stroke="{{ color }}"
-              stroke-width="{{ stroke_w }}"
+            <circle cx="{{ cx }}" cy="{{ cy }}" r="{{ r }}" fill="none"
+              stroke="{{ color }}" stroke-width="{{ stroke_w }}"
               stroke-dasharray="{{ dash }} {{ gap }}"
               stroke-dashoffset="{{ -(ns.offset * circum / 100) }}"
-              transform="rotate(-90 {{ cx }} {{ cy }})"
-            />
+              transform="rotate(-90 {{ cx }} {{ cy }})" />
             {% set ns.offset = ns.offset + pct_g %}
           {% endfor %}
-
-          <!-- centro -->
           <text x="{{ cx }}" y="{{ cy - 4 }}" text-anchor="middle"
-                font-family="DM Serif Display, serif" font-size="18" fill="#111827">
-            {{ total_genero }}
-          </text>
+                font-family="DM Serif Display, serif" font-size="18" fill="#111827">{{ total_genero }}</text>
           <text x="{{ cx }}" y="{{ cy + 12 }}" text-anchor="middle"
-                font-family="DM Sans, sans-serif" font-size="8" fill="#6b7280">
-            total
-          </text>
+                font-family="DM Sans, sans-serif" font-size="8" fill="#6b7280">total</text>
         </svg>
-
-        <!-- Leyenda -->
         <div class="donut-legend">
           {% for key, val in asistencia_genero.items() %}
           {% set pct_g = ((val / total_genero) * 100) | round(1) if total_genero > 0 else 0 %}
-          {% set color = genero_colores[loop.index0 % genero_colores | length] %}
+          {% set color = genero_colores[loop.index0 % (genero_colores | length)] %}
           <div class="legend-item">
             <div class="legend-dot" style="background:{{ color }}"></div>
             <span class="legend-name">{{ key.value if key.value is defined else key }}</span>
@@ -359,7 +363,6 @@
   <!-- ── GRUPOS DE EDAD ── -->
   <div class="section" style="border-top: 1px solid var(--border);">
     <div class="section-title">Grupos de Edad</div>
-
     {% if asistencia_edad %}
     <table>
       <thead>
@@ -372,19 +375,16 @@
       </thead>
       <tbody>
         {% set edad_rangos = {
-            'menores':  ('Menores de edad', '0 a 18 años',  'pill-rose'),
-            'adultos': ('Adultos',          '19 a 59 años', 'pill-blue'),
-            'adultos_mayores':  ('Adultos mayores',  '> 60 años',    'pill-green')
+            'menores':        ('Menores de edad', '0 a 18 años',  'pill-red'),
+            'adultos':        ('Adultos',          '19 a 59 años', 'pill-green'),
+            'adultos_mayores':('Adultos mayores',  '> 60 años',    'pill-purple')
         } %}
-
         {% for key, val in asistencia_edad.items() %}
         {% set key_str = key.name if key.name is defined else key | string %}
-        {% set info = edad_rangos.get(key_str, (key_str, '—', 'pill-purple')) %}
+        {% set info  = edad_rangos.get(key_str, (key_str, '—', 'pill-purple')) %}
         {% set pct_e = ((val / total_edad) * 100) | round(1) if total_edad > 0 else 0 %}
         <tr>
-          <td>
-            <span class="pill {{ info[2] }}">{{ info[0] }}</span>
-          </td>
+          <td><span class="pill {{ info[2] }}">{{ info[0] }}</span></td>
           <td class="td-range">{{ info[1] }}</td>
           <td style="text-align:right" class="td-num">{{ val }}</td>
           <td style="text-align:right">

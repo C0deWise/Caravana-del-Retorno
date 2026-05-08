@@ -13,6 +13,7 @@ from app.reportes.repositories.colonia_reporte_repositorio import ColoniaReporte
 from app.reportes.repositories.grupo_retorno_reporte_repositorio import GrupoReportoReporteRepositorio
 from app.reportes.repositories.persona_reporte_repositorio import PersonaReporteRepositorio
 from app.reportes.repositories.usuario_retorno_reporte_repositorio import UsuarioRetornoReporteRepositorio
+from app.reportes.utils.pdf_utils import render_to_pdf
 from app.retornos.modelos.retorno_grupo_usuario_modelo import Edades
 from app.usuarios.models.usuario import Genero
 
@@ -103,7 +104,13 @@ class ReportesService:
             "reportes_individuales":          reportes_individuales,
         }
  
-        return templates.TemplateResponse("reporte_colonia.html", context)
+        #return templates.TemplateResponse("reporte_colonia.html", context)
+        return render_to_pdf(
+            templates=templates,
+            template_name="reporte_colonia.html",
+            context=context,
+            filename=f"reporte_colonia_{cod_colonia}_retorno_{cod_retorno}.pdf",
+        )
 
     async def generar_reporte_general_retorno(self, request: Request,cod_retorno:int):
         colonias = list(await self.repositorio_colonia.obtener_colonias())
@@ -153,4 +160,10 @@ class ReportesService:
             "asistencia_edad":    asistencia_edad,
         }
  
-        return templates.TemplateResponse("reporte_general.html", context)
+        #return templates.TemplateResponse("reporte_general.html", context)
+        return render_to_pdf(
+            templates=templates,
+            template_name="reporte_general.html",
+            context=context,
+            filename=f"reporte_general_retorno_{cod_retorno}.pdf",
+        )

@@ -22,7 +22,7 @@ def get_reportes_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> Repor
                            repositorio_persona = repositorio_reportes_persona)
 
 
-router = APIRouter(prefix="/reportes", tags=["Reportes"])
+router = APIRouter()
 
 
 @router.get("/reporte-asistencia-colonia/{retorno_id}/{colonia_id}",
