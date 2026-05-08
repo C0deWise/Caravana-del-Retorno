@@ -118,11 +118,14 @@ async def test_crear_registro_duplicado(servicio, mocks, datos_crear):
 async def test_obtener_usuarios_por_grupo_exito(servicio, mocks):
     """Caso de éxito: Se recuperan los miembros de un grupo existente."""
     mocks["repo_grupo"].obtener_grupo_por_id = AsyncMock(return_value=MagicMock())
+    mocks["repo_grupo"].obtener_lider_por_grupo_id = AsyncMock(return_value=MagicMock())
     mocks["repo_usuario_grupo"].obtener_miembros_por_grupo = AsyncMock(return_value=[MagicMock(), MagicMock()])
+    mocks["repo_persona"].obtener_personas_por_grupo = AsyncMock(return_value=[])
 
     with patch.object(UsuarioSalida, 'model_validate', return_value=MagicMock()):
         resultado = await servicio.obtener_usuarios_por_grupo(10)
-        assert len(resultado) == 2
+        assert len(resultado) == 3
+        mocks["repo_grupo"].obtener_lider_por_grupo_id.assert_called_once_with(10)
         mocks["repo_usuario_grupo"].obtener_miembros_por_grupo.assert_called_once_with(10)
 
 @pytest.mark.asyncio
