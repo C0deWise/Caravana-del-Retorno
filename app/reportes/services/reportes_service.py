@@ -124,11 +124,11 @@ class ReportesService:
 
         asistencia_genero_usuario = await self.repositorio_usuario.obtener_cantidad_generos_usuarios_asistentes_por_retorno(cod_retorno)
         asistencia_genero_usuario_grupo = await self.repositorio_grupo.obtener_cantidad_generos_usuarios_asistentes_por_retorno(cod_retorno)
-        #asistencia_genero_persona = await self.repositorio_persona.obtener_cantidad_generos_usuarios_asistentes_por_retorno(cod_retorno)
+        asistencia_genero_persona = await self.repositorio_persona.obtener_cantidad_generos_personas_asistentes_por_retorno(cod_retorno)
         generos = list(Genero)
         asistencia_genero = {}
         for genero in generos:
-            asistencia_genero[genero] = asistencia_genero_usuario.get(genero, 0) + asistencia_genero_usuario_grupo.get(genero, 0) #+ asistencia_genero_persona.get(genero, 0)
+            asistencia_genero[genero] = asistencia_genero_usuario.get(genero, 0) + asistencia_genero_usuario_grupo.get(genero, 0) + asistencia_genero_persona.get(genero, 0)
 
         asistencia_edad_usuario = await self.repositorio_usuario.obtener_cantidad_asistentes_por_grupos_edad_retorno(cod_retorno)
         asistencia_edad_usuario_grupo = await self.repositorio_grupo.obtener_cantidad_asistentes_por_grupos_edad_retorno(cod_retorno)

@@ -19,7 +19,7 @@ class PersonaReporteRepositorio:
         self.db = db
     
     # La tabla persona no tiene el campo genero
-    async def obtener_cantidad_generos_usuarios_asistentes_por_retorno(self, re_codigo: int):
+    async def obtener_cantidad_generos_personas_asistentes_por_retorno(self, re_codigo: int):
         stmt = (
             select(Persona.pe_genero, func.count(Persona.pe_codigo).label("cantidad"))
             .join(persona_grupo_retorno, persona_grupo_retorno.pe_codigo == Persona.pe_codigo)

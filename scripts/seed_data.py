@@ -242,6 +242,7 @@ async def seed_data() -> None:
                     "pe_apellido": "Ramírez",
                     "pe_correo": "pedro.ramirez@email.com",
                     "pe_fecha_nacimiento":date(2015, 5, 18),
+                    "pe_genero": Genero.M
                 },
                 {
                     "pe_tipo_doc": TipoDoc.CC,
@@ -250,6 +251,7 @@ async def seed_data() -> None:
                     "pe_apellido": "Sánchez",
                     "pe_correo": "rosa.sanchez@email.com",
                     "pe_fecha_nacimiento": date(1954, 8, 20),
+                    "pe_genero": Genero.F
                 },
                 {
                     "pe_tipo_doc": TipoDoc.CC,
@@ -258,6 +260,7 @@ async def seed_data() -> None:
                     "pe_apellido": "Díaz",
                     "pe_correo": "roberto.diaz@email.com",
                     "pe_fecha_nacimiento": date(2018, 1, 22),
+                    "pe_genero": Genero.M
                 },
                 {
                     "pe_tipo_doc": TipoDoc.CC,
@@ -266,6 +269,7 @@ async def seed_data() -> None:
                     "pe_apellido": "Vega",
                     "pe_correo": "laura.vega@email.com",
                     "pe_fecha_nacimiento": date(2015, 2, 20),
+                    "pe_genero": Genero.F
                 },
             ]
             
