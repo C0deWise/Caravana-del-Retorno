@@ -2,7 +2,7 @@
     registro_retorno_grupo_esquema.py define los esquemas de validación y serialización para el modelo RegistroRetornoGrupo.
 """
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator, ValidationInfo
 from typing import Optional
 
 class RegistroRetornoGrupoCrear(BaseModel):
@@ -15,6 +15,15 @@ class RegistroRetornoGrupoCrear(BaseModel):
     anotacion: Optional[str] = None
 
     model_config = {"from_attributes": True}
+
+    @field_validator("num_hospedaje", "num_transporte", "num_parqueadero_carro", "num_parqueadero_moto", "retorno", "cod_grupo")
+    @classmethod
+    def validar_no_negativo(cls, value, info: ValidationInfo):
+        if value < 0:
+            raise ValueError(
+                f"El campo '{info.field_name}' no puede ser negativo."
+            )
+        return value
 
 class RegistroRetornoGrupoRespuesta(BaseModel):
     regg_codigo: int

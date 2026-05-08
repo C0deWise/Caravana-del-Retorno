@@ -19,27 +19,43 @@ class RegistroRetornoCrear(BaseModel):
 
     model_config = {"from_attributes": True}
 
+    @field_validator("num_hospedaje", "num_transporte", "num_parqueadero_carro", "num_parqueadero_moto", "retorno", "usuario")
+    @classmethod
+    def validar_no_negativo(cls, value, info: ValidationInfo):
+        if value < 0:
+            raise ValueError(f"El campo '{info.field_name}' no pueden ser negativos.")
+        return value
+    
+    @field_validator("num_hospedaje", "num_transporte", "num_parqueadero_carro", "num_parqueadero_moto")
+    @classmethod
+    def validar_no_mayor_uno(cls, value, info: ValidationInfo):
+        if value > 1:
+            raise ValueError(f"El campo '{info.field_name}' no puede ser mayor a 1.")
+        return value
+
 class RegistroRetornoEditar(BaseModel):
     num_hospedaje: Optional[int] = None
     num_transporte: Optional[int] = None
-    num_parqueadero: Optional[int] = None
+    num_parqueadero_carro: Optional[int] = None
+    num_parqueadero_moto: Optional[int] = None
     anotacion: Optional[str] = None
 
-    @field_validator("num_hospedaje", "num_transporte", "num_parqueadero")
+    model_config = {"from_attributes": True}
+
+    @field_validator("num_hospedaje", "num_transporte", "num_parqueadero_carro", "num_parqueadero_moto")
     @classmethod
-    def no_negativo(cls, value, info: ValidationInfo):
+    def validar_no_negativo(cls, value, info: ValidationInfo):
         if value < 0:
-            raise ValueError(f"El campo {info.field_name} no puede ser negativo.")
+            raise ValueError(f"El campo '{info.field_name}' no pueden ser negativos.")
         return value
     
-    @field_validator("num_hospedaje", "num_transporte", "num_parqueadero")
+    @field_validator("num_hospedaje", "num_transporte", "num_parqueadero_carro", "num_parqueadero_moto")
     @classmethod
-    def no_mayor_a_uno(cls, value, info: ValidationInfo):
-        if value is not None and value > 1:
-            raise ValueError(f"El campo {info.field_name} no puede ser mayor a 1.")
+    def validar_no_mayor_uno(cls, value, info: ValidationInfo):
+        if value > 1:
+            raise ValueError(f"El campo '{info.field_name}' no puede ser mayor a 1.")
         return value
-
-    model_config = {"from_attributes": True}
+    
 class RegistroRetornoRespuesta(BaseModel):
     codigo: int
     usuario: int

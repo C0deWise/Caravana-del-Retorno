@@ -57,6 +57,12 @@ class RegistroRetornoGrupoServicio:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="El grupo debe tener al menos un integrante (usuario o persona) aparte del líder para ser registrado."
             )
+        total_parqueaderos = datos.num_parqueadero_carro + datos.num_parqueadero_moto
+        if total_parqueaderos > total_integrantes_adicionales:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="El grupo no puede solicitar más parqueaderos que el número de integrantes que tiene el grupo."
+            )
 
         # 4. Restricción Adicional: Evitar duplicidad de registro
         ya_registrado = await self.repositorio_registro_grupo.obtener_registro_por_grupo_y_retorno(
