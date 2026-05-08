@@ -33,7 +33,14 @@ class SolicitudGrupoRetornoRepositorio:
             return nueva_solicitud
 
         async def rechazar_solicitud_grupo_retorno(self, solicitud_id: int):
-            result = await self.db.execute(select(SolicitudGrupoRetorno).filter(SolicitudGrupoRetorno.solgr_codigo == solicitud_id))
+            result = await self.db.execute(
+                select(SolicitudGrupoRetorno)
+                .options(
+                    selectinload(SolicitudGrupoRetorno.usuario),
+                    selectinload(SolicitudGrupoRetorno.grupo).selectinload(GrupoRetorno.lider)
+                )
+                .filter(SolicitudGrupoRetorno.solgr_codigo == solicitud_id)
+            )
             solicitud = result.scalar_one_or_none()
             if solicitud:
                 solicitud.solgr_estado = SolicitudGrupoRetornoEstado.RECHAZADO
@@ -53,7 +60,14 @@ class SolicitudGrupoRetornoRepositorio:
             await self.db.execute(stmt)
             await self.db.commit()
         async def aceptar_solicitud_grupo_retorno(self, solicitud_id: int):
-            result = await self.db.execute(select(SolicitudGrupoRetorno).filter(SolicitudGrupoRetorno.solgr_codigo == solicitud_id))
+            result = await self.db.execute(
+                select(SolicitudGrupoRetorno)
+                .options(
+                    selectinload(SolicitudGrupoRetorno.usuario),
+                    selectinload(SolicitudGrupoRetorno.grupo).selectinload(GrupoRetorno.lider)
+                )
+                .filter(SolicitudGrupoRetorno.solgr_codigo == solicitud_id)
+            )
             solicitud = result.scalar_one_or_none()
             if solicitud:
                 solicitud.solgr_estado = SolicitudGrupoRetornoEstado.ACEPTADO
@@ -69,7 +83,14 @@ class SolicitudGrupoRetornoRepositorio:
             return result.scalars().all()
 
         async def obtener_solicitud_por_id(self, solicitud_id: int) -> SolicitudGrupoRetorno | None:
-            result = await self.db.execute(select(SolicitudGrupoRetorno).filter(SolicitudGrupoRetorno.solgr_codigo == solicitud_id))
+            result = await self.db.execute(
+                select(SolicitudGrupoRetorno)
+                .options(
+                    selectinload(SolicitudGrupoRetorno.usuario),
+                    selectinload(SolicitudGrupoRetorno.grupo).selectinload(GrupoRetorno.lider)
+                )
+                .filter(SolicitudGrupoRetorno.solgr_codigo == solicitud_id)
+            )
             return result.scalar_one_or_none()
         
         async def obtener_solicitudes_recientes_por_usuario(self, usuario_id: int):
