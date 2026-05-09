@@ -5,6 +5,10 @@ utilizando el repositorio para interactuar con la base de datos y los esquemas p
 estructurar los datos de entrada y salida.
 """
 
+from app.retornos.esquemas.retorno_esquemas import RetornoResponse
+from app.retornos.modelos.retorno_modelo import Retorno
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
 from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoRespuesta
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
@@ -12,12 +16,7 @@ from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.retornos.excepciones.registro_retorno_excepciones import RetornoNoExistente, RetornoEstadoFinalizado, UsuarioNoExistente, UsuarioSinColonia, UsuarioYaRegistrado
 
 class RegistroRetornoServicio:
-    def __init__(
-        self,
-        repositorio: RegistroRetornoRepositorio,
-        retorno_repositorio: RetornoRepository,
-        usuario_servicio: UsuarioServicio,
-    ) -> None:
+    def __init__(self, repositorio: RegistroRetornoRepositorio, retorno_repositorio: RetornoRepository = None, usuario_servicio: UsuarioServicio = None) -> None:
         self.repositorio = repositorio 
         self.retorno_repositorio = retorno_repositorio
         self.usuario_servicio = usuario_servicio
@@ -76,3 +75,13 @@ class RegistroRetornoServicio:
         if registro is None:
             return None
         return RegistroRetornoRespuesta.model_validate(registro)
+    
+    async def obtener_registros_retorno_por_usuario(self, usuario_id):
+        return await self.repositorio.obtener_registros_retorno_por_usuario(usuario_id)
+    
+    async def obtener_registros_retorno_activos_por_usuario(self, usuario_id) -> list[RetornoResponse]:
+        usuario = await self.usuario_servicio.obtener_usuario_por_id(usuario_id)
+        if not usuario:
+            raise UsuarioNoExistente(usuario_id)
+        
+        return await self.repositorio.obtener_registros_retorno_activos_usuario(usuario_id)
