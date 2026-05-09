@@ -16,6 +16,13 @@ class RetornoNotFoundError(HTTPException):
             detail=f"Retorno con código {codigo} no encontrado."
         )
 
+class RegistroIndividualParqueaderoExcedidoError(HTTPException):
+    """Se lanza cuando se intenta registrar más de un parqueadero para un usuario."""
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"El usuario solo puede registrar un parqueadero."
+        )
 
 class RetornoAnioDuplicadoError(HTTPException):
     """Se lanza cuando ya existe un retorno para el año seleccionado."""
