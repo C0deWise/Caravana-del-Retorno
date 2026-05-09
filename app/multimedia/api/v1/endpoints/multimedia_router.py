@@ -17,6 +17,7 @@ def get_multimedia_servicio(db: AsyncSession = Depends(get_db)) -> MultimediaSer
 
 @router.post(
     "/cargar-multimedia/{retorno_codigo}",
+    tags=["Multimedia"],
     response_model=list[MultimediaRespuesta], **cargar_contenido_multimedia_docs
 )
 async def cargar_contenido_multimedia(

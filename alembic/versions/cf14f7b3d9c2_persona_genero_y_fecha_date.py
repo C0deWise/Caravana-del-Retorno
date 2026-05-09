@@ -1,7 +1,7 @@
 """persona genero y fecha date
 
 Revision ID: cf14f7b3d9c2
-Revises: 2072f7a2cd67
+Revises: 6211ec8da47a
 Create Date: 2026-05-08 08:18:21.778402
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = 'cf14f7b3d9c2'
-down_revision: Union[str, Sequence[str], None] = '2072f7a2cd67'
+down_revision: Union[str, Sequence[str], None] = '6211ec8da47a'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -1,7 +1,7 @@
 """Modelo cargar contenido multimedia
 
 Revision ID: 84d88db3619a
-Revises: dc6ab2fc7af5
+Revises: adebc859019a
 Create Date: 2026-04-30 03:33:32.655904
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '84d88db3619a'
-down_revision: Union[str, Sequence[str], None] = 'dc6ab2fc7af5'
+down_revision: Union[str, Sequence[str], None] = 'adebc859019a'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

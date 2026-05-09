@@ -138,7 +138,7 @@ class ColoniaService:
         colonia_desactivada = await self.repositorio.desactivar_colonia(colonia)
         return ColoniaRespuesta.model_validate(colonia_desactivada, from_attributes=True)
       
-     async def obtener_colonias_activas(self) -> list[ColoniaRespuesta]:
+    async def obtener_colonias_activas(self) -> list[ColoniaRespuesta]:
         """
         Obtiene la lista de colonias activas.
         Parámetros:

@@ -89,6 +89,8 @@ obtener_colonias_activas_docs = dict(
             },
         }
     }
+)
+
 cambiar_lider_colonia_docs = dict(
     status_code=status.HTTP_200_OK,
     summary="Cambiar líder de una colonia",
