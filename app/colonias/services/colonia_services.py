@@ -8,14 +8,14 @@ from app.colonias.excepciones.excepciones import ColoniaInactiva, ColoniaNoExist
 from app.colonias.models.colonia_model import ColoniaEstado
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.colonias.excepciones.excepciones import (
-    AutoRemocionUsuarioColonia,
-    ColoniaInactiva, 
-    ColoniaNoExistente,
-    ColoniaSinLiderAsignado,
-    UsuarioNoExistente, 
-    UsuarioYaEsLider,
-    UsuarioNoEsMiembroColonia,
-    UsuarioInscritoRetornoActivo)
+AutoRemocionUsuarioColonia,
+ColoniaInactiva, 
+ColoniaNoExistente,
+ColoniaSinLiderAsignado,
+UsuarioNoExistente, 
+UsuarioYaEsLider,
+UsuarioNoEsMiembroColonia,
+UsuarioInscritoRetornoActivo)
 from app.colonias.models.colonia_model import ColoniaEstado
 from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta, UsuarioRemovidoColonia, UsuarioRemovidoColoniaRespuesta
 from app.colonias.repositories.colonia_repository import ColoniaRepository
@@ -138,7 +138,7 @@ class ColoniaService:
         colonia_desactivada = await self.repositorio.desactivar_colonia(colonia)
         return ColoniaRespuesta.model_validate(colonia_desactivada, from_attributes=True)
       
-     async def obtener_colonias_activas(self) -> list[ColoniaRespuesta]:
+    async def obtener_colonias_activas(self) -> list[ColoniaRespuesta]:
         """
         Obtiene la lista de colonias activas.
         Parámetros:

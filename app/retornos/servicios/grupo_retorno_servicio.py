@@ -20,7 +20,7 @@ from fastapi import HTTPException, status
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
 from app.retornos.esquemas.solicitud_grupo_retorno_esquema import SolicitudGrupoRetornoEstado 
 class GrupoRetornoServicio:
-    def __init__(self, repositorio_retorno: RetornoRepository = None, repositorio_grupos: GrupoRetornoRepositorio = None, repositorio_solicitudes: SolicitudGrupoRetornoRepositorio = None, repositorio_usuario_grupo: RetornoGrupoUsuarioRepositorio = None, repositorio_usuario: UsuarioRepositorio = None, repositorio_registro_individual: RegistroRetornoRepositorio = None): # type: ignore
+    def __init__(self, repositorio_retorno: RetornoRepository = None, repositorio_grupos: GrupoRetornoRepositorio = None, repositorio_solicitudes: SolicitudGrupoRetornoRepositorio = None, repositorio_usuario_grupo: RetornoGrupoUsuarioRepositorio = None, repositorio_usuario: UsuarioRepositorio = None, repositorio_registro_individual: RegistroRetornoRepositorio = None, repositorio_registro_grupo: RegistroRetornoGrupoRepositorio = None): # type: ignore
         self.repositorio_retorno = repositorio_retorno
         self.repositorio_grupos = repositorio_grupos
         self.repositorio_solicitudes = repositorio_solicitudes

@@ -17,14 +17,14 @@ class RetornoNoExistente(HTTPException):
 class RetornoEstadoInvalido(HTTPException):
     def __init__(self, retorno_id: int, retorno_estado: str):
         super().__init__(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_409_CONFLICT,
             detail=f"No es posible inscribir en el retorno con código {retorno_id} porque su estado es '{retorno_estado}'."
         )
 
 class RetornoEstadoFinalizadoDarseDeBaja(HTTPException):
     def __init__(self, retorno_id: int):
         super().__init__(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_409_CONFLICT,
             detail=f"No es posible darse de baja en el retorno con código {retorno_id} porque ya ha finalizado."
         )
 class UsuarioNoExistente(HTTPException):
@@ -60,6 +60,8 @@ class RegistroRetornoNoExistente(HTTPException):
         super().__init__(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"El registro de retorno con código {registro_id} no existe."
+        )
+        
 class SolicitudGrupoRetornoNoExistente(HTTPException):
     def __init__(self, solicitud_id: int):
         super().__init__(

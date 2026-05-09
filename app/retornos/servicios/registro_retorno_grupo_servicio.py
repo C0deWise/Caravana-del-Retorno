@@ -10,7 +10,7 @@ from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.retornos.repositorios.persona_repositorio import PersonaRepositorio
 from app.retornos.repositorios.retorno_grupo_usuario_repositorio import RetornoGrupoUsuarioRepositorio
 from app.usuarios.schemas.usuario_esquemas import UsuarioSalida
-
+from app.retornos.excepciones.registro_retorno_grupo_excepciones import RetornoNoExistente, RetornoNoActivo
 
 class RegistroRetornoGrupoServicio: 
     def __init__(
@@ -26,6 +26,13 @@ class RegistroRetornoGrupoServicio:
         self.repositorio_retorno = repositorio_retorno
         self.repositorio_usuario_grupo = repositorio_usuario_grupo
         self.repositorio_persona = repositorio_persona # Asignar el nuevo repositorio
+
+    def _validar_retorno(self, retorno, codigo_retorno):
+        if not retorno:
+            raise RetornoNoExistente(codigo_retorno)
+        
+        if retorno.estado != "activo":
+            raise RetornoNoActivo(codigo_retorno, retorno.estado.value)
 
     async def crear_registro_retorno_grupo(self, datos: RegistroRetornoGrupoCrear) -> RegistroRetornoGrupoRespuesta:
         """
@@ -46,6 +53,8 @@ class RegistroRetornoGrupoServicio:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="El registro solo es permitido para el último retorno vigente."
             )
+        
+        self._validar_retorno(ultimo_retorno, datos.retorno)
 
         # 3. Validar que el grupo tenga al menos 1 integrante (usuario o persona) aparte del líder
         num_usuarios_adicionales = await self.repositorio_usuario_grupo.contar_miembros_adicionales(datos.cod_grupo)

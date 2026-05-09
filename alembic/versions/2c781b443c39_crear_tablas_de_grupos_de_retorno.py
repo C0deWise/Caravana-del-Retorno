@@ -1,7 +1,7 @@
 """crear tablas de grupos de retorno
 
 Revision ID: 2c781b443c39
-Revises: efee06555c1c
+Revises: a0b72de79d50
 Create Date: 2026-04-25 02:10:05.626037
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '2c781b443c39'
-down_revision: Union[str, Sequence[str], None] = 'efee06555c1c'
+down_revision: Union[str, Sequence[str], None] = 'a0b72de79d50'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -35,18 +35,6 @@ def upgrade() -> None:
     sa.Column('us_codigo_lider', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['us_codigo_lider'], ['usuario.us_codigo'], ),
     sa.PrimaryKeyConstraint('gr_codigo')
-    )
-    op.create_table('registro_retorno',
-    sa.Column('reg_codigo', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('us_codigo', sa.Integer(), nullable=False),
-    sa.Column('re_codigo', sa.Integer(), nullable=False),
-    sa.Column('reg_num_hospedaje', sa.Integer(), nullable=False),
-    sa.Column('reg_num_transporte', sa.Integer(), nullable=False),
-    sa.Column('reg_num_parqueadero', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['re_codigo'], ['retorno.codigo'], ),
-    sa.ForeignKeyConstraint(['us_codigo'], ['usuario.us_codigo'], ),
-    sa.PrimaryKeyConstraint('reg_codigo'),
-    sa.UniqueConstraint('us_codigo', 're_codigo', name='uk1_uk2_registro_retorno')
     )
     op.create_table('registro_retorno_grupo',
     sa.Column('regg_codigo', sa.Integer(), autoincrement=True, nullable=False),
@@ -86,7 +74,6 @@ def downgrade() -> None:
     op.drop_table('usuario_grupo_retorno')
     op.drop_table('solicitud_grupo_retorno')
     op.drop_table('registro_retorno_grupo')
-    op.drop_table('registro_retorno')
     op.drop_table('grupo_retorno')
     op.drop_table('persona')
     # ### end Alembic commands ###
