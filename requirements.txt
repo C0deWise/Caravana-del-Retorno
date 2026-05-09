@@ -3,7 +3,7 @@ fastapi==0.115.12
 uvicorn[standard]==0.34.0
 pytest
 python-multipart==0.0.6
-
+aiofiles>=24.0.0
 # Database
 sqlalchemy==2.0.39
 psycopg2-binary==2.9.10
