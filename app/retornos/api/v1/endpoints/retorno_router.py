@@ -5,7 +5,7 @@ y operaciones de grupo de retorno bajo el prefijo /grupoRetorno,
 con documentación Swagger integrada.
 """
 
-from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoRespuesta
+from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoEditar, RegistroRetornoRespuesta
 from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
 from app.retornos.repositorios.registro_retorno_grupo_repositorio import RegistroRetornoGrupoRepositorio
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
@@ -105,6 +105,23 @@ def obtener_retorno_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> Re
 async def crear_retorno(data: RetornoCreate, servicio: Annotated[RetornoService, Depends(obtener_retorno_servicio)]):
     return await servicio.crear_retorno(data)
 
+
+@router.put("/editar-registro/{registro_id}",
+               response_model=RegistroRetornoRespuesta, 
+               summary="Editar un registro de retorno existente",
+               description="Permite modificar las necesidades de transporte, hospedaje, parqueadero y anotaciones")
+async def editar_registro_retorno(registro_id: int, data: RegistroRetornoEditar, servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)]):
+    registro_actualizado = await servicio.editar_registro_retorno(registro_id, data)
+    return registro_actualizado
+
+
+@router.get("/esta-registrado-retorno/{us_codigo}/{re_codigo}",
+            response_model=bool,
+            summary="Verificar si un usuario ya está registrado en un retorno",
+            description="Consulta si un usuario específico ya tiene un registro de participación en un retorno determinado.")
+async def verificar_usuario_registrado(us_codigo: int, re_codigo: int, servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)]):
+    registro_usuario = await servicio.obtener_registro_retorno_por_usuario_y_retorno(us_codigo, re_codigo)
+    return bool(registro_usuario)
 
 @router.get(
     "/",

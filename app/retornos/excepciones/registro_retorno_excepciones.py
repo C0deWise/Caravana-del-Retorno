@@ -41,3 +41,10 @@ class UsuarioYaRegistrado(HTTPException):
             status_code=status.HTTP_409_CONFLICT,
             detail=f"El usuario con código {usuario_id} ya está registrado en el retorno con código {retorno_id}."
         )
+
+class RegistroRetornoNoExistente(HTTPException):
+    def __init__(self, registro_id: int):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"El registro de retorno con código {registro_id} no existe."
+        )
