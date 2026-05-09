@@ -11,10 +11,10 @@ from app.retornos.modelos.retorno_modelo import Retorno
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
-from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoDarseDeBaja, RegistroRetornoRespuesta
+from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear,RegistroRetornoEditar, RegistroRetornoDarseDeBaja, RegistroRetornoRespuesta
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.usuarios.services.usuario_servicio import UsuarioServicio
-from app.retornos.excepciones.registro_retorno_excepciones import RetornoEstadoFinalizadoDarseDeBaja, RetornoNoExistente, RetornoEstadoFinalizado, UsuarioNoExistente, UsuarioNoRegistradoEnRetorno, UsuarioSinColonia, UsuarioYaRegistrado
+from app.retornos.excepciones.registro_retorno_excepciones import RetornoEstadoFinalizadoDarseDeBaja, RegistroRetornoNoExistente, RetornoNoExistente, RetornoEstadoFinalizado, UsuarioNoExistente, UsuarioNoRegistradoEnRetorno, UsuarioSinColonia, UsuarioYaRegistrado
 
 class RegistroRetornoServicio:
     def __init__(self, repositorio: RegistroRetornoRepositorio, retorno_repositorio: RetornoRepository = None, usuario_servicio: UsuarioServicio = None) -> None:
@@ -61,6 +61,21 @@ class RegistroRetornoServicio:
         nuevo_registro = await self.repositorio.crear_registro_retorno(data)
         return RegistroRetornoRespuesta.model_validate(nuevo_registro)
 
+    async def editar_registro_retorno(self,registro_id: int, data: RegistroRetornoEditar) -> RegistroRetornoRespuesta:
+        """
+        Edita un registro de retorno existente, permitiendo modificar las
+        necesidades de transporte, hospedaje, parqueadero y anotaciones.
+        """
+
+        registro = await self.repositorio.obtener_registro_retorno_por_id(registro_id)
+
+        if not registro:
+            raise RegistroRetornoNoExistente(registro_id)
+
+        await self.repositorio.actualizar_registro_retorno (registro_id, data)
+
+        return RegistroRetornoRespuesta.model_validate(registro)
+    
     async def obtener_registro_retorno_por_usuario_y_retorno(
         self,
         usuario_id: int,
