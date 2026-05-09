@@ -1,8 +1,8 @@
-"""merge num_parqueadero vehiculo y fecha, genero persona
+"""merge con estado_curso
 
-Revision ID: eb3ab23bbef1
-Revises: 6211ec8da47a, cf14f7b3d9c2
-Create Date: 2026-05-08 09:33:06.898567
+Revision ID: 7679d3c9cb6a
+Revises: dc00e9041780, e1da8454900c
+Create Date: 2026-05-09 12:47:26.853723
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'eb3ab23bbef1'
-down_revision: Union[str, Sequence[str], None] = ('6211ec8da47a', 'cf14f7b3d9c2')
+revision: str = '7679d3c9cb6a'
+down_revision: Union[str, Sequence[str], None] = ('dc00e9041780', 'e1da8454900c')
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

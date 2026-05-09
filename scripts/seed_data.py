@@ -65,9 +65,9 @@ async def seed_data() -> None:
             logger.info("Creando colonias...")
             
             colonias_data = [
-                {"co_pais": "Colombia", "co_departamento": "Antioquia", "co_ciudad": "Medellín"},
-                {"co_pais": "Colombia", "co_departamento": "Bogotá", "co_ciudad": "Bogotá"},
-                {"co_pais": "Colombia", "co_departamento": "Valle del Cauca", "co_ciudad": "Cali"},
+                {"pais": "Colombia", "departamento": "Antioquia", "ciudad": "Medellín"},
+                {"pais": "Colombia", "departamento": "Bogotá", "ciudad": "Bogotá"},
+                {"pais": "Colombia", "departamento": "Valle del Cauca", "ciudad": "Cali"},
             ]
             
             colonias = []
@@ -100,7 +100,7 @@ async def seed_data() -> None:
                     "us_pais": "Colombia",
                     "us_departamento": "Antioquia",
                     "us_ciudad": "Medellín",
-                    "co_codigo": colonias[0].co_codigo,
+                    "co_codigo": colonias[0].codigo,
                     "ro_codigo": 1,  # usuario
                 },
                 {
@@ -116,7 +116,7 @@ async def seed_data() -> None:
                     "us_pais": "Colombia",
                     "us_departamento": "Antioquia",
                     "us_ciudad": "Medellín",
-                    "co_codigo": colonias[0].co_codigo,
+                    "co_codigo": colonias[0].codigo,
                     "ro_codigo": 2,  # lider
                 },
                 # Colonia 2
@@ -133,7 +133,7 @@ async def seed_data() -> None:
                     "us_pais": "Colombia",
                     "us_departamento": "Bogotá",
                     "us_ciudad": "Bogotá",
-                    "co_codigo": colonias[1].co_codigo,
+                    "co_codigo": colonias[1].codigo,
                     "ro_codigo": 1,
                 },
                 {
@@ -149,7 +149,7 @@ async def seed_data() -> None:
                     "us_pais": "Colombia",
                     "us_departamento": "Bogotá",
                     "us_ciudad": "Bogotá",
-                    "co_codigo": colonias[1].co_codigo,
+                    "co_codigo": colonias[1].codigo,
                     "ro_codigo": 2,
                 },
                 # Colonia 3
@@ -166,7 +166,7 @@ async def seed_data() -> None:
                     "us_pais": "Colombia",
                     "us_departamento": "Valle del Cauca",
                     "us_ciudad": "Cali",
-                    "co_codigo": colonias[2].co_codigo,
+                    "co_codigo": colonias[2].codigo,
                     "ro_codigo": 1,
                 },
                 {
@@ -182,7 +182,7 @@ async def seed_data() -> None:
                     "us_pais": "Colombia",
                     "us_departamento": "Valle del Cauca",
                     "us_ciudad": "Cali",
-                    "co_codigo": colonias[2].co_codigo,
+                    "co_codigo": colonias[2].codigo,
                     "ro_codigo": 2,
                 },
             ]

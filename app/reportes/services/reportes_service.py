@@ -123,11 +123,11 @@ class ReportesService:
         asistencia_colonia = []
         for colonia in colonias:
             logger.info(f"Colonia:{colonia.co_ciudad}")
-            cantidad_asistentes_individuales = await self.repositorio_usuario.obtener_cantidad_asistentes_individuales_retorno(cod_retorno, colonia.co_codigo)
+            cantidad_asistentes_individuales = await self.repositorio_usuario.obtener_cantidad_asistentes_individuales_retorno(cod_retorno, colonia.codigo)
             logger.info(f"cantidad asistentes individuales: {cantidad_asistentes_individuales}" )
-            cantidad_asistentes_usuario_grupo = await self.repositorio_grupo.obtener_cantidad_asistentes_retorno(colonia.co_codigo, cod_retorno)
+            cantidad_asistentes_usuario_grupo = await self.repositorio_grupo.obtener_cantidad_asistentes_retorno(colonia.codigo, cod_retorno)
             logger.info(f"cantidad asistente usuario grupo: {cantidad_asistentes_individuales}")
-            cantidad_asistentes_persona_grupo = await self.repositorio_persona.obtener_cantidad_personas_en_retorno(cod_retorno, colonia.co_codigo)
+            cantidad_asistentes_persona_grupo = await self.repositorio_persona.obtener_cantidad_personas_en_retorno(cod_retorno, colonia.codigo)
             logger.info(f"cantidad asistentes persona grupo: {cantidad_asistentes_individuales}")
             cantidad_asistentes = cantidad_asistentes_individuales + cantidad_asistentes_usuario_grupo + cantidad_asistentes_persona_grupo
             asistencia_colonia.append({

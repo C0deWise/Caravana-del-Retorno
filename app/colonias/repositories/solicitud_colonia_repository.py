@@ -29,7 +29,7 @@ class SolicitudColoniaRepository:
         resultado = await self.db.execute(
             select(Colonia)
             .where(
-                Colonia.co_codigo == cod_colonia,
+                Colonia.codigo == cod_colonia,
             )
         )
         colonia = resultado.scalar_one_or_none()

@@ -34,7 +34,7 @@ class ColoniaReporteRepositorio:
     async def obtener_colonia(self, co_codigo: int):
         result = await self.db.execute(
             select(Colonia)
-            .where(Colonia.co_codigo == co_codigo)
+            .where(Colonia.codigo == co_codigo)
         )
         return result.scalars().first()
     
