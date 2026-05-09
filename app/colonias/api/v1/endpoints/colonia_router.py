@@ -10,6 +10,7 @@ from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.schemas.usuario_esquemas import UsuarioConsultaColonia
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.colonias.excepciones.excepciones import ColoniaNoEncontrada, UsuarioNoEncontrado
 from typing import Annotated
 from app.colonias.services.colonia_services import ColoniaService
 from sqlalchemy.orm import Session
@@ -178,17 +179,31 @@ async def rechazar_solicitud_colonia(codigo: int, servicio: Annotated[SolicitudC
 async def obtener_colonias(servicio: Annotated[ColoniaService, Depends(get_colonia_service)]):
     return await servicio.obtener_colonias()
 
+@router.get(
+    "/{colonia_codigo}",
+    response_model = ColoniaRespuesta,
+    status_code = status.HTTP_200_OK,
+    summary = "Obtener información de una colonia",
+    description = "Obtiene la información detallada de una colonia específica por su código",
+)
+async def obtener_colonia(colonia_codigo: int, servicio: ColoniaService = Depends(get_colonia_service)):
+    return await servicio.obtener_colonia(colonia_codigo)
+
 @router.post(
     "/crear-solicitud",
     response_model=SolicitudColoniaRespuesta, **crear_solicitud_docs
 )
 async def crear_solicitud_colonia(
     datos: SolicitudColoniaCrear,
-    servicio_usuario: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
-    servicio: Annotated[SolicitudColoniaService, Depends(get_solicitud_colonia_servicio)],
+    servicio_usuario: UsuarioServicio = Depends(get_usuario_servicio),
+    servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio),
+    servicio_colonia: ColoniaService = Depends(get_colonia_service)
 ):
+    
     if not await servicio_usuario.existe_usuario("us_codigo", datos.codigo_usuario):
-        raise ValueError(f"El usuario con código {datos.codigo_usuario} no existe.")
+        raise UsuarioNoEncontrado(datos.codigo_usuario)
+    if not await servicio_colonia.obtener_colonia(datos.codigo_colonia):
+        raise ColoniaNoEncontrada(datos.codigo_colonia)
     return await servicio.crear_solicitud(datos)
 
 

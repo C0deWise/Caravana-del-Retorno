@@ -104,6 +104,12 @@ class ColoniaService:
         colonias = await self.repositorio.obtener_colonias()
         return [ColoniaRespuesta.model_validate(colonia, from_attributes=True) for colonia in colonias]
     
+    async def obtener_colonia(self, colonia_codigo: int) -> ColoniaRespuesta:
+        colonia = await self.repositorio.obtener_colonia_por_id(colonia_codigo)
+        if not colonia:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Colonia con código {colonia_codigo} no encontrada")
+        return ColoniaRespuesta.model_validate(colonia, from_attributes=True)
     async def desactivar_colonia(self, colonia_codigo: int) -> ColoniaRespuesta:
         """
         Desactiva una colonia existente. Si una colonia tiene miembros, se desasocian los miembros
