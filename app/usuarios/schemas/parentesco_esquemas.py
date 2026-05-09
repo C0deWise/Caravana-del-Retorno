@@ -34,3 +34,13 @@ class ParentescoRespuestaDetallada(BaseModel):
     solicitante: UsuarioResumen
     destinatario: UsuarioResumen
     model_config = {"from_attributes": True, "populate_by_name": True}
+
+
+class ParentescoLista(BaseModel):
+    codigo: int
+    codigo_solicitante: int
+    codigo_destinatario: int
+    tipo_parentesco: TipoParentesco
+    estado: EstadoSolicitudParentesco
+
+    model_config = {"from_attributes": True}
