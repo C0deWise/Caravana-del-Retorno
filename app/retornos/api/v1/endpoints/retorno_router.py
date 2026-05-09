@@ -4,6 +4,8 @@ Expone operaciones de creación y consulta bajo el prefijo /retornos,
 con documentación Swagger integrada.
 """
 
+from typing import Annotated
+
 from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoDarseDeBaja, RegistroRetornoDarseDeBajaRespuesta, RegistroRetornoRespuesta
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
@@ -21,7 +23,7 @@ router = APIRouter(
     tags=["Retornos"],
 )
 
-def obtener_registro_retorno_servicio(db: AsyncSession = Depends(get_db)) -> RegistroRetornoServicio:
+def obtener_registro_retorno_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> RegistroRetornoServicio:
     repositorio = RegistroRetornoRepositorio(db)
     retorno_repositorio = RetornoRepository(db)
     usuario_servicio = UsuarioServicio(UsuarioRepositorio(db), None)
@@ -53,7 +55,7 @@ def obtener_registro_retorno_servicio(db: AsyncSession = Depends(get_db)) -> Reg
         },
     },
 )
-async def crear_retorno(data: RetornoCreate, db: AsyncSession = Depends(get_db)):
+async def crear_retorno(data: RetornoCreate, db: Annotated[AsyncSession, Depends(get_db)]):
     service = RetornoService(db)
     return await service.crear_retorno(data)
 
@@ -64,7 +66,7 @@ async def crear_retorno(data: RetornoCreate, db: AsyncSession = Depends(get_db))
     summary="Listar todos los retornos",
     description="Obtiene el listado completo de retornos registrados en el sistema.",
 )
-async def listar_retornos(db: AsyncSession = Depends(get_db)):
+async def listar_retornos(db: Annotated[AsyncSession, Depends(get_db)]):
     service = RetornoService(db)
     return await service.listar_retornos()
 
@@ -75,7 +77,7 @@ async def listar_retornos(db: AsyncSession = Depends(get_db)):
     summary="Obtener retorno por código",
     description="Busca y retorna un retorno específico usando su código primario. Retorna 404 si no existe.",
 )
-async def obtener_retorno(codigo: int, db: AsyncSession = Depends(get_db)):
+async def obtener_retorno(codigo: int, db: Annotated[AsyncSession, Depends(get_db)]):
     service = RetornoService(db)
     return await service.obtener_retorno(codigo)
 
@@ -99,7 +101,7 @@ async def obtener_retorno(codigo: int, db: AsyncSession = Depends(get_db)):
         },
     },
 )
-async def inscribir_usuario_en_retorno(registro: RegistroRetornoCrear, servicio: RegistroRetornoServicio = Depends(obtener_registro_retorno_servicio)):
+async def inscribir_usuario_en_retorno(registro: RegistroRetornoCrear, servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)]):
     return await servicio.crear_registro_retorno(registro)
 
 
@@ -110,7 +112,7 @@ async def inscribir_usuario_en_retorno(registro: RegistroRetornoCrear, servicio:
     status_code=status.HTTP_200_OK,
     description="Permite a un usuario darse de baja de un retorno específico.",
 )
-async def darse_de_baja(datos: RegistroRetornoDarseDeBaja, servicio: RegistroRetornoServicio = Depends(obtener_registro_retorno_servicio)):
+async def darse_de_baja(datos: RegistroRetornoDarseDeBaja, servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)]):
     resultado = await servicio.darse_de_baja(datos)
     if resultado:
         return RegistroRetornoDarseDeBajaRespuesta(mensaje=f"El usuario {datos.usuario} ha sido dado de baja exitosamente del retorno {datos.retorno}.")
