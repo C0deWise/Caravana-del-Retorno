@@ -5,6 +5,7 @@ utilizando el repositorio para interactuar con la base de datos y los esquemas p
 estructurar los datos de entrada y salida.
 """
 
+from app.retornos.excepciones.retorno_excepciones import RegistroIndividualParqueaderoExcedidoError
 from app.retornos.esquemas.retorno_esquemas import RetornoResponse
 from app.retornos.modelos.retorno_modelo import Retorno
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -54,7 +55,9 @@ class RegistroRetornoServicio:
         usuario_existente = await self.repositorio.obtener_registro_retorno_por_usuario_y_retorno(data.usuario, data.retorno)
         if usuario_existente:
             raise UsuarioYaRegistrado(data.usuario, data.retorno)
-        
+        total_parqueaderos = data.num_parqueadero_carro + data.num_parqueadero_moto
+        if total_parqueaderos > 1:
+            raise RegistroIndividualParqueaderoExcedidoError()
         nuevo_registro = await self.repositorio.crear_registro_retorno(data)
         return RegistroRetornoRespuesta.model_validate(nuevo_registro)
 

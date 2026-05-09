@@ -35,7 +35,8 @@ def datos_crear():
         cod_grupo=10,
         num_hospedaje=2,
         num_transporte=1,
-        num_parqueadero=0,
+        num_parqueadero_carro=0,
+        num_parqueadero_moto=1,
         anotacion="Prueba de registro de grupo"
     )
 

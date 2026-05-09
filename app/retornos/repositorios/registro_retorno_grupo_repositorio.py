@@ -20,7 +20,8 @@ class RegistroRetornoGrupoRepositorio:
             retorno=datos.retorno,
             num_hospedaje=datos.num_hospedaje,
             num_transporte=datos.num_transporte,
-            num_parqueadero=datos.num_parqueadero,
+            num_parqueadero_carro=datos.num_parqueadero_carro,
+            num_parqueadero_moto=datos.num_parqueadero_moto,
             anotacion=datos.anotacion
         )
         self.db.add(nuevo_registro)
