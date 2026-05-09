@@ -27,7 +27,7 @@ from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
-from app.colonias.docs.docs_colonia import desactivar_colonia_docs, cambiar_lider_colonia_docs, sacar_miembro_colonia_docs, obtener_colonias_activas_docs
+from app.colonias.docs.docs_colonia import desactivar_colonia_docs, cambiar_lider_colonia_docs, sacar_miembro_colonia_docs, obtener_colonias_activas_docs,  crear_colonia_body
 from json import dumps
 
 from app.colonias.docs.docs_solicitud_colonia import (
@@ -94,7 +94,7 @@ router = APIRouter()
         }
     }
 )
-async def crear_colonia(datos: ColoniaCrear, servicio: Annotated[ColoniaService, Depends(get_colonia_service)]):
+async def crear_colonia(datos: crear_colonia_body, servicio: Annotated[ColoniaService, Depends(get_colonia_service)]):
     """Endpoint para crear una nueva colonia"""
     return await servicio.servicio_crear_colonia(datos)
 

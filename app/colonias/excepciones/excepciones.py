@@ -52,7 +52,7 @@ class UsuarioNoExistente(HTTPException):
         self.usuario_id = usuario_id
         super().__init__(
             status_code= status.HTTP_404_NOT_FOUND,
-            detail=f"El usuario con ID {usuario_id} no existe.")
+            detail=f"Usuario con ID {usuario_id} no encontrado.")
 
 class UsuarioNoEsMiembroColonia(HTTPException):
     def __init__(self, usuario_id, colonia_id):
