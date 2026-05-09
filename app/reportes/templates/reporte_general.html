@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reporte General — Retorno</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:       #111827;
+      --muted:     #2b2c2f;
+      --border:    #e5e7eb;
+      --bg:        #f9fafb;
+      --white:     #ffffff;
+
+      /* ── Paleta Florencia ── */
+      --accent:    #c0392b;   /* rojo                          */
+      --accent-lt: #fdf2f2;   /* rojo claro fondo              */
+      --accent-bd: #f5b7b1;   /* rojo borde                    */
+      --green:     #1a7a3c;   /* verde                         */
+      --green-lt:  #eafaf1;   /* verde claro fondo             */
+      --green-bd:  #a9dfbf;   /* verde borde                   */
+      --yellow:    #f1c40f;   /* amarillo — solo decoración    */
+      --rose:      #c0392b;
+      --rose-lt:   #fdf2f2;
+      --purple:    #6d3d8c;
+      --purple-lt: #f5f0fa;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    @media print {
+      body { background: white; font-size: 12px; }
+      .page { box-shadow: none; margin: 0; max-width: none; border-radius: 0; }
+      .no-print { display: none; }
+      .bar-wrap { break-inside: avoid; }
+    }
+
+    /* ── LAYOUT ── */
+    .page {
+      max-width: 860px;
+      margin: 2rem auto;
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+      overflow: hidden;
+    }
+
+    /* ── FRANJA TRICOLOR ── */
+    .tricolor {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      height: 6px;
+    }
+    .tricolor-r { background: var(--accent); }
+    .tricolor-y { background: var(--yellow); }
+    .tricolor-g { background: var(--green);  }
+
+    /* ── HEADER sin fondo de color ── */
+    .header {
+      background: var(--white);
+      color: var(--ink);
+      padding: 1.6rem 2.5rem 1.4rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-eyebrow {
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: .4rem;
+    }
+    .header-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem;
+      line-height: 1.2;
+      color: var(--accent);
+    }
+    .header-escudo {
+      width: 150px;
+      height: 150px;
+      object-fit: contain;
+    }
+
+    /* ── TOP STATS ── */
+    .top-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+    }
+    .top-stat {
+      padding: 1.6rem 2.5rem;
+      border-right: 1px solid var(--border);
+    }
+    .top-stat:last-child { border-right: none; }
+    .top-stat-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.8rem;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .top-stat-lbl {
+      margin-top: .3rem;
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* ── TWO COLUMNS ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width: 600px) {
+      .two-col    { grid-template-columns: 1fr; }
+      .top-stats  { grid-template-columns: 1fr; }
+    }
+
+    /* ── SECTION ── */
+    .section { padding: 1.8rem 2.5rem; }
+    .section + .section { border-top: 1px solid var(--border); }
+    .section-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.05rem;
+      margin-bottom: 1.1rem;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--yellow), var(--green));
+      margin-left: .5rem;
+      border-radius: 99px;
+    }
+
+    /* ── COLONIAS BAR CHART ── */
+    .bar-wrap { margin-bottom: .55rem; }
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: .2rem;
+      font-size: .82rem;
+    }
+    .bar-label .name  { font-weight: 500; }
+    .bar-label .count { color: var(--muted); }
+    .bar-track {
+      height: 10px;
+      background: var(--bg);
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--accent), #e74c3c);
+    }
+
+    /* ── DONUT ── */
+    .donut-section {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .donut-chart { flex-shrink: 0; }
+    .donut-legend { flex: 1; }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin-bottom: .45rem;
+      font-size: .85rem;
+    }
+    .legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .legend-name  { flex: 1; margin-right: auto;}
+    .legend-count { font-weight: 600; margin-left: 12px;}
+    .legend-pct   { color: var(--muted); font-size: .78rem; margin-left: 12px;}
+
+    /* ── AGE TABLE ── */
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left;
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--muted);
+      font-weight: 600;
+      padding: .5rem .75rem;
+      border-bottom: 2px solid var(--border);
+    }
+    td {
+      padding: .65rem .75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: var(--accent-lt); }
+    .td-num   { font-family: 'DM Serif Display', serif; font-size: 1.1rem; }
+    .td-range { color: var(--muted); font-size: .82rem; }
+
+    /* badge pill */
+    .pill {
+      display: inline-block;
+      padding: .15rem .6rem;
+      border-radius: 99px;
+      font-size: .72rem;
+      font-weight: 600;
+    }
+    .pill-red    { background: var(--accent-lt); color: var(--accent); }
+    .pill-green  { background: var(--green-lt);  color: var(--green);  }
+    .pill-purple { background: var(--purple-lt); color: var(--purple); }
+
+    .print-btn {
+      display: block;
+      margin: 1rem auto 2rem;
+      padding: .6rem 1.8rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9rem;
+      font-weight: 600;
+    }
+    .print-btn:hover { background: #a93226; }
+  </style>
+</head>
+<body>
+
+{# ── Calcular totales ── #}
+{% set total_asistentes = asistencia_colonia | sum(attribute='cantidad_asistentes') %}
+{% set total_colonias   = asistencia_colonia | length %}
+{% set max_asistentes   = asistencia_colonia | map(attribute='cantidad_asistentes') | max if asistencia_colonia else 1 %}
+{% set total_genero     = asistencia_genero.values() | sum %}
+{% set total_edad       = asistencia_edad.values() | sum %}
+
+{# Colores paleta Florencia para el donut de género #}
+{% set genero_colores = ['#ff5946', '#3da160', '#a763d4', '#e67e22'] %}
+
+<div class="page">
+
+  <!-- ── FRANJA TRICOLOR ── -->
+  <div class="tricolor">
+    <div class="tricolor-r"></div>
+    <div class="tricolor-y"></div>
+    <div class="tricolor-g"></div>
+  </div>
+
+  <!-- ── HEADER ── -->
+  <div class="header">
+    <div>
+      <div class="header-eyebrow">Informe de asistencia</div>
+      <div class="header-title">Reporte General al Retorno</div>
+    </div>
+    <img class="header-escudo" src="resources/escudo_florencia.png" alt="Escudo Florencia" />
+  </div>
+
+  <!-- ── TOP STATS ── -->
+  <div class="top-stats">
+    <div class="top-stat">
+      <div class="top-stat-num">{{ total_asistentes }}</div>
+      <div class="top-stat-lbl">Total de asistentes</div>
+    </div>
+    <div class="top-stat">
+      <div class="top-stat-num">{{ total_colonias }}</div>
+      <div class="top-stat-lbl">Colonias participantes</div>
+    </div>
+  </div>
+
+  <!-- ── TWO COLUMNS ── -->
+  <div class="two-col">
+
+    <!-- ── COLONIAS ── -->
+    <div class="section" style="border-right: 1px solid var(--border);">
+      <div class="section-title">Asistencia por Colonia</div>
+      {% if asistencia_colonia %}
+        {% for item in asistencia_colonia | sort(attribute='cantidad_asistentes', reverse=True) %}
+        {% set pct = ((item.cantidad_asistentes / max_asistentes) * 100) | round(1) %}
+        <div class="bar-wrap">
+          <div class="bar-label">
+            <span class="name">{{ item.colonia }}</span>
+            <span class="count">{{ item.cantidad_asistentes }}</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: {{ pct }}%"></div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p style="color:var(--muted);font-size:.9rem">Sin datos de colonias.</p>
+      {% endif %}
+    </div>
+
+    <!-- ── GÉNERO ── -->
+    <div class="section">
+      <div class="section-title">Distribución por Género</div>
+      {% if asistencia_genero %}
+      <div class="donut-section">
+        <svg class="donut-chart" width="110" height="110" viewBox="0 0 110 110">
+          {% set cx = 55 %}{% set cy = 55 %}{% set r = 40 %}{% set stroke_w = 20 %}
+          {% set circum = 2 * 3.14159 * r %}
+          {% set ns = namespace(offset=0) %}
+          {% for key, val in asistencia_genero.items() %}
+            {% set pct_g = (val / total_genero * 100) if total_genero > 0 else 0 %}
+            {% set dash  = (pct_g / 100 * circum) | round(2) %}
+            {% set gap   = (circum - dash) | round(2) %}
+            {% set color = genero_colores[loop.index0 % (genero_colores | length)] %}
+            <circle cx="{{ cx }}" cy="{{ cy }}" r="{{ r }}" fill="none"
+              stroke="{{ color }}" stroke-width="{{ stroke_w }}"
+              stroke-dasharray="{{ dash }} {{ gap }}"
+              stroke-dashoffset="{{ -(ns.offset * circum / 100) }}"
+              transform="rotate(-90 {{ cx }} {{ cy }})" />
+            {% set ns.offset = ns.offset + pct_g %}
+          {% endfor %}
+          <text x="{{ cx }}" y="{{ cy - 4 }}" text-anchor="middle"
+                font-family="DM Serif Display, serif" font-size="18" fill="#111827">{{ total_genero }}</text>
+          <text x="{{ cx }}" y="{{ cy + 12 }}" text-anchor="middle"
+                font-family="DM Sans, sans-serif" font-size="8" fill="#6b7280">total</text>
+        </svg>
+        <div class="donut-legend">
+          {% for key, val in asistencia_genero.items() %}
+          {% set pct_g = ((val / total_genero) * 100) | round(1) if total_genero > 0 else 0 %}
+          {% set color = genero_colores[loop.index0 % (genero_colores | length)] %}
+          <div class="legend-item">
+            <div class="legend-dot" style="background:{{ color }}"></div>
+            <span class="legend-name">{{ key.value if key.value is defined else key }}</span>
+            <span class="legend-count">{{ val }}</span>
+            <span class="legend-pct">&nbsp;{{ pct_g }}%</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+        <p style="color:var(--muted);font-size:.9rem">Sin datos de género.</p>
+      {% endif %}
+    </div>
+
+  </div><!-- /two-col -->
+
+  <!-- ── GRUPOS DE EDAD ── -->
+  <div class="section" style="border-top: 1px solid var(--border);">
+    <div class="section-title">Grupos de Edad</div>
+    {% if asistencia_edad %}
+    <table>
+      <thead>
+        <tr>
+          <th>Grupo</th>
+          <th>Rango</th>
+          <th style="text-align:right">Cantidad</th>
+          <th style="text-align:right">Proporción</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set edad_rangos = {
+            'menores':        ('Menores de edad', '0 a 18 años',  'pill-red'),
+            'adultos':        ('Adultos',          '19 a 59 años', 'pill-green'),
+            'adultos_mayores':('Adultos mayores',  '> 60 años',    'pill-purple')
+        } %}
+        {% for key, val in asistencia_edad.items() %}
+        {% set key_str = key.name if key.name is defined else key | string %}
+        {% set info  = edad_rangos.get(key_str, (key_str, '—', 'pill-purple')) %}
+        {% set pct_e = ((val / total_edad) * 100) | round(1) if total_edad > 0 else 0 %}
+        <tr>
+          <td><span class="pill {{ info[2] }}">{{ info[0] }}</span></td>
+          <td class="td-range">{{ info[1] }}</td>
+          <td style="text-align:right" class="td-num">{{ val }}</td>
+          <td style="text-align:right">
+            <div style="display:flex;align-items:center;gap:.5rem;justify-content:flex-end">
+              <div style="width:80px;height:6px;background:var(--bg);border:1px solid var(--border);border-radius:99px;overflow:hidden">
+                <div style="width:{{ pct_e }}%;height:100%;background:var(--accent);border-radius:99px"></div>
+              </div>
+              <span style="font-size:.82rem;color:var(--muted);min-width:36px;text-align:right">{{ pct_e }}%</span>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:1.5rem">Sin datos de edad</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p style="color:var(--muted);font-size:.9rem">Sin datos de grupos de edad.</p>
+    {% endif %}
+  </div>
+
+</div><!-- /page -->
+
+<div class="no-print" style="text-align:center">
+  <button class="print-btn" onclick="window.print()">🖨 Imprimir / Exportar PDF</button>
+</div>
+
+</body>
+</html>

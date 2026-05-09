@@ -31,7 +31,7 @@ class Persona(Base):
     pe_nombre: Mapped[str] = mapped_column("pe_nombre", String(100), nullable=False)
     pe_apellido: Mapped[str] = mapped_column("pe_apellido", String(100), nullable=False)
     pe_correo: Mapped[str] = mapped_column("pe_correo", String(100), unique=True, nullable=True)
-    pe_fecha_nacimiento: Mapped[Date] = mapped_column(Date, nullable=False)
+    pe_fecha_nacimiento: Mapped[Date] = mapped_column("pe_fecha_nacimiento", Date, nullable=False)
 
     pe_genero: Mapped[Genero] = mapped_column(Enum(Genero), nullable=False)
 

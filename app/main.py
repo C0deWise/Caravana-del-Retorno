@@ -23,6 +23,7 @@ from app.retornos.modelos.registro_retorno_grupo_modelo import RegistroRetornoGr
 from app.retornos.modelos.retorno_grupo_usuario_modelo import RetornoGrupoUsuario
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
 from scripts.seed_roles import seed_roles
+from scripts.seed_data import seed_data
 import app.core.scheduler as scheduler
 
 logging.basicConfig(
@@ -50,6 +51,10 @@ async def lifespan(app: FastAPI):
     # Ejecutar seed de roles automáticamente al iniciar la app
     logger.info("Verificando e insertando roles iniciales...")
     await seed_roles()
+    
+    # Ejecutar seed de datos de prueba
+    logger.info("Cargando datos de prueba...")
+    await seed_data()
 
     logger.info("Application ready.")
 
@@ -92,10 +97,12 @@ app.add_middleware(
 from app.colonias.api.v1.router import router as colonia_router
 from app.retornos.api.v1.router import api_router as retornos_module_router
 from app.usuarios.api.v1.usuario_router import router as usuario_router
+from app.reportes.api.v1.router import router as reportes_router
 prefix = "/api/v1"
 app.include_router(colonia_router, prefix=prefix)
 app.include_router(usuario_router, prefix=prefix)
 app.include_router(retornos_module_router, prefix=prefix)
+app.include_router(reportes_router, prefix=prefix)
 
 
 # ─────────────────────────────────────────
