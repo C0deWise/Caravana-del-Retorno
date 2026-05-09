@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 import sys
@@ -38,21 +38,15 @@ async def seed_roles() -> None:
         # Importar aquí para evitar imports circulares
         from app.usuarios.models.usuario import Rol
 
-        # Verificar si ya existen roles
-        result = await db.execute(select(Rol.ro_nombre))
-        nombres_existentes = set(result.scalars().all())
-
-        roles_a_crear = []
-        for nombre in ROLES:
-            if nombre not in nombres_existentes:
-                db.add(Rol(ro_nombre=nombre))
-                roles_a_crear.append(nombre)
-
-        if roles_a_crear:
-            await db.commit()
-            logger.info("Roles insertados: %s", roles_a_crear)
-        else:
-            logger.info("Todos los roles ya existen en la base de datos.")
+        # INSERT ... ON CONFLICT DO NOTHING garantiza idempotencia a nivel de BD
+        stmt = (
+            insert(Rol)
+            .values([{"ro_nombre": nombre} for nombre in ROLES])
+            .on_conflict_do_nothing(index_elements=["ro_nombre"])
+        )
+        await db.execute(stmt)
+        await db.commit()
+        logger.info("Seed de roles completado (duplicados ignorados automáticamente).")
 
     await engine.dispose()
 
