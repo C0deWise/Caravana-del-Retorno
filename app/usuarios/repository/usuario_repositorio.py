@@ -124,3 +124,18 @@ class UsuarioRepositorio:
             select(Usuario).where(getattr(Usuario, campo) == valor)
         )
         return result.scalar_one_or_none() is not None
+
+    async def buscar_por_colonia(self, colonia: int) -> list[Usuario]:
+        """
+        Busca usuarios miembros por su código de colonia.
+
+        Args:
+            colonia (int): El código de la colonia a buscar.
+
+        Returns:
+            list[Usuario]: Lista de usuarios que pertenecen a la colonia especificada.
+        """
+        result = await self.db.execute(
+            select(Usuario).where(Usuario.co_codigo == colonia)
+        )
+        return list(result.scalars().all())

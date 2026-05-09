@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from app.retornos.repositorios.persona_repositorio import PersonaRepositorio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
-from app.retornos.repositorios.registro_retorno_grupo_repositorio import RegistroRetornoGrupoRepositorio
+from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
 from app.retornos.esquemas.persona_esquema import PersonaCrear, PersonaRespuesta
 from typing import List
 
@@ -10,11 +10,11 @@ class PersonaServicio:
         self, 
         repositorio: PersonaRepositorio, 
         repo_retorno: RetornoRepository,
-        repo_reg_grupo: RegistroRetornoGrupoRepositorio
+        repo_grupo: GrupoRetornoRepositorio
     ):
         self.repositorio = repositorio
         self.repo_retorno = repo_retorno
-        self.repo_reg_grupo = repo_reg_grupo
+        self.repo_grupo = repo_grupo
 
     async def crear_persona(self, datos: PersonaCrear) -> PersonaRespuesta:
         # Restricción: No duplicados por documento
@@ -39,14 +39,12 @@ class PersonaServicio:
         if not ultimo_retorno:
             raise HTTPException(status_code=400, detail="No hay un retorno configurado en el sistema.")
 
-        # Verificar si el grupo al que se quiere unir está registrado en el retorno actual
-        registro_grupo = await self.repo_reg_grupo.obtener_registro_por_grupo_y_retorno(
-            gr_codigo, ultimo_retorno.codigo
-        )
-        if not registro_grupo:
+        # Verificar si el grupo existe
+        grupo = await self.repo_grupo.obtener_grupo_por_id(gr_codigo)
+        if not grupo:
             raise HTTPException(
-                status_code=400, 
-                detail="El grupo especificado no está registrado para el retorno actual."
+                status_code=404, 
+                detail=f"El grupo con código {gr_codigo} no existe."
             )
 
         # Restricción: Una persona solo puede pertenecer a un Grupo_retorno a la vez por cada retorno

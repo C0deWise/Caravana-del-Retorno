@@ -79,7 +79,7 @@ class UsuarioSalida(BaseModel):
     correo: str = Field(..., validation_alias="us_correo", description="Correo electrónico del usuario.")
     documento: str = Field(..., validation_alias="us_documento", description="Número de documento del usuario.")
 
-    model_config = {"from_attributes": True}
+    model_config = {"from_attributes": True, "populate_by_name": True}
 
 
 class UsuarioNombre(BaseModel):
@@ -87,7 +87,7 @@ class UsuarioNombre(BaseModel):
     nombre: str = Field(..., validation_alias="us_nombre", description="Nombre del usuario.")
     apellido: str = Field(..., validation_alias="us_apellido", description="Apellido del usuario.")
 
-    model_config = {"from_attributes": True}
+    model_config = {"from_attributes": True, "populate_by_name": True}
 
 
 class UsuarioDetallado(BaseModel):
@@ -108,9 +108,25 @@ class UsuarioDetallado(BaseModel):
     departamento: Optional[str] = Field(validation_alias="us_departamento")
     ciudad: Optional[str] = Field(validation_alias="us_ciudad")
 
-    model_config = {"from_attributes": True}
+    model_config = {"from_attributes": True, "populate_by_name": True}
 class UsuarioResumen(BaseModel):
     codigo: int = Field(alias="us_codigo")
     nombre: str = Field(alias="us_nombre")
     apellido: str = Field(alias="us_apellido")
+    model_config = {"from_attributes": True, "populate_by_name": True}
+
+
+class UsuarioConsultaColonia(BaseModel):
+    id: int 
+    nombre: str
+    apellido: str 
+    codigo_colonia: int
+    documento: str 
+    tipo_doc: str 
+    genero: str 
+    fecha_nacimiento: date 
+    celular: str
+    correo: str
+    role: int 
+
     model_config = {"from_attributes": True, "populate_by_name": True}

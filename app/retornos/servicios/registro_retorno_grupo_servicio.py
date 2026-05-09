@@ -7,6 +7,7 @@ from app.retornos.esquemas.registro_retorno_grupo_esquema import RegistroRetorno
 from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
 from app.retornos.repositorios.registro_retorno_grupo_repositorio import RegistroRetornoGrupoRepositorio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
+from app.retornos.repositorios.persona_repositorio import PersonaRepositorio
 from app.retornos.repositorios.retorno_grupo_usuario_repositorio import RetornoGrupoUsuarioRepositorio
 from app.usuarios.schemas.usuario_esquemas import UsuarioSalida
 
@@ -17,12 +18,14 @@ class RegistroRetornoGrupoServicio:
         repositorio_registro_grupo: RegistroRetornoGrupoRepositorio, 
         repositorio_grupo: GrupoRetornoRepositorio,
         repositorio_retorno: RetornoRepository,
-        repositorio_usuario_grupo: RetornoGrupoUsuarioRepositorio
+        repositorio_usuario_grupo: RetornoGrupoUsuarioRepositorio,
+        repositorio_persona: PersonaRepositorio # Nuevo repositorio para personas
     ):
         self.repositorio_registro_grupo = repositorio_registro_grupo
         self.repositorio_grupo = repositorio_grupo
         self.repositorio_retorno = repositorio_retorno
         self.repositorio_usuario_grupo = repositorio_usuario_grupo
+        self.repositorio_persona = repositorio_persona # Asignar el nuevo repositorio
 
     async def crear_registro_retorno_grupo(self, datos: RegistroRetornoGrupoCrear) -> RegistroRetornoGrupoRespuesta:
         """
@@ -44,12 +47,15 @@ class RegistroRetornoGrupoServicio:
                 detail="El registro solo es permitido para el último retorno vigente."
             )
 
-        # 3. Validar que el grupo tenga al menos 1 integrante aparte del líder
-        num_miembros = await self.repositorio_usuario_grupo.contar_miembros_adicionales(datos.cod_grupo)
-        if num_miembros < 1:
+        # 3. Validar que el grupo tenga al menos 1 integrante (usuario o persona) aparte del líder
+        num_usuarios_adicionales = await self.repositorio_usuario_grupo.contar_miembros_adicionales(datos.cod_grupo)
+        personas_en_grupo = await self.repositorio_persona.obtener_personas_por_grupo(datos.cod_grupo)
+        num_personas = len(personas_en_grupo)
+        total_integrantes_adicionales = num_usuarios_adicionales + num_personas
+        if total_integrantes_adicionales < 1:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="El grupo debe tener al menos un integrante (aparte del líder) para ser registrado."
+                detail="El grupo debe tener al menos un integrante (usuario o persona) aparte del líder para ser registrado."
             )
 
         # 4. Restricción Adicional: Evitar duplicidad de registro
@@ -67,7 +73,8 @@ class RegistroRetornoGrupoServicio:
 
     async def obtener_usuarios_por_grupo(self, gr_codigo: int) -> list[UsuarioSalida]:
         """
-        Retorna la lista de usuarios pertenecientes a un grupo.
+        Retorna la lista completa de integrantes de un grupo, incluyendo al líder,
+        usuarios adicionales y personas (asistentes no usuarios).
         """
         grupo = await self.repositorio_grupo.obtener_grupo_por_id(gr_codigo)
         if not grupo:
@@ -76,7 +83,33 @@ class RegistroRetornoGrupoServicio:
                 detail=f"El grupo con código {gr_codigo} no existe."
             )
         
-        miembros = await self.repositorio_usuario_grupo.obtener_miembros_por_grupo(gr_codigo)
-        return [UsuarioSalida.model_validate(m) for m in miembros]
+        # 1. Obtener los datos del líder
+        lider = await self.repositorio_grupo.obtener_lider_por_grupo_id(gr_codigo)
+        
+        # 2. Obtener usuarios miembros (invitados que aceptaron)
+        miembros_usuarios = await self.repositorio_usuario_grupo.obtener_miembros_por_grupo(gr_codigo)
+        
+        # 3. Obtener personas (asistentes adicionales no registrados como usuarios)
+        personas = await self.repositorio_persona.obtener_personas_por_grupo(gr_codigo)
+        
+        resultado: list[UsuarioSalida] = []
+        
+        if lider:
+            resultado.append(UsuarioSalida.model_validate(lider))
+            
+        for m in miembros_usuarios:
+            resultado.append(UsuarioSalida.model_validate(m))
+            
+        # Mapeo manual de Persona a UsuarioSalida para unificar la lista de integrantes
+        for p in personas:
+            resultado.append(UsuarioSalida(
+                id=p.pe_codigo,
+                nombre=p.pe_nombre,
+                apellido=p.pe_apellido,
+                correo=p.pe_correo,
+                documento=p.pe_documento
+            ))
+            
+        return resultado
 
     

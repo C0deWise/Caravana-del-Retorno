@@ -70,10 +70,10 @@ class PersonaRepositorio:
         """
         stmt = (
             select(persona_grupo_retorno)
-            .join(RegistroRetornoGrupo, persona_grupo_retorno.gr_codigo == RegistroRetornoGrupo.gr_codigo)
+            .join(RegistroRetornoGrupo, persona_grupo_retorno.gr_codigo == RegistroRetornoGrupo.cod_grupo)
             .where(
                 persona_grupo_retorno.pe_codigo == pe_codigo,
-                RegistroRetornoGrupo.re_codigo == re_codigo
+                RegistroRetornoGrupo.retorno == re_codigo
             )
         )
         result = await self.db.execute(stmt)

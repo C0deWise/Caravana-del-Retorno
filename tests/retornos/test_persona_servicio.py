@@ -11,7 +11,7 @@ def mocks():
     return {
         "repositorio": MagicMock(),
         "repo_retorno": MagicMock(),
-        "repo_reg_grupo": MagicMock()
+        "repo_grupo": MagicMock()
     }
 
 @pytest.fixture
@@ -20,7 +20,7 @@ def servicio(mocks):
     return PersonaServicio(
         mocks["repositorio"],
         mocks["repo_retorno"],
-        mocks["repo_reg_grupo"]
+        mocks["repo_grupo"]
     )
 
 @pytest.fixture
@@ -73,8 +73,8 @@ async def test_asociar_persona_no_existe(servicio, mocks):
     assert "no encontrada" in exc.value.detail.lower()
 
 @pytest.mark.asyncio
-async def test_asociar_grupo_no_registrado_o_no_existe(servicio, mocks):
-    """Restricción: El grupo debe existir y estar registrado en el retorno actual."""
+async def test_asociar_grupo_no_existe(servicio, mocks):
+    """Restricción: El grupo debe existir."""
     # Persona existe
     mocks["repositorio"].obtener_por_id = AsyncMock(return_value=MagicMock())
     # Hay un retorno vigente
@@ -82,14 +82,14 @@ async def test_asociar_grupo_no_registrado_o_no_existe(servicio, mocks):
     mock_retorno.codigo = 5
     mocks["repo_retorno"].obtener_ultimo_retorno = AsyncMock(return_value=mock_retorno)
     
-    # El grupo NO está registrado para ese retorno (o no existe)
-    mocks["repo_reg_grupo"].obtener_registro_por_grupo_y_retorno = AsyncMock(return_value=None)
+    # El grupo NO existe
+    mocks["repo_grupo"].obtener_grupo_por_id = AsyncMock(return_value=None)
 
     with pytest.raises(HTTPException) as exc:
         await servicio.asociar_persona_a_grupo(pe_codigo=1, gr_codigo=10)
     
-    assert exc.value.status_code == 400
-    assert "no está registrado" in exc.value.detail.lower()
+    assert exc.value.status_code == 404
+    assert "no existe" in exc.value.detail.lower()
 
 @pytest.mark.asyncio
 async def test_asociar_persona_ya_en_otro_grupo_del_retorno(servicio, mocks):
@@ -101,8 +101,8 @@ async def test_asociar_persona_ya_en_otro_grupo_del_retorno(servicio, mocks):
     mock_retorno.codigo = 5
     mocks["repo_retorno"].obtener_ultimo_retorno = AsyncMock(return_value=mock_retorno)
     
-    # El grupo sí está registrado
-    mocks["repo_reg_grupo"].obtener_registro_por_grupo_y_retorno = AsyncMock(return_value=MagicMock())
+    # El grupo sí existe
+    mocks["repo_grupo"].obtener_grupo_por_id = AsyncMock(return_value=MagicMock())
     
     # RESTRICCIÓN CLAVE: La persona ya está inscrita en este retorno
     mocks["repositorio"].persona_ya_en_retorno = AsyncMock(return_value=True)

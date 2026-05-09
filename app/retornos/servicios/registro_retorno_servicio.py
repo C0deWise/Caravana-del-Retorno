@@ -5,8 +5,6 @@ utilizando el repositorio para interactuar con la base de datos y los esquemas p
 estructurar los datos de entrada y salida.
 """
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
 from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoRespuesta
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
@@ -14,7 +12,12 @@ from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.retornos.excepciones.registro_retorno_excepciones import RetornoNoExistente, RetornoEstadoFinalizado, UsuarioNoExistente, UsuarioSinColonia, UsuarioYaRegistrado
 
 class RegistroRetornoServicio:
-    def __init__(self, repositorio: RegistroRetornoRepositorio = None, retorno_repositorio: RetornoRepository = None, usuario_servicio: UsuarioServicio = None) -> None:
+    def __init__(
+        self,
+        repositorio: RegistroRetornoRepositorio,
+        retorno_repositorio: RetornoRepository,
+        usuario_servicio: UsuarioServicio,
+    ) -> None:
         self.repositorio = repositorio 
         self.retorno_repositorio = retorno_repositorio
         self.usuario_servicio = usuario_servicio
@@ -53,9 +56,14 @@ class RegistroRetornoServicio:
         if usuario_existente:
             raise UsuarioYaRegistrado(data.usuario, data.retorno)
         
-        return await self.repositorio.crear_registro_retorno(data)
+        nuevo_registro = await self.repositorio.crear_registro_retorno(data)
+        return RegistroRetornoRespuesta.model_validate(nuevo_registro)
 
-    async def obtener_registro_retorno_por_usuario_y_retorno(self, usuario_id, retorno_id):
+    async def obtener_registro_retorno_por_usuario_y_retorno(
+        self,
+        usuario_id: int,
+        retorno_id: int,
+    ) -> RegistroRetornoRespuesta | None:
         """
         Obtiene un registro de retorno específico para un usuario y retorno dados.
         Paramétros:
@@ -64,4 +72,7 @@ class RegistroRetornoServicio:
         Retorna:
             - RegistroRetornoRespuesta: Esquema con los datos del registro de retorno encontrado, o None si no existe. 
         """
-        return await self.repositorio.obtener_registro_retorno_por_usuario_y_retorno(usuario_id, retorno_id)
+        registro = await self.repositorio.obtener_registro_retorno_por_usuario_y_retorno(usuario_id, retorno_id)
+        if registro is None:
+            return None
+        return RegistroRetornoRespuesta.model_validate(registro)

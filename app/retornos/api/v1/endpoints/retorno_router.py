@@ -11,6 +11,7 @@ from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepo
 from app.retornos.repositorios.registro_retorno_grupo_repositorio import RegistroRetornoGrupoRepositorio
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
 from app.retornos.repositorios.retorno_grupo_usuario_repositorio import RetornoGrupoUsuarioRepositorio
+from app.retornos.repositorios.persona_repositorio import PersonaRepositorio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.retornos.repositorios.solicitud_grupo_retorno_repositorio import SolicitudGrupoRetornoRepositorio
 from app.retornos.servicios.grupo_retorno_servicio import GrupoRetornoServicio
@@ -24,7 +25,7 @@ from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.usuarios.schemas.usuario_esquemas import UsuarioSalida
 from fastapi import APIRouter, Depends, status, HTTPException, Body
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import List, Annotated
 from app.core.database import get_db
 from app.retornos.esquemas.retorno_esquemas import RetornoCreate, RetornoResponse
 from app.retornos.servicios.retorno_servicio import RetornoService
@@ -40,7 +41,7 @@ grupo_retorno_router = APIRouter(
     tags=["Grupos de Retorno"],
 )
 
-def obtener_registro_retorno_servicio(db: AsyncSession = Depends(get_db)) -> RegistroRetornoServicio:
+def obtener_registro_retorno_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> RegistroRetornoServicio:
     repositorio = RegistroRetornoRepositorio(db)
     retorno_repositorio = RetornoRepository(db)
     
@@ -52,32 +53,35 @@ def obtener_registro_retorno_servicio(db: AsyncSession = Depends(get_db)) -> Reg
         usuario_servicio
     )
 
-def obtener_registro_retorno_grupo_servicio(db: AsyncSession = Depends(get_db)):
+def obtener_registro_retorno_grupo_servicio(db: Annotated[AsyncSession, Depends(get_db)]):
     repositorio_registro_grupo = RegistroRetornoGrupoRepositorio(db)
     repositorio_grupo = GrupoRetornoRepositorio(db)
     repositorio_retorno = RetornoRepository(db)
     repositorio_usuario_grupo = RetornoGrupoUsuarioRepositorio(db)
+    repositorio_persona = PersonaRepositorio(db) # Instanciar PersonaRepositorio
     return RegistroRetornoGrupoServicio(
-        repositorio_registro_grupo, repositorio_grupo, repositorio_retorno, repositorio_usuario_grupo
+        repositorio_registro_grupo, repositorio_grupo, repositorio_retorno, repositorio_usuario_grupo, repositorio_persona
     )
 
-def obtener_grupo_retorno_servicio(db: AsyncSession = Depends(get_db)):
+def obtener_grupo_retorno_servicio(db: Annotated[AsyncSession, Depends(get_db)]):
     repositorio_retorno = RetornoRepository(db)
     repositorio_grupos = GrupoRetornoRepositorio(db)
     repositorio_solicitudes = SolicitudGrupoRetornoRepositorio(db)
     repositorio_usuario_grupo = RetornoGrupoUsuarioRepositorio(db)
     repositorio_usuario = UsuarioRepositorio(db)
     repositorio_registro_individual = RegistroRetornoRepositorio(db)
+    repositorio_registro_grupo = RegistroRetornoGrupoRepositorio(db)
     return GrupoRetornoServicio(
         repositorio_retorno,
         repositorio_grupos,
         repositorio_solicitudes,
         repositorio_usuario_grupo,
         repositorio_usuario,
-        repositorio_registro_individual
+        repositorio_registro_individual,
+        repositorio_registro_grupo
     )
 
-def obtener_retorno_servicio(db: AsyncSession = Depends(get_db)) -> RetornoService:
+def obtener_retorno_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> RetornoService:
     return RetornoService(db)
 
 
@@ -101,7 +105,7 @@ def obtener_retorno_servicio(db: AsyncSession = Depends(get_db)) -> RetornoServi
         },
     },
 )
-async def crear_retorno(data: RetornoCreate, servicio: RetornoService = Depends(obtener_retorno_servicio)):
+async def crear_retorno(data: RetornoCreate, servicio: Annotated[RetornoService, Depends(obtener_retorno_servicio)]):
     return await servicio.crear_retorno(data)
 
 
@@ -111,7 +115,7 @@ async def crear_retorno(data: RetornoCreate, servicio: RetornoService = Depends(
     summary="Listar todos los retornos",
     description="Obtiene el listado completo de retornos registrados en el sistema.",
 )
-async def listar_retornos(servicio: RetornoService = Depends(obtener_retorno_servicio)):
+async def listar_retornos(servicio: Annotated[RetornoService, Depends(obtener_retorno_servicio)]):
     return await servicio.listar_retornos()
 
 
@@ -121,7 +125,7 @@ async def listar_retornos(servicio: RetornoService = Depends(obtener_retorno_ser
     summary="Obtener retorno por código",
     description="Busca y retorna un retorno específico usando su código primario. Retorna 404 si no existe.",
 )
-async def obtener_retorno(codigo: int, servicio: RetornoService = Depends(obtener_retorno_servicio)):
+async def obtener_retorno(codigo: int, servicio: Annotated[RetornoService, Depends(obtener_retorno_servicio)]):
     return await servicio.obtener_retorno(codigo)
 
 @router.post(
@@ -144,7 +148,7 @@ async def obtener_retorno(codigo: int, servicio: RetornoService = Depends(obtene
         },
     },
 )
-async def inscribir_usuario_en_retorno(registro: RegistroRetornoCrear, servicio: RegistroRetornoServicio = Depends(obtener_registro_retorno_servicio)):
+async def inscribir_usuario_en_retorno(registro: RegistroRetornoCrear, servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)]):
     return await servicio.crear_registro_retorno(registro)
 
 
@@ -163,7 +167,7 @@ async def inscribir_usuario_en_retorno(registro: RegistroRetornoCrear, servicio:
 )
 async def crear_grupo_retorno_endpoint(
     data: GrupoRetornoCrear,
-    servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)
+    servicio: Annotated[GrupoRetornoServicio, Depends(obtener_grupo_retorno_servicio)]
 ):
     """
     Endpoint para crear un nuevo grupo de retorno.
@@ -185,7 +189,7 @@ async def crear_grupo_retorno_endpoint(
 )
 async def obtener_grupos_por_lider_endpoint(
     us_codigo_lider: int,
-    servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)
+    servicio: Annotated[GrupoRetornoServicio, Depends(obtener_grupo_retorno_servicio)]
 ):
     """
     Endpoint para obtener grupos de retorno por el código del líder.
@@ -207,7 +211,7 @@ async def obtener_grupos_por_lider_endpoint(
 )
 async def obtener_lider_de_grupo_endpoint(
     gr_codigo: int,
-    servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)
+    servicio: Annotated[GrupoRetornoServicio, Depends(obtener_grupo_retorno_servicio)]
 ):
     return await servicio.obtener_lider_por_grupo_id(gr_codigo)
 
@@ -236,9 +240,9 @@ async def obtener_lider_de_grupo_endpoint(
     }
 )
 async def enviar_solicitud_individual_endpoint(
-    us_codigo: int = Body(..., embed=True),
-    gr_codigo: int = Body(..., embed=True),
-    servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)
+    us_codigo: Annotated[int, Body(embed=True)],
+    gr_codigo: Annotated[int, Body(embed=True)],
+    servicio: Annotated[GrupoRetornoServicio, Depends(obtener_grupo_retorno_servicio)]
 ):
     """
     Endpoint para que un líder solicite la incorporación de un individuo a un grupo.
@@ -255,7 +259,7 @@ async def enviar_solicitud_individual_endpoint(
 )
 async def registrar_grupo_en_retorno_endpoint(
     datos: RegistroRetornoGrupoCrear,
-    servicio: RegistroRetornoGrupoServicio = Depends(obtener_registro_retorno_grupo_servicio)
+    servicio: Annotated[RegistroRetornoGrupoServicio, Depends(obtener_registro_retorno_grupo_servicio)]
 ):
     """
     Endpoint para registrar la participación de un grupo en el evento de retorno.
@@ -270,7 +274,7 @@ async def registrar_grupo_en_retorno_endpoint(
 )
 async def obtener_miembros_grupo_endpoint(
     gr_codigo: int,
-    servicio: RegistroRetornoGrupoServicio = Depends(obtener_registro_retorno_grupo_servicio)
+    servicio: Annotated[RegistroRetornoGrupoServicio, Depends(obtener_registro_retorno_grupo_servicio)]
 ):
     """
     Endpoint para obtener la lista de integrantes de un grupo.
