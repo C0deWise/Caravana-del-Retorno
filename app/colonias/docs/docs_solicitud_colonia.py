@@ -12,6 +12,19 @@ crear_solicitud_docs = dict(
     description="Crea una nueva solicitud de ingreso a una colonia con el código de usuario y el código de colonia.",
     status_code=status.HTTP_201_CREATED,
     responses={
+        200: {
+            "description": "Miembro registrado exitosamente.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "codigo_usuario": 10,
+                        "nombre_usuario": "Juan",
+                        "apellido_usuario": "Pérez",
+                        "codigo_colonia": 5,
+                    }
+                }
+            },
+        },
         201: {
             "description": "Solicitud creada exitosamente.",
             "content": {

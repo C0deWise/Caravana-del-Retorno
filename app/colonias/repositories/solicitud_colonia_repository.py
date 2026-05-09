@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+from app.colonias.models.colonia_model import Colonia
 from app.usuarios.models.usuario import Usuario
 from sqlalchemy.orm import joinedload
 from app.colonias.excepciones.excepciones import SolicitudEstadoInvalido, SolicitudNoEncontrada
@@ -23,7 +24,16 @@ class SolicitudColoniaRepository:
         await self.db.commit()
         await self.db.refresh(solicitud, attribute_names=["usuario"])
         return solicitud
- 
+    
+    async def obtener_colonia_tiene_lider(self, cod_colonia: int) -> bool:
+        resultado = await self.db.execute(
+            select(Colonia)
+            .where(
+                Colonia.co_codigo == cod_colonia,
+            )
+        )
+        colonia = resultado.scalar_one_or_none()
+        return colonia.lider is not None if colonia else False
     async def obtener_solicitudes_pendientes_por_colonia(self, cod_colonia: int) -> list[SolicitudColonia]:
         resultado = await self.db.execute(
             select(SolicitudColonia)
@@ -56,12 +66,18 @@ class SolicitudColoniaRepository:
             raise SolicitudEstadoInvalido(f"Solo se pueden aceptar solicitudes pendientes. Solicitud {codigo} está en estado {solicitud.so_estado.value}.")
         
         solicitud.so_estado = EstadoSolicitud.aceptada
-        usuario = await self.db.get(Usuario, solicitud.us_codigo)
-        usuario.co_codigo = solicitud.co_codigo
         await self.db.commit()
         await self.db.refresh(solicitud)
-
+        await self.actualizar_colonia_usuario(solicitud.us_codigo, solicitud.co_codigo)
+    
         return solicitud
+    
+    async def actualizar_colonia_usuario(self, cod_usuario: int, cod_colonia: int) -> Usuario:
+        usuario = await self.db.get(Usuario, cod_usuario)
+        usuario.co_codigo = cod_colonia
+        await self.db.commit()
+        await self.db.refresh(usuario)
+        return usuario
 
     async def rechazar_solicitud_colonia(self, codigo: int) -> SolicitudColonia:
         """Cambia el estado de una solicitud a rechazada"""

@@ -6,9 +6,10 @@
     y documentando cada endpoint en Swagger.  
 """
 
+from fastapi import APIRouter, Depends, status, Response
+from typing import Union
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.schemas.usuario_esquemas import UsuarioConsultaColonia
-from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.colonias.excepciones.excepciones import ColoniaNoEncontrada, UsuarioNoEncontrado
 from typing import Annotated
@@ -19,7 +20,7 @@ from app.colonias.repositories.colonia_repository import ColoniaRepository
 from app.core.database import get_db
 from app.usuarios.api.v1.usuario_router import get_usuario_servicio
 from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta, ColoniaEstablecerLider, ColoniaSacarMiembro, UsuarioRemovidoColoniaRespuesta
-from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear, SolicitudColoniaRespuesta
+from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear, SolicitudColoniaRespuesta, MiembroRegistradoColoniaRespuesta
 from app.colonias.services.colonia_services import ColoniaService
 from app.colonias.services.solicitud_colonias_services import SolicitudColoniaService
 from app.usuarios.services.usuario_servicio import UsuarioServicio
@@ -27,6 +28,7 @@ from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
 from app.colonias.docs.docs_colonia import desactivar_colonia_docs, cambiar_lider_colonia_docs, sacar_miembro_colonia_docs, obtener_colonias_activas_docs
+from json import dumps
 
 from app.colonias.docs.docs_solicitud_colonia import (
     crear_solicitud_docs,
@@ -191,7 +193,7 @@ async def obtener_colonia(colonia_codigo: int, servicio: ColoniaService = Depend
 
 @router.post(
     "/crear-solicitud",
-    response_model=SolicitudColoniaRespuesta, **crear_solicitud_docs
+    response_model=Union[SolicitudColoniaRespuesta, MiembroRegistradoColoniaRespuesta], **crear_solicitud_docs
 )
 async def crear_solicitud_colonia(
     datos: SolicitudColoniaCrear,
@@ -204,7 +206,17 @@ async def crear_solicitud_colonia(
         raise UsuarioNoEncontrado(datos.codigo_usuario)
     if not await servicio_colonia.obtener_colonia(datos.codigo_colonia):
         raise ColoniaNoEncontrada(datos.codigo_colonia)
-    return await servicio.crear_solicitud(datos)
+        
+    resultado = await servicio.crear_solicitud(datos)
+    
+    if isinstance(resultado, MiembroRegistradoColoniaRespuesta):
+        return Response(
+            content=resultado.model_dump_json(),
+            status_code=status.HTTP_200_OK,
+            media_type="application/json"
+        )
+    
+    return resultado
 
 
 @router.get(
