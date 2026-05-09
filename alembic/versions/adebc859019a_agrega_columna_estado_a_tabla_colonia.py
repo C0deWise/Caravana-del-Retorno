@@ -1,7 +1,7 @@
 """Agrega columna Estado a tabla Colonia
 
 Revision ID: adebc859019a
-Revises: dc6ab2fc7af5
+Revises: 2072f7a2cd67
 Create Date: 2026-04-18 16:52:53.587340
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = 'adebc859019a'
-down_revision: Union[str, Sequence[str], None] = 'cf14f7b3d9c2'
+down_revision: Union[str, Sequence[str], None] = '2072f7a2cd67'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

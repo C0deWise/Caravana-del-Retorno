@@ -60,8 +60,7 @@ class RegistroRetornoNoExistente(HTTPException):
         super().__init__(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"El registro de retorno con código {registro_id} no existe."
-        )
-        
+        )    
 class SolicitudGrupoRetornoNoExistente(HTTPException):
     def __init__(self, solicitud_id: int):
         super().__init__(

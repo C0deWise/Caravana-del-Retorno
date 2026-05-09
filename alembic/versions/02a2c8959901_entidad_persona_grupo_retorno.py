@@ -1,7 +1,7 @@
 """Entidad Persona_grupo_retorno
 
 Revision ID: 02a2c8959901
-Revises: f1ab986c6e4d
+Revises: 1c61b63e302b
 Create Date: 2026-04-29 22:36:31.686483
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '02a2c8959901'
-down_revision: Union[str, Sequence[str], None] = 'f1ab986c6e4d'
+down_revision: Union[str, Sequence[str], None] = '1c61b63e302b'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
