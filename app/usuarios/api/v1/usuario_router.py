@@ -82,6 +82,25 @@ async def listar_usuarios(
     """
     return await servicio.obtener_todos()
 
+@router.get("/buscar_id/{usuario_id}", response_model=UsuarioDetallado, summary="Obtener usuario por ID")
+async def obtener_usuario(
+    usuario_id: int,
+    servicio: UsuarioServicio = Depends(get_usuario_servicio),
+):
+    """
+    Obtiene la información detallada de un usuario específico por su ID.
+
+
+    **Acceso:** Requiere autenticación y rol de **Administrador**.
+    """
+    try:
+        return await servicio.obtener_por_id(usuario_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+    
 
 @router.get("/nombres", response_model=list[UsuarioNombre], summary="Listar nombres de todos los usuarios")
 async def listar_nombres_usuarios(
