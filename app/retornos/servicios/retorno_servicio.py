@@ -4,10 +4,14 @@ Coordina el repositorio y aplica reglas del dominio,
 independiente del framework web.
 """
 
+from app.retornos.servicios.retorno_maquina_estados import RetornoEstadoTransicion
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
-from app.retornos.esquemas.retorno_esquemas import RetornoCreate, RetornoResponse
+from app.retornos.esquemas.retorno_esquemas import RetornoCreate, RetornoEstado, RetornoResponse
 from app.retornos.excepciones.retorno_excepciones import (
+    RetornoEstadoEnCursoaActivoError,
+    RetornoEstadoFinalizadoError,
+    RetornoEstadoActivoaFinalizadoError,
     RetornoNotFoundError,
     RetornoAnioDuplicadoError,
     RetornoAnioPasadoError,
@@ -47,3 +51,16 @@ class RetornoService:
         if not retorno:
             raise RetornoNotFoundError(codigo)
         return RetornoResponse.model_validate(retorno)
+    
+    async def cambiar_estado_retorno(self, codigo: int, nuevo_estado: RetornoEstado) -> RetornoResponse:
+        """Actualiza el estado de un retorno existente."""
+
+        retorno = await self.repo.get_by_codigo(codigo)
+        if not retorno:
+            raise RetornoNotFoundError(codigo)
+        
+        RetornoEstadoTransicion.validar_transicion(retorno.estado, nuevo_estado)
+        
+        retorno_actualizado = await self.repo.cambiar_estado_retorno(codigo, nuevo_estado)
+        
+        return RetornoResponse.model_validate(retorno_actualizado)

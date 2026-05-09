@@ -14,13 +14,27 @@ from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetor
 from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear,RegistroRetornoEditar, RegistroRetornoDarseDeBaja, RegistroRetornoRespuesta
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.usuarios.services.usuario_servicio import UsuarioServicio
-from app.retornos.excepciones.registro_retorno_excepciones import RetornoEstadoFinalizadoDarseDeBaja, RegistroRetornoNoExistente, RetornoNoExistente, RetornoEstadoFinalizado, UsuarioNoExistente, UsuarioNoRegistradoEnRetorno, UsuarioSinColonia, UsuarioYaRegistrado
+from app.retornos.excepciones.registro_retorno_excepciones import RetornoEstadoFinalizadoDarseDeBaja, RegistroRetornoNoExistente, RetornoNoExistente, RetornoEstadoInvalido, UsuarioNoExistente, UsuarioNoRegistradoEnRetorno, UsuarioSinColonia, UsuarioYaRegistrado
 
 class RegistroRetornoServicio:
     def __init__(self, repositorio: RegistroRetornoRepositorio, retorno_repositorio: RetornoRepository = None, usuario_servicio: UsuarioServicio = None) -> None:
         self.repositorio = repositorio 
         self.retorno_repositorio = retorno_repositorio
         self.usuario_servicio = usuario_servicio
+
+    def _validar_retorno(self, retorno, codigo_retorno):
+        if not retorno:
+            raise RetornoNoExistente(codigo_retorno)
+        
+        if retorno.estado != "activo":
+            raise RetornoEstadoInvalido(codigo_retorno, retorno.estado.value)
+
+    def _validar_usuario(self, usuario, usuario_id):
+        if not usuario:
+            raise UsuarioNoExistente(usuario_id)
+
+        if not usuario.co_codigo:
+            raise UsuarioSinColonia(usuario_id)
 
     async def crear_registro_retorno(self, data: RegistroRetornoCrear) -> RegistroRetornoRespuesta:
         """
@@ -38,16 +52,10 @@ class RegistroRetornoServicio:
             - UsuarioYaRegistrado: Si el usuario ya está registrado en el retorno especificado.
         """
         retorno = await self.retorno_repositorio.get_by_codigo(data.retorno)
-        if not retorno:
-            raise RetornoNoExistente(data.retorno)
-        
-        if retorno.estado == "finalizado":
-            raise RetornoEstadoFinalizado(data.retorno)
-        
-        usuario = await self.usuario_servicio.obtener_usuario_por_id(data.usuario)
+        self._validar_retorno(retorno, data.retorno)
 
-        if not usuario:
-            raise UsuarioNoExistente(data.usuario)
+        usuario = await self.usuario_servicio.obtener_usuario_por_id(data.usuario)
+        self._validar_usuario(usuario, data.usuario)
 
         if not usuario.co_codigo:
             raise UsuarioSinColonia(data.usuario)
@@ -71,6 +79,10 @@ class RegistroRetornoServicio:
 
         if not registro:
             raise RegistroRetornoNoExistente(registro_id)
+        
+        retorno = await self.retorno_repositorio.get_by_codigo(registro.retorno)
+
+        self._validar_retorno(retorno, registro.retorno)
 
         await self.repositorio.actualizar_registro_retorno (registro_id, data)
 
@@ -102,11 +114,8 @@ class RegistroRetornoServicio:
             - bool: True si el registro de retorno fue eliminado exitosamente, False si no se encontró el registro.
         """
         retorno = await self.retorno_repositorio.get_by_codigo(datos.retorno)
-        if not retorno:
-            raise RetornoNoExistente(datos.retorno)
         
-        if retorno.estado == "finalizado":
-            raise RetornoEstadoFinalizadoDarseDeBaja(datos.retorno)
+        self._validar_retorno(retorno, datos.retorno)
         
         usuario = await self.usuario_servicio.obtener_usuario_por_id(datos.usuario)
 
