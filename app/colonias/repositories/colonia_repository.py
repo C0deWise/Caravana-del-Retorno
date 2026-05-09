@@ -97,6 +97,18 @@ class ColoniaRepository:
         resultado = await self.db.execute(sentencia)
         return resultado.scalars().all()
     
+    async def obtener_colonias_activas(self) -> list[Colonia]:
+        """
+        Obtiene todas las colonias activas en la base de datos.
+        Parámetros:
+            db (AsyncSession): Sesión activa de SQLAlchemy.
+        Retorna:
+            list[Colonia]: Lista de objetos Colonia activas.
+        """
+        sentencia = select(Colonia).filter(Colonia.estado == ColoniaEstado.ACTIVA)
+        resultado = await self.db.execute(sentencia)
+        return resultado.scalars().all()
+    
     async def tiene_miembros_colonia(self, colonia_codigo: int) -> bool:
         """
         Verifica si una colonia tiene miembros asociados. Identificando si el usuario 
@@ -176,3 +188,18 @@ class ColoniaRepository:
         await self.db.commit()
         await self.db.refresh(colonia)
         return colonia
+    
+    async def remover_miembro_colonia(self, usuario: Usuario) -> Usuario:
+        """
+        Desasocia un usuario de su colonia actual, definiendo su colonia como None.
+        Parámetros:
+            db (AsyncSession): Sesión activa de SQLAlchemy.
+            usuario (Usuario): El usuario a desasociar de su colonia.
+        Retorna:
+            Usuario: El usuario actualizado con su colonia desasociada.
+        """
+        usuario.co_codigo = None
+
+        await self.db.commit()
+        await self.db.refresh(usuario)
+        return usuario

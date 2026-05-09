@@ -23,7 +23,11 @@ class SolicitudColoniaCrear(BaseModel):
 class SolicitudColoniaUpdate(BaseModel):
     so_estado: Optional[EstadoSolicitudSchema] = None
 
-
+class MiembroRegistradoColoniaRespuesta(BaseModel):
+    codigo_usuario: int
+    nombre_usuario: str
+    apellido_usuario: str
+    codigo_colonia: int 
 class SolicitudColoniaRespuesta(BaseModel):
     codigo: int
     estado: EstadoSolicitud
