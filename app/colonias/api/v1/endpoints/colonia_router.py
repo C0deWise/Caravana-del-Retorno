@@ -8,6 +8,7 @@
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Annotated
 from app.colonias.services.colonia_services import ColoniaService
 from sqlalchemy.orm import Session
 from app.colonias.repositories.solicitud_colonia_repository import SolicitudColoniaRepository
@@ -28,12 +29,12 @@ from app.colonias.docs.docs_solicitud_colonia import (
     obtener_solicitudes_recientes_usuario_docs,
 )
 
-def get_solicitud_colonia_servicio(db: AsyncSession = Depends(get_db)) -> SolicitudColoniaRepository:
+def get_solicitud_colonia_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> SolicitudColoniaRepository:
     repositorio = SolicitudColoniaRepository(db)
     return SolicitudColoniaService(repositorio)
 
 
-def get_colonia_service(db: AsyncSession = Depends(get_db)) -> ColoniaService:
+def get_colonia_service(db: Annotated[AsyncSession, Depends(get_db)]) -> ColoniaService:
     """Dependencia para obtener una instancia de ColoniaService con el repositorio inyectado."""
     repositorio = ColoniaRepository(db)
     return ColoniaService(repositorio, db)
@@ -83,7 +84,7 @@ router = APIRouter()
         }
     }
 )
-async def crear_colonia(datos: ColoniaCrear, servicio: ColoniaService = Depends(get_colonia_service)):
+async def crear_colonia(datos: ColoniaCrear, servicio: Annotated[ColoniaService, Depends(get_colonia_service)]):
     """Endpoint para crear una nueva colonia"""
     return await servicio.servicio_crear_colonia(datos)
 
@@ -121,7 +122,7 @@ async def crear_colonia(datos: ColoniaCrear, servicio: ColoniaService = Depends(
         }
     }
 )
-async def aceptar_solicitud_colonia(codigo: int, servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio)):
+async def aceptar_solicitud_colonia(codigo: int, servicio: Annotated[SolicitudColoniaService, Depends(get_solicitud_colonia_servicio)]):
     return await servicio.aceptar_solicitud(codigo)
 
 @router.patch(
@@ -157,7 +158,7 @@ async def aceptar_solicitud_colonia(codigo: int, servicio: SolicitudColoniaServi
         }
     }
 )
-async def rechazar_solicitud_colonia(codigo: int, servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio)):
+async def rechazar_solicitud_colonia(codigo: int, servicio: Annotated[SolicitudColoniaService, Depends(get_solicitud_colonia_servicio)]):
     return await servicio.rechazar_solicitud(codigo)
 
 @router.get(
@@ -167,7 +168,7 @@ async def rechazar_solicitud_colonia(codigo: int, servicio: SolicitudColoniaServ
     summary = "Obtener todas las colonias",
     description = "Obtiene una lista de todas las colonias registradas en el sistema",
 )
-async def obtener_colonias(servicio: ColoniaService = Depends(get_colonia_service)):
+async def obtener_colonias(servicio: Annotated[ColoniaService, Depends(get_colonia_service)]):
     return await servicio.obtener_colonias()
 
 @router.post(
@@ -176,8 +177,8 @@ async def obtener_colonias(servicio: ColoniaService = Depends(get_colonia_servic
 )
 async def crear_solicitud_colonia(
     datos: SolicitudColoniaCrear,
-    servicio_usuario: UsuarioServicio = Depends(get_usuario_servicio),
-    servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio),
+    servicio_usuario: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
+    servicio: Annotated[SolicitudColoniaService, Depends(get_solicitud_colonia_servicio)],
 ):
     if not await servicio_usuario.existe_usuario("us_codigo", datos.codigo_usuario):
         raise ValueError(f"El usuario con código {datos.codigo_usuario} no existe.")
@@ -190,7 +191,7 @@ async def crear_solicitud_colonia(
 )
 async def obtener_solicitudes_pendientes_colonia(
     cod_colonia: int,
-    servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio),
+    servicio: Annotated[SolicitudColoniaService, Depends(get_solicitud_colonia_servicio)],
 ):
     return await servicio.obtener_solicitudes_pendientes_colonia(cod_colonia)
 
@@ -201,7 +202,7 @@ async def obtener_solicitudes_pendientes_colonia(
 )
 async def obtener_solicitudes_recientes_colonia(
     cod_colonia: int,
-    servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio),
+    servicio: Annotated[SolicitudColoniaService, Depends(get_solicitud_colonia_servicio)],
 ):
     return await servicio.obtener_solicitudes_recientes_colonia(cod_colonia)
 
@@ -212,7 +213,7 @@ async def obtener_solicitudes_recientes_colonia(
 )
 async def obtener_solicitudes_recientes_usuario(
     cod_usuario: int,
-    servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio),
+    servicio: Annotated[SolicitudColoniaService, Depends(get_solicitud_colonia_servicio)],
 ):
     return await servicio.obtener_solicitudes_recientes_usuario(cod_usuario)
     
@@ -258,6 +259,6 @@ async def obtener_solicitudes_recientes_usuario(
         }
     }
 )
-async def asignar_lider(colonia_codigo: int, datos: ColoniaEstablecerLider, servicio: ColoniaService = Depends(get_colonia_service)) -> ColoniaRespuesta:
+async def asignar_lider(colonia_codigo: int, datos: ColoniaEstablecerLider, servicio: Annotated[ColoniaService, Depends(get_colonia_service)]) -> ColoniaRespuesta:
     """Endpoint para asignar un líder a una colonia existente"""
     return await servicio.servicio_establecer_lider(colonia_codigo, datos.lider_id)
