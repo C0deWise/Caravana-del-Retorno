@@ -32,7 +32,8 @@ def datos_persona():
         pe_nombre="Juan",
         pe_apellido="Pérez",
         pe_correo="juan.perez@example.com",
-        pe_fecha_nacimiento="1990-01-01"
+        pe_fecha_nacimiento="1990-01-01",
+        pe_genero="M"
     )
 
 @pytest.mark.asyncio
