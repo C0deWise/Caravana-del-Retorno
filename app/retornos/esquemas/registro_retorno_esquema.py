@@ -28,3 +28,14 @@ class RegistroRetornoRespuesta(BaseModel):
     anotacion: Optional[str] = None
 
     model_config = {"from_attributes": True}
+
+class RegistroRetornoDarseDeBaja(BaseModel):
+    usuario: int
+    retorno: int
+
+    model_config = {"from_attributes": True}
+
+class RegistroRetornoDarseDeBajaRespuesta(BaseModel):
+    mensaje: str
+    model_config = {"from_attributes": True}
+

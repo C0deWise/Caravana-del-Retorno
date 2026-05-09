@@ -5,7 +5,9 @@ y operaciones de grupo de retorno bajo el prefijo /grupoRetorno,
 con documentación Swagger integrada.
 """
 
-from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoRespuesta
+from typing import Annotated
+
+from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoDarseDeBaja, RegistroRetornoDarseDeBajaRespuesta, RegistroRetornoRespuesta
 from app.retornos.esquemas.solicitud_retorno_grupo_esquema import SolicitudRetornoGrupoLiderRespuesta, SolicitudRetornoGrupoRespuesta, SolicitudRetornoGrupoUsuarioRespuesta
 from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
 from app.retornos.repositorios.registro_retorno_grupo_repositorio import RegistroRetornoGrupoRepositorio
@@ -152,6 +154,17 @@ async def inscribir_usuario_en_retorno(registro: RegistroRetornoCrear, servicio:
     return await servicio.crear_registro_retorno(registro)
 
 
+@router.delete(
+    "/darse-de-baja",
+    response_model= RegistroRetornoDarseDeBajaRespuesta,
+    summary="Darse de baja de un retorno",
+    status_code=status.HTTP_200_OK,
+    description="Permite a un usuario darse de baja de un retorno específico.",
+)
+async def darse_de_baja(datos: RegistroRetornoDarseDeBaja, servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)]):
+    resultado = await servicio.darse_de_baja(datos)
+    if resultado:
+        return RegistroRetornoDarseDeBajaRespuesta(mensaje=f"El usuario {datos.usuario} ha sido dado de baja exitosamente del retorno {datos.retorno}.")
 @grupo_retorno_router.post(
     "/",
     response_model=GrupoRetornoRespuesta,
