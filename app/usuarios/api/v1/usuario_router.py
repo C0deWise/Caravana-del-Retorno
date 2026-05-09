@@ -22,7 +22,7 @@ from app.usuarios.docs.listar_parentescos_doc import listar_parentescos_docs
 router = APIRouter(prefix="/usuario", tags=["Usuario"])
 
 
-def get_usuario_servicio(db: AsyncSession = Depends(get_db)) -> UsuarioServicio:
+def get_usuario_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> UsuarioServicio:
     """
     Función de dependencia para obtener una instancia del servicio de usuarios.
     Inyecta la sesión de base de datos en el repositorio y luego en el servicio.
@@ -44,7 +44,7 @@ def get_usuario_servicio(db: AsyncSession = Depends(get_db)) -> UsuarioServicio:
 )
 async def registrar_usuario(
     schema: registrar_body,
-    servicio: UsuarioServicio = Depends(get_usuario_servicio), 
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)], 
 ):
     try:
         usuario = await servicio.registrar(schema)
@@ -60,7 +60,7 @@ async def registrar_usuario(
 )
 async def solicitar_parentesco(
     parentesco_crear: solicitar_parentesco_body,
-    servicio: UsuarioServicio = Depends(get_usuario_servicio),
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
 ):
     try:
         await servicio.solicitar_parentesco(parentesco_crear)
@@ -73,7 +73,7 @@ async def solicitar_parentesco(
 
 @router.get("/", response_model=list[UsuarioSalida], summary="Listar todos los usuarios (básico)")
 async def listar_usuarios(
-    servicio: UsuarioServicio = Depends(get_usuario_servicio),
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
 ):
     """
     Obtiene una lista de todos los usuarios con su información básica.
@@ -85,7 +85,7 @@ async def listar_usuarios(
 
 @router.get("/nombres", response_model=list[UsuarioNombre], summary="Listar nombres de todos los usuarios")
 async def listar_nombres_usuarios(
-    servicio: UsuarioServicio = Depends(get_usuario_servicio),
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
 ):
     """
     Obtiene una lista con únicamente los nombres y apellidos de todos los usuarios.
@@ -97,7 +97,7 @@ async def listar_nombres_usuarios(
 
 @router.get("/todos", response_model=list[UsuarioDetallado], summary="Listar todos los usuarios (detallado)")
 async def listar_usuarios_completo(
-    servicio: UsuarioServicio = Depends(get_usuario_servicio),
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
 ):
     """
     Obtiene una lista de todos los usuarios con toda su información detallada.
@@ -110,7 +110,7 @@ async def listar_usuarios_completo(
 @router.get("/buscar/{nombre}", response_model=list[UsuarioSalida], summary="Buscar usuarios por nombre")
 async def buscar_usuario_por_nombre(
     nombre: str,
-    servicio: UsuarioServicio = Depends(get_usuario_servicio),
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
 ):
     """
     Busca y devuelve usuarios cuyo nombre coincida parcialmente con el término de búsqueda.
@@ -123,7 +123,7 @@ async def buscar_usuario_por_nombre(
 @router.get("/buscar_documento/{documento}", response_model=UsuarioSalida, summary="Buscar un usuario por documento")
 async def buscar_usuario_por_documento(
     documento: str,
-    servicio: UsuarioServicio = Depends(get_usuario_servicio),
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
 ):
     """
     Busca y devuelve un usuario por su número de documento exacto.
@@ -145,7 +145,7 @@ async def buscar_usuario_por_documento(
 )
 async def listar_parentescos_usuario(
     codigo_usuario: int,
-    servicio: UsuarioServicio = Depends(get_usuario_servicio),
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
 ):
     try:
         parentescos = await servicio.listar_parentescos_usuario(codigo_usuario)
