@@ -41,3 +41,24 @@ class UsuarioYaRegistrado(HTTPException):
             status_code=status.HTTP_409_CONFLICT,
             detail=f"El usuario con código {usuario_id} ya está registrado en el retorno con código {retorno_id}."
         )
+
+class SolicitudGrupoRetornoNoExistente(HTTPException):
+    def __init__(self, solicitud_id: int):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"La solicitud de grupo de retorno con código {solicitud_id} no existe."
+        )
+
+class SolicitudGrupoRetornoEstadoInvalido(HTTPException):
+    def __init__(self, solicitud_id: int, estado: str):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"La solicitud de grupo de retorno con código {solicitud_id} no está en estado: {estado}."
+        )
+
+class UsuarioNoPerteneceAlaMismaColonia(HTTPException):
+    def __init__(self, usuario_id: int, lider_id: int):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"El usuario con código {usuario_id} no pertenece a la misma colonia que el lider del grupo {lider_id}."
+        )
