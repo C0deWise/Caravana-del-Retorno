@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from app.colonias.models.colonia_model import Colonia
 from app.usuarios.models.usuario import Usuario
@@ -96,7 +96,7 @@ class SolicitudColoniaRepository:
         return solicitud
     
     async def obtener_solicitudes_recientes_por_colonia(self, cod_colonia: int) -> list[SolicitudColonia]:
-        limite = datetime.utcnow() - timedelta(days=30)
+        limite = datetime.datetime.now(timezone.utc) - timedelta(days=30)
         resultado = await self.db.execute(
             select(SolicitudColonia)
             .where(
@@ -108,7 +108,7 @@ class SolicitudColoniaRepository:
         return resultado.scalars().all()
  
     async def obtener_solicitudes_recientes_por_usuario(self, cod_usuario: int) -> list[SolicitudColonia]:
-        limite = datetime.utcnow() - timedelta(days=30)
+        limite = datetime.datetime.now(timezone.utc) - timedelta(days=30)
         resultado = await self.db.execute(
             select(SolicitudColonia)
             .where(
@@ -132,3 +132,16 @@ class SolicitudColoniaRepository:
         )
         await self.db.commit()
         return resultado.rowcount
+    
+    async def rechazar_solicitudes_pendientes_por_usuario(self, usuario_id: int):
+        stmt = (
+            update(SolicitudColonia)
+            .where(
+                SolicitudColonia.us_codigo == usuario_id,
+                SolicitudColonia.so_estado == EstadoSolicitud.pendiente
+            )
+            .values(so_estado=EstadoSolicitud.rechazada)
+        )
+
+        await self.db.execute(stmt)
+        await self.db.commit()

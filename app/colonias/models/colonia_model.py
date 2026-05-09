@@ -1,21 +1,34 @@
-from sqlalchemy import Integer, String
+"""
+Modelo de datos para la entidad Colonia.
+Este módulo define la clase Colonia, que representa una colonia en la aplicación. La clase incluye
+atributos como código, país, departamento, ciudad, estado y líder. Además, se define un enumerado 
+para el estado de la colonia, que puede ser "activa" o "inactiva".
+"""
+
+import enum
+
+from sqlalchemy import Integer, String, Enum
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
 
 
+class ColoniaEstado(str, enum.Enum):
+    ACTIVA = "activa"
+    INACTIVA = "inactiva"
+
 class Colonia(Base):
     __tablename__ = "colonia"
 
-    co_codigo: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    co_pais: Mapped[str] = mapped_column(String, nullable=False)
-    co_departamento: Mapped[str | None] = mapped_column(String, nullable=True)
-    co_ciudad: Mapped[str | None] = mapped_column(String, nullable=True)
-    lider: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    codigo: Mapped[int] = mapped_column("co_codigo", Integer, primary_key=True, autoincrement=True)
+    pais: Mapped[str] = mapped_column("co_pais", String, nullable=False)
+    departamento: Mapped[str | None] = mapped_column("co_departamento", String, nullable=True)
+    ciudad: Mapped[str | None] = mapped_column("co_ciudad", String, nullable=True)
+    estado: Mapped[ColoniaEstado] = mapped_column("co_estado", Enum(ColoniaEstado), nullable=False, default=ColoniaEstado.ACTIVA)
+    lider: Mapped[int | None] = mapped_column("lider_id", Integer, nullable=True)
 
     def __repr__(self) -> str:
         return (
-            f"Colonia(id={self.co_codigo!r}, co_pais={self.co_pais!r}, "
-            f"co_departamento={self.co_departamento!r}, co_ciudad={self.co_ciudad!r})"
-            f"lider={self.lider!r}"
+            f"Colonia(id={self.codigo!r}, pais={self.pais!r}, "
+            f"departamento={self.departamento!r}, ciudad={self.ciudad!r}, estado={self.estado!r}, lider={self.lider!r})"
         )

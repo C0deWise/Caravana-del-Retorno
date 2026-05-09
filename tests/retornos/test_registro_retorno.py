@@ -1,6 +1,4 @@
 from unittest.mock import AsyncMock, MagicMock
-import sys
-import os
 from app.retornos.excepciones.registro_retorno_excepciones import RetornoEstadoFinalizado, RetornoNoExistente, UsuarioNoExistente, UsuarioSinColonia, UsuarioYaRegistrado
 import pytest
 

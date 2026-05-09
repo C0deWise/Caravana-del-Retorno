@@ -46,3 +46,8 @@ class RetornoRepository:
         """Busca un retorno existente por año."""
         result = await self.db.execute(select(Retorno).filter(Retorno.anio == anio))
         return result.scalars().first()
+
+    async def obtener_ultimo_retorno(self) -> Retorno | None:
+        """Obtiene el retorno más reciente basado en el año."""
+        result = await self.db.execute(select(Retorno).order_by(Retorno.anio.desc()).limit(1))
+        return result.scalars().first()
