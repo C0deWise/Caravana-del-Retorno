@@ -1,3 +1,4 @@
+import aiofiles
 from fastapi import UploadFile
 from pathlib import Path
 
@@ -9,7 +10,7 @@ from app.multimedia.excepciones.multimedia_excepciones import RetornoNoExistente
 from app.multimedia.config import TipoMultimedia, EXTENSIONES_POR_TIPO
 
 class MultimediaServicio:
-    def __init__(self, repositorio = MultimediaRepositorio, retorno_servicio: RetornoService = None):
+    def __init__(self, repositorio: MultimediaRepositorio, retorno_servicio: RetornoService = None):
         self.repositorio = repositorio
         self.retorno_servicio = retorno_servicio
 
@@ -19,8 +20,7 @@ class MultimediaServicio:
         for tipo, extensiones in EXTENSIONES_POR_TIPO.items():
             if extension in extensiones:
                 return tipo.value
-        else:
-            raise TipoArchivoNoValidoError()
+        raise TipoArchivoNoValidoError()
         
     async def guardar_archivo_local(self, archivo: UploadFile, retorno_codigo: int) -> str:
 
@@ -29,9 +29,9 @@ class MultimediaServicio:
 
         ruta_archivo = upload_dir / archivo.filename
 
-        with open(ruta_archivo, 'wb') as buffer:
+        async with aiofiles.open(ruta_archivo, 'wb') as buffer:
             content = await archivo.read()
-            buffer.write(content)
+            await buffer.write(content)
 
         return str(ruta_archivo)
     

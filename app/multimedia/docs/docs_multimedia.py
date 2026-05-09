@@ -1,10 +1,10 @@
 from fastapi import status
 
-cargar_contenido_multimedia_docs = dict (
-    summary="Cargar contenido multimedia para un retorno",
-    description="Permite cargar un archivo multimedia (imagen o video) asociado a un retorno específico.",
-    status_code=status.HTTP_201_CREATED,
-    responses={
+cargar_contenido_multimedia_docs = {
+    "summary": "Cargar contenido multimedia para un retorno",
+    "description": "Permite cargar un archivo multimedia (imagen o video) asociado a un retorno específico.",
+    "status_code": status.HTTP_201_CREATED,
+    "responses": {
         201: {
             "description": "Contenido multimedia cargado exitosamente.",
             "content": {
@@ -21,4 +21,4 @@ cargar_contenido_multimedia_docs = dict (
             },
         },
     },
-)
+}
