@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from app.usuarios.models.usuario import Usuario
 from sqlalchemy.orm import joinedload
@@ -80,7 +80,7 @@ class SolicitudColoniaRepository:
         return solicitud
     
     async def obtener_solicitudes_recientes_por_colonia(self, cod_colonia: int) -> list[SolicitudColonia]:
-        limite = datetime.utcnow() - timedelta(days=30)
+        limite = datetime.datetime.now(timezone.utc) - timedelta(days=30)
         resultado = await self.db.execute(
             select(SolicitudColonia)
             .where(
@@ -92,7 +92,7 @@ class SolicitudColoniaRepository:
         return resultado.scalars().all()
  
     async def obtener_solicitudes_recientes_por_usuario(self, cod_usuario: int) -> list[SolicitudColonia]:
-        limite = datetime.utcnow() - timedelta(days=30)
+        limite = datetime.datetime.now(timezone.utc) - timedelta(days=30)
         resultado = await self.db.execute(
             select(SolicitudColonia)
             .where(

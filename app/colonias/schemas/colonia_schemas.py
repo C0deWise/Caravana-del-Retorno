@@ -5,10 +5,14 @@ y estructurar las respuestas de la API relacionadas con colonias colombianas
 en el exterior.
 """
 
+from datetime import date
+
 from pydantic import BaseModel, field_validator, model_validator, Field
+from datetime import datetime
 from typing import Optional
 import re
 from app.colonias.models.colonia_model import ColoniaEstado
+from app.usuarios.models.usuario import TipoDoc, Genero
 
 class ColoniaCrear (BaseModel):
     """Esquema de entrada para crear una colonia."""
@@ -87,4 +91,33 @@ class ColoniaRespuesta (BaseModel):
 class ColoniaEstablecerLider (BaseModel):
     """Esquema de entrada para establecer un líder a una colonia."""
 
-    lider: int = None
+    lider: int = Field(..., gt=0, description="ID del usuario a asignar como líder de la colonia")
+
+class ColoniaSacarMiembro (BaseModel):
+    """Esquema de entrada para sacar un miembro de una colonia."""
+
+    miembro_id: int = Field(..., gt=0, description="ID del usuario a sacar de la colonia") 
+
+class UsuarioRemovidoColonia(BaseModel):
+    """Esquema de respuesta para un usuario removido de una colonia."""
+    id: int = Field(validation_alias="us_codigo")
+    tipo_doc: TipoDoc = Field(validation_alias="us_tipo_doc")
+    documento: str = Field(validation_alias="us_documento")
+    celular: str = Field(validation_alias="us_celular")
+    correo: str = Field(validation_alias="us_correo")
+    codigo_colonia: Optional[int] = Field(validation_alias="co_codigo")
+    codigo_rol: int = Field(validation_alias="ro_codigo")
+    nombre: str = Field(validation_alias="us_nombre")
+    apellido: str = Field(validation_alias="us_apellido")
+    genero: Genero = Field(validation_alias="us_genero")
+    fecha_nacimiento: date = Field(validation_alias="us_fecha_nacimiento")
+    pais: str = Field(validation_alias="us_pais")
+ 
+    model_config = {"from_attributes": True, "populate_by_name": True}
+
+class UsuarioRemovidoColoniaRespuesta(BaseModel):
+    """Esquema de respuesta para la acción de remover un usuario de una colonia."""
+    mensaje: str = Field(..., description="Mensaje de confirmación")
+    usuario: UsuarioRemovidoColonia = Field(..., description="Datos del usuario removido")
+
+    model_config = {"from_attributes": True}

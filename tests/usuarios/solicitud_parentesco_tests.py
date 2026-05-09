@@ -5,9 +5,6 @@
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear
 

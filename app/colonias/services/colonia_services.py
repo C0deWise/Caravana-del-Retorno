@@ -7,18 +7,29 @@ de su persistencia en la base de datos.
 from app.colonias.excepciones.excepciones import ColoniaInactiva, ColoniaNoExistente
 from app.colonias.models.colonia_model import ColoniaEstado
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta
+from app.colonias.excepciones.excepciones import (
+    AutoRemocionUsuarioColonia,
+    ColoniaInactiva, 
+    ColoniaNoExistente,
+    ColoniaSinLiderAsignado,
+    UsuarioNoExistente, 
+    UsuarioYaEsLider,
+    UsuarioNoEsMiembroColonia,
+    UsuarioInscritoRetornoActivo)
+from app.colonias.models.colonia_model import ColoniaEstado
+from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta, UsuarioRemovidoColonia, UsuarioRemovidoColoniaRespuesta
 from app.colonias.repositories.colonia_repository import ColoniaRepository
-from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.services.usuario_servicio import UsuarioServicio
+from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
 
 from fastapi import HTTPException, status
 
 class ColoniaService:
 
-    def __init__(self, repositorio: ColoniaRepository, db: AsyncSession):
+    def __init__(self, repositorio: ColoniaRepository, usuario_servicio: UsuarioServicio = None, registro_retorno_servicio: RegistroRetornoServicio = None):
         self.repositorio = repositorio
-        self.usuario_servicio = UsuarioServicio(UsuarioRepositorio(db))
+        self.usuario_servicio = usuario_servicio
+        self.registro_retorno_servicio = registro_retorno_servicio
 
     async def servicio_crear_colonia(self, datos: ColoniaCrear) -> ColoniaRespuesta:
         """
@@ -131,3 +142,67 @@ class ColoniaService:
         """
         colonias_activas = await self.repositorio.obtener_colonias_activas()
         return [ColoniaRespuesta.model_validate(colonia, from_attributes=True) for colonia in colonias_activas]
+    async def cambiar_lider_colonia(self, colonia_codigo: int, nuevo_lider_id: int) -> ColoniaRespuesta:
+        colonia = await self.repositorio.obtener_colonia_por_id(colonia_codigo)
+        if not colonia:
+            raise ColoniaNoExistente(colonia_codigo)
+        
+        usuario_nuevo_lider = await self.usuario_servicio.obtener_usuario_por_id(nuevo_lider_id)
+        if not usuario_nuevo_lider:
+            raise UsuarioNoExistente(nuevo_lider_id)
+        
+        if usuario_nuevo_lider.co_codigo != colonia_codigo:
+            raise UsuarioNoEsMiembroColonia(nuevo_lider_id, colonia_codigo)
+
+        if colonia.lider is None:
+            raise ColoniaSinLiderAsignado(colonia_codigo)
+        
+        if colonia.lider == nuevo_lider_id:
+            raise UsuarioYaEsLider(nuevo_lider_id, colonia_codigo)
+
+        colonia_actualizada = await self.repositorio.cambiar_lider_colonia(colonia_codigo, nuevo_lider_id)
+        return ColoniaRespuesta.model_validate(colonia_actualizada, from_attributes=True)
+
+    async def remover_miembro_colonia(self, colonia_id: int, usuario_id: int) -> UsuarioRemovidoColoniaRespuesta:
+        """
+        Remueve a un miembro específico de una colonia, teniendo en cuenta que el usuario exista, pertenezca a
+        una colonia y no este inscrito a un retorno activo. Para el rol de líder no se puede remover a sí mismo, 
+        se debe cambiar el líder primero para luego removerlo como miembro.
+        Parámetros:
+            colonia_id (int): El código de la colonia de la cual se desea remover al usuario.
+            usuario_id (int): El ID del usuario que se desea remover de la colonia.
+        Retorna:
+            UsuarioRemovidoColoniaRespuesta: Un mensaje de confirmación junto con los datos del usuario removido.
+        Excepciones:
+            ColoniaNoExistente: Si la colonia con el ID proporcionado no existe.
+            UsuarioNoExistente: Si el usuario con el ID proporcionado no existe.
+            UsuarioNoEsMiembroColonia: Si el usuario no es miembro de la colonia especificada.
+            AutoRemocionUsuarioColonia: Si el usuario a remover es el líder de la colonia.
+            UsuarioInscritoRetornoActivo: Si el usuario tiene registros de retorno activos.
+        """
+        usuario = await self.usuario_servicio.obtener_usuario_por_id(usuario_id)
+        if not usuario:
+            raise UsuarioNoExistente(usuario_id)
+        
+        colonia = await self.repositorio.obtener_colonia_por_id(colonia_id)
+        if not colonia:
+            raise ColoniaNoExistente(colonia_id)
+
+        if usuario.co_codigo != colonia_id:
+            raise UsuarioNoEsMiembroColonia(usuario_id, colonia_id)
+        
+        if colonia.lider == usuario_id:
+            raise AutoRemocionUsuarioColonia(usuario_id)
+        
+        registros_retorno_usuario = await self.registro_retorno_servicio.obtener_registros_retorno_activos_por_usuario(usuario_id)
+        if registros_retorno_usuario:
+            raise UsuarioInscritoRetornoActivo(usuario_id)
+
+        usuario_removido = await self.repositorio.remover_miembro_colonia(usuario)
+
+        usuario_removido_esquema = UsuarioRemovidoColonia.model_validate(usuario_removido, from_attributes=True)
+        
+        return UsuarioRemovidoColoniaRespuesta(
+            mensaje=f"El usuario {usuario_removido_esquema.nombre} {usuario_removido_esquema.apellido} ha sido removido exitosamente de la colonia.",
+            usuario=usuario_removido_esquema
+        )

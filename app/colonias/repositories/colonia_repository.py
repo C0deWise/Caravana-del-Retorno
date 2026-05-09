@@ -5,6 +5,7 @@ relacionadas con colonias colombianas, utilizando sesiones SQLAlchemy
 como capa de persistencia.
 """
 
+from app.usuarios.models import usuario
 from app.usuarios.models.usuario import Usuario
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -167,3 +168,30 @@ class ColoniaRepository:
         await self.db.refresh(colonia)
         return colonia
         
+
+
+    async def cambiar_lider_colonia(self, colonia_codigo: int, nuevo_lider_id: int) -> Colonia:
+        colonia = await self.obtener_colonia_por_id(colonia_codigo)
+        usuario_antiguo = await self.db.get(Usuario, colonia.lider)
+        usuario_antiguo.ro_codigo = 1
+        usuario_nuevo = await self.db.get(Usuario, nuevo_lider_id)
+        usuario_nuevo.ro_codigo = 2
+        colonia.lider = nuevo_lider_id
+        await self.db.commit()
+        await self.db.refresh(colonia)
+        return colonia
+    
+    async def remover_miembro_colonia(self, usuario: Usuario) -> Usuario:
+        """
+        Desasocia un usuario de su colonia actual, definiendo su colonia como None.
+        Parámetros:
+            db (AsyncSession): Sesión activa de SQLAlchemy.
+            usuario (Usuario): El usuario a desasociar de su colonia.
+        Retorna:
+            Usuario: El usuario actualizado con su colonia desasociada.
+        """
+        usuario.co_codigo = None
+
+        await self.db.commit()
+        await self.db.refresh(usuario)
+        return usuario
