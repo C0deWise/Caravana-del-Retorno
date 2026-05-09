@@ -1,9 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 from datetime import date
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from app.usuarios.schemas.usuario_esquemas import UsuarioCrear
 from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.usuarios.models.usuario import TipoDoc, Genero

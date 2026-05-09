@@ -6,21 +6,27 @@
     y documentando cada endpoint en Swagger.  
 """
 
+from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
+from app.usuarios.schemas.usuario_esquemas import UsuarioConsultaColonia
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.colonias.excepciones.excepciones import ColoniaNoEncontrada, UsuarioNoEncontrado
+from typing import Annotated
 from app.colonias.services.colonia_services import ColoniaService
 from sqlalchemy.orm import Session
 from app.colonias.repositories.solicitud_colonia_repository import SolicitudColoniaRepository
 from app.colonias.repositories.colonia_repository import ColoniaRepository
 from app.core.database import get_db
 from app.usuarios.api.v1.usuario_router import get_usuario_servicio
-from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta, ColoniaEstablecerLider
+from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta, ColoniaEstablecerLider, ColoniaSacarMiembro, UsuarioRemovidoColoniaRespuesta
 from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear, SolicitudColoniaRespuesta
 from app.colonias.services.colonia_services import ColoniaService
 from app.colonias.services.solicitud_colonias_services import SolicitudColoniaService
 from app.usuarios.services.usuario_servicio import UsuarioServicio
-
+from app.retornos.repositorios.retorno_repositorio import RetornoRepository
+from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
+from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
+from app.colonias.docs.docs_colonia import desactivar_colonia_docs, cambiar_lider_colonia_docs, sacar_miembro_colonia_docs, obtener_colonias_activas_docs
 
 from app.colonias.docs.docs_solicitud_colonia import (
     crear_solicitud_docs,
@@ -29,15 +35,17 @@ from app.colonias.docs.docs_solicitud_colonia import (
     obtener_solicitudes_recientes_usuario_docs,
 )
 
-def get_solicitud_colonia_servicio(db: AsyncSession = Depends(get_db)) -> SolicitudColoniaRepository:
+def get_solicitud_colonia_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> SolicitudColoniaRepository:
     repositorio = SolicitudColoniaRepository(db)
     return SolicitudColoniaService(repositorio)
 
 
-def get_colonia_service(db: AsyncSession = Depends(get_db)) -> ColoniaService:
+def get_colonia_service(db: Annotated[AsyncSession, Depends(get_db)]) -> ColoniaService:
     """Dependencia para obtener una instancia de ColoniaService con el repositorio inyectado."""
     repositorio = ColoniaRepository(db)
-    return ColoniaService(repositorio, db)
+    servicio_usuario = UsuarioServicio(UsuarioRepositorio(db))
+    servicio_registro_retorno = RegistroRetornoServicio(RegistroRetornoRepositorio(db), RetornoRepository(db), servicio_usuario)
+    return ColoniaService(repositorio, servicio_usuario, servicio_registro_retorno)
 
 router = APIRouter()
 
@@ -84,7 +92,7 @@ router = APIRouter()
         }
     }
 )
-async def crear_colonia(datos: ColoniaCrear, servicio: ColoniaService = Depends(get_colonia_service)):
+async def crear_colonia(datos: ColoniaCrear, servicio: Annotated[ColoniaService, Depends(get_colonia_service)]):
     """Endpoint para crear una nueva colonia"""
     return await servicio.servicio_crear_colonia(datos)
 
@@ -122,7 +130,7 @@ async def crear_colonia(datos: ColoniaCrear, servicio: ColoniaService = Depends(
         }
     }
 )
-async def aceptar_solicitud_colonia(codigo: int, servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio)):
+async def aceptar_solicitud_colonia(codigo: int, servicio: Annotated[SolicitudColoniaService, Depends(get_solicitud_colonia_servicio)]):
     return await servicio.aceptar_solicitud(codigo)
 
 @router.patch(
@@ -158,7 +166,7 @@ async def aceptar_solicitud_colonia(codigo: int, servicio: SolicitudColoniaServi
         }
     }
 )
-async def rechazar_solicitud_colonia(codigo: int, servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio)):
+async def rechazar_solicitud_colonia(codigo: int, servicio: Annotated[SolicitudColoniaService, Depends(get_solicitud_colonia_servicio)]):
     return await servicio.rechazar_solicitud(codigo)
 
 @router.get(
@@ -168,7 +176,7 @@ async def rechazar_solicitud_colonia(codigo: int, servicio: SolicitudColoniaServ
     summary = "Obtener todas las colonias",
     description = "Obtiene una lista de todas las colonias registradas en el sistema",
 )
-async def obtener_colonias(servicio: ColoniaService = Depends(get_colonia_service)):
+async def obtener_colonias(servicio: Annotated[ColoniaService, Depends(get_colonia_service)]):
     return await servicio.obtener_colonias()
 
 @router.get(
@@ -205,7 +213,7 @@ async def crear_solicitud_colonia(
 )
 async def obtener_solicitudes_pendientes_colonia(
     cod_colonia: int,
-    servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio),
+    servicio: Annotated[SolicitudColoniaService, Depends(get_solicitud_colonia_servicio)],
 ):
     return await servicio.obtener_solicitudes_pendientes_colonia(cod_colonia)
 
@@ -216,7 +224,7 @@ async def obtener_solicitudes_pendientes_colonia(
 )
 async def obtener_solicitudes_recientes_colonia(
     cod_colonia: int,
-    servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio),
+    servicio: Annotated[SolicitudColoniaService, Depends(get_solicitud_colonia_servicio)],
 ):
     return await servicio.obtener_solicitudes_recientes_colonia(cod_colonia)
 
@@ -227,7 +235,7 @@ async def obtener_solicitudes_recientes_colonia(
 )
 async def obtener_solicitudes_recientes_usuario(
     cod_usuario: int,
-    servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio),
+    servicio: Annotated[SolicitudColoniaService, Depends(get_solicitud_colonia_servicio)],
 ):
     return await servicio.obtener_solicitudes_recientes_usuario(cod_usuario)
     
@@ -273,6 +281,49 @@ async def obtener_solicitudes_recientes_usuario(
         }
     }
 )
-async def asignar_lider(colonia_codigo: int, datos: ColoniaEstablecerLider, servicio: ColoniaService = Depends(get_colonia_service)) -> ColoniaRespuesta:
+async def asignar_lider(colonia_codigo: int, datos: ColoniaEstablecerLider, servicio: Annotated[ColoniaService, Depends(get_colonia_service)]) -> ColoniaRespuesta:
     """Endpoint para asignar un líder a una colonia existente"""
-    return await servicio.servicio_establecer_lider(colonia_codigo, datos.lider_id)
+    return await servicio.servicio_establecer_lider(colonia_codigo, datos.lider)
+
+@router.patch(
+    "/desactivar/{colonia_codigo}/",
+    response_model=ColoniaRespuesta, **desactivar_colonia_docs
+)
+async def desactivar_colonia(
+    colonia_codigo: int,
+    servicio: ColoniaService = Depends(get_colonia_service)
+) -> ColoniaRespuesta:
+    """Endpoint para desactivar una colonia existente"""
+    return await servicio.desactivar_colonia(colonia_codigo)
+
+@router.get(
+    "/colonias-activas/",
+    response_model=list[ColoniaRespuesta], **obtener_colonias_activas_docs
+)
+async def obtener_colonias_activas(servicio: ColoniaService = Depends(get_colonia_service)) -> list[ColoniaRespuesta]:
+    """Endpoint para obtener la lista de colonias activas"""
+    return await servicio.obtener_colonias_activas()
+@router.patch(
+    "/cambiar-lider/{colonia_codigo}/",
+    response_model=ColoniaRespuesta, **cambiar_lider_colonia_docs
+)
+async def cambiar_lider_colonia(
+    colonia_codigo: int,
+    datos: ColoniaEstablecerLider,
+    servicio: ColoniaService = Depends(get_colonia_service)
+) -> ColoniaRespuesta:
+    """Endpoint para cambiar el líder de una colonia existente"""
+    return await servicio.cambiar_lider_colonia(colonia_codigo, datos.lider)
+
+@router.patch(
+    "/sacar-miembro/{colonia_codigo}/",
+    response_model=UsuarioRemovidoColoniaRespuesta,
+    **sacar_miembro_colonia_docs
+)
+async def sacar_miembro_colonia(
+    colonia_codigo: int,
+    datos: ColoniaSacarMiembro,
+    servicio: ColoniaService = Depends(get_colonia_service)
+) -> UsuarioRemovidoColoniaRespuesta:
+    """Endpoint para sacar un miembro de una colonia existente"""
+    return await servicio.remover_miembro_colonia(colonia_codigo, datos.miembro_id)

@@ -4,6 +4,8 @@ Contiene los esquemas para estructurar los datos de entrada y salida
 relacionados con el proceso de registro a un retorno.
 """
 
+from typing import Optional
+
 from pydantic import BaseModel
 
 class RegistroRetornoCrear(BaseModel):
@@ -12,6 +14,7 @@ class RegistroRetornoCrear(BaseModel):
     num_hospedaje: int
     num_transporte: int
     num_parqueadero: int
+    anotacion: Optional[str] = None
 
     model_config = {"from_attributes": True}
 
@@ -22,5 +25,17 @@ class RegistroRetornoRespuesta(BaseModel):
     num_hospedaje: int 
     num_transporte: int 
     num_parqueadero: int 
+    anotacion: Optional[str] = None
 
     model_config = {"from_attributes": True}
+
+class RegistroRetornoDarseDeBaja(BaseModel):
+    usuario: int
+    retorno: int
+
+    model_config = {"from_attributes": True}
+
+class RegistroRetornoDarseDeBajaRespuesta(BaseModel):
+    mensaje: str
+    model_config = {"from_attributes": True}
+

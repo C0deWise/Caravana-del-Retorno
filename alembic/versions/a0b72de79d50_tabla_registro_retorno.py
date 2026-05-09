@@ -1,8 +1,8 @@
-"""Modelo registrar usuario a retorno
+"""tabla registro_retorno
 
-Revision ID: dc6ab2fc7af5
+Revision ID: a0b72de79d50
 Revises: efee06555c1c
-Create Date: 2026-04-17 17:45:37.157478
+Create Date: 2026-05-03 04:39:38.803770
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'dc6ab2fc7af5'
+revision: str = 'a0b72de79d50'
 down_revision: Union[str, Sequence[str], None] = 'efee06555c1c'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
