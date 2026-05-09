@@ -6,10 +6,11 @@ estructurar los datos de entrada y salida.
 """
 
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
-from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoRespuesta
+from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoDarseDeBaja, RegistroRetornoRespuesta
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.retornos.excepciones.registro_retorno_excepciones import RetornoEstadoInvalido, RetornoNoExistente, UsuarioNoExistente, UsuarioSinColonia, UsuarioYaRegistrado
+from app.retornos.excepciones.registro_retorno_excepciones import RetornoEstadoFinalizadoDarseDeBaja, RetornoNoExistente, RetornoEstadoFinalizado, UsuarioNoExistente, UsuarioNoRegistradoEnRetorno, UsuarioSinColonia, UsuarioYaRegistrado
 
 class RegistroRetornoServicio:
     def __init__(
@@ -84,3 +85,26 @@ class RegistroRetornoServicio:
         if registro is None:
             return None
         return RegistroRetornoRespuesta.model_validate(registro)
+    
+    async def darse_de_baja(self, datos: RegistroRetornoDarseDeBaja):
+        """
+        Permite a un usuario darse de baja de un retorno específico, eliminando su registro de retorno.
+        Retorna:
+            - bool: True si el registro de retorno fue eliminado exitosamente, False si no se encontró el registro.
+        """
+        retorno = await self.retorno_repositorio.get_by_codigo(datos.retorno)
+        if not retorno:
+            raise RetornoNoExistente(datos.retorno)
+        
+        if retorno.estado == "finalizado":
+            raise RetornoEstadoFinalizadoDarseDeBaja(datos.retorno)
+        
+        usuario = await self.usuario_servicio.obtener_usuario_por_id(datos.usuario)
+
+        if not usuario:
+            raise UsuarioNoExistente(datos.usuario)
+        usuario_registrado = await self.repositorio.obtener_registro_retorno_por_usuario_y_retorno(datos.usuario, datos.retorno)
+        if not usuario_registrado:
+            raise UsuarioNoRegistradoEnRetorno(datos.usuario, datos.retorno)
+        
+        return await self.repositorio.eliminar_registro_retorno(datos)

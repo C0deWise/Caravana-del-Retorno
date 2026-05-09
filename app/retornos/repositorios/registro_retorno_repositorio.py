@@ -6,7 +6,7 @@ proceso de registro a un retorno.
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoRespuesta
+from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoDarseDeBaja, RegistroRetornoRespuesta
 from app.retornos.modelos.registro_retorno_modelo import RegistroRetorno
 
 class RegistroRetornoRepositorio:
@@ -32,3 +32,13 @@ class RegistroRetornoRepositorio:
         """Obtiene un registro de retorno específico para un usuario y retorno dados."""
         resultado = await self.db.execute(select(RegistroRetorno).filter(RegistroRetorno.usuario == usuario_id, RegistroRetorno.retorno == retorno_id))
         return resultado.scalars().first()
+    
+    async def eliminar_registro_retorno(self, datos: RegistroRetornoDarseDeBaja) -> bool:
+        """Elimina un registro de retorno específico para un usuario y retorno dados."""
+        resultado = await self.db.execute(select(RegistroRetorno).filter(RegistroRetorno.usuario == datos.usuario, RegistroRetorno.retorno == datos.retorno))
+        registro = resultado.scalars().first()
+        if registro:
+            await self.db.delete(registro)
+            await self.db.commit()
+            return True
+        return False
