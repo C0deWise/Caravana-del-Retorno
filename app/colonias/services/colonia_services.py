@@ -4,6 +4,8 @@ Coordina la validación de reglas de negocio y la interacción con el
 repositorio de colonias, garantizando la integridad de los datos antes 
 de su persistencia en la base de datos.
 """
+from app.colonias.excepciones.excepciones import ColoniaInactiva, ColoniaNoExistente
+from app.colonias.models.colonia_model import ColoniaEstado
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.colonias.excepciones.excepciones import (
     AutoRemocionUsuarioColonia,
@@ -92,10 +94,29 @@ class ColoniaService:
         return ColoniaRespuesta.model_validate(colonia_actualizada, from_attributes=True)
     
     async def obtener_colonias(self) -> list[ColoniaRespuesta]:
+        """
+        Obtiene la lista de colonias existentes.
+        Parámetros:
+            db (Session): Sesión activa de SQLAlchemy.
+        Retorna:
+            list[ColoniaRespuesta]: Lista de colonias existentes.
+        """
         colonias = await self.repositorio.obtener_colonias()
         return [ColoniaRespuesta.model_validate(colonia, from_attributes=True) for colonia in colonias]
     
     async def desactivar_colonia(self, colonia_codigo: int) -> ColoniaRespuesta:
+        """
+        Desactiva una colonia existente. Si una colonia tiene miembros, se desasocian los miembros
+        antes de desactivar la colonia, incluye el cambio de rol a usuario l+ider a usuario común.
+        Parámetros:
+            db (Session): Sesión activa de SQLAlchemy.
+            colonia_codigo (int): Código de la colonia a desactivar.
+        Retorna:
+            ColoniaRespuesta: La colonia desactivada.
+        Excepciones:
+            HTTPException 404: Si la colonia no existe en la base de datos.
+            HTTPException 409: Si la colonia ya está inactiva.
+        """
         colonia = await self.repositorio.obtener_colonia_por_id(colonia_codigo)
         if not colonia:
             raise ColoniaNoExistente(colonia_codigo)
@@ -111,6 +132,16 @@ class ColoniaService:
         colonia_desactivada = await self.repositorio.desactivar_colonia(colonia)
         return ColoniaRespuesta.model_validate(colonia_desactivada, from_attributes=True)
     
+    async def obtener_colonias_activas(self) -> list[ColoniaRespuesta]:
+        """
+        Obtiene la lista de colonias activas.
+        Parámetros:
+            db (Session): Sesión activa de SQLAlchemy.
+        Retorna:
+            list[ColoniaRespuesta]: Lista de colonias activas.
+        """
+        colonias_activas = await self.repositorio.obtener_colonias_activas()
+        return [ColoniaRespuesta.model_validate(colonia, from_attributes=True) for colonia in colonias_activas]
     async def cambiar_lider_colonia(self, colonia_codigo: int, nuevo_lider_id: int) -> ColoniaRespuesta:
         colonia = await self.repositorio.obtener_colonia_por_id(colonia_codigo)
         if not colonia:

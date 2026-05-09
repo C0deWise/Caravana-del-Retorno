@@ -25,7 +25,7 @@ from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
-from app.colonias.docs.docs_colonia import desactivar_colonia_docs, cambiar_lider_colonia_docs, sacar_miembro_colonia_docs
+from app.colonias.docs.docs_colonia import desactivar_colonia_docs, cambiar_lider_colonia_docs, sacar_miembro_colonia_docs, obtener_colonias_activas_docs
 
 from app.colonias.docs.docs_solicitud_colonia import (
     crear_solicitud_docs,
@@ -281,6 +281,13 @@ async def desactivar_colonia(
     """Endpoint para desactivar una colonia existente"""
     return await servicio.desactivar_colonia(colonia_codigo)
 
+@router.get(
+    "/colonias-activas/",
+    response_model=list[ColoniaRespuesta], **obtener_colonias_activas_docs
+)
+async def obtener_colonias_activas(servicio: ColoniaService = Depends(get_colonia_service)) -> list[ColoniaRespuesta]:
+    """Endpoint para obtener la lista de colonias activas"""
+    return await servicio.obtener_colonias_activas()
 @router.patch(
     "/cambiar-lider/{colonia_codigo}/",
     response_model=ColoniaRespuesta, **cambiar_lider_colonia_docs

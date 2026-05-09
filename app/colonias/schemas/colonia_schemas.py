@@ -84,7 +84,7 @@ class ColoniaRespuesta (BaseModel):
     departamento: Optional[str] = None
     ciudad: Optional[str] = None
     estado: ColoniaEstado
-    lider: Optional[int]= Field(default=None)
+    lider: Optional[int]= None
 
     model_config = {"from_attributes": True}
 

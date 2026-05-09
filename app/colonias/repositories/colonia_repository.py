@@ -64,6 +64,15 @@ class ColoniaRepository:
         return resultado.scalars().first()
 
     async def establecer_lider_colonia(self, colonia_codigo: int, lider_id: int) -> Colonia:
+        """
+        Establece un líder para una colonia existente.
+        Parámetros:
+            db (AsyncSession): Sesión activa de SQLAlchemy.
+            colonia_codigo (int): Código de la colonia a actualizar.
+            lider_id (int): ID del líder a asignar.
+        Retorna:
+            Colonia: La colonia actualizada con el nuevo líder.
+        """
         colonia = await self.obtener_colonia_por_id(colonia_codigo)
         colonia.lider = lider_id
         usuario = await self.db.get(Usuario, lider_id)
@@ -77,11 +86,39 @@ class ColoniaRepository:
         return colonia
       
     async def obtener_colonias(self) -> list[Colonia]:
+        """
+        Obtiene todas las colonias existentes en la base de datos.
+        Parámetros:
+            db (AsyncSession): Sesión activa de SQLAlchemy.
+        Retorna:
+            list[Colonia]: Lista de objetos Colonia existentes.
+        """
         sentencia = select(Colonia)
         resultado = await self.db.execute(sentencia)
         return resultado.scalars().all()
     
+    async def obtener_colonias_activas(self) -> list[Colonia]:
+        """
+        Obtiene todas las colonias activas en la base de datos.
+        Parámetros:
+            db (AsyncSession): Sesión activa de SQLAlchemy.
+        Retorna:
+            list[Colonia]: Lista de objetos Colonia activas.
+        """
+        sentencia = select(Colonia).filter(Colonia.estado == ColoniaEstado.ACTIVA)
+        resultado = await self.db.execute(sentencia)
+        return resultado.scalars().all()
+    
     async def tiene_miembros_colonia(self, colonia_codigo: int) -> bool:
+        """
+        Verifica si una colonia tiene miembros asociados. Identificando si el usuario 
+        tiene el número de colonia igual al código de la colonia.
+        Parámetros:
+            db (AsyncSession): Sesión activa de SQLAlchemy.
+            colonia_codigo (int): Código de la colonia a verificar.
+        Retorna:
+            bool: True si la colonia tiene miembros asociados, False en caso contrario.
+        """
         sentencia = select(Usuario).filter(Usuario.co_codigo == colonia_codigo)
         resultado = await self.db.execute(sentencia)
         if resultado.scalars().first():
@@ -90,6 +127,15 @@ class ColoniaRepository:
             return False
         
     async def sacar_miembros_colonia(self, colonia_codigo: int) -> list[Usuario]:
+        """
+        Desasocia todos los miembros de una colonia, estableciendo su co_codigo a None 
+        y cambiando su rol a usuario común si es necesario.
+        Parámetros:
+            db (AsyncSession): Sesión activa de SQLAlchemy.
+            colonia_codigo (int): Código de la colonia de la cual desasociar miembros.
+        Retorna:
+            list[Usuario]: Lista de usuarios desasociados.
+        """
         sentencia = select(Usuario).filter(Usuario.co_codigo == colonia_codigo)
         resultado = await self.db.execute(sentencia)
         usuarios = resultado.scalars().all()
@@ -108,11 +154,21 @@ class ColoniaRepository:
         return usuarios_desasociados
 
     async def desactivar_colonia(self, colonia: Colonia) -> Colonia:
+        """
+        Desactiva una colonia existente, estableciendo su estado a inactiva y su líder a None.
+        Parámetros:
+            db (AsyncSession): Sesión activa de SQLAlchemy.
+            colonia (Colonia): La colonia a desactivar.
+        Retorna:
+             Colonia: La colonia desactivada.
+        """
         colonia.estado = ColoniaEstado.INACTIVA
         colonia.lider = None
         await self.db.commit()
         await self.db.refresh(colonia)
         return colonia
+        
+
 
     async def cambiar_lider_colonia(self, colonia_codigo: int, nuevo_lider_id: int) -> Colonia:
         colonia = await self.obtener_colonia_por_id(colonia_codigo)
