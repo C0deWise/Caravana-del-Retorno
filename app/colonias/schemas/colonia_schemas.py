@@ -16,7 +16,7 @@ class ColoniaCrear (BaseModel):
     pais: str
     departamento: Optional[str] = None
     ciudad: Optional[str] = None
-    lider: Optional[int] = None
+    lider: Optional[int] = Field(default=None, gt=0, description="ID del usuario a asignar como líder de la colonia")
 
     @field_validator("pais", "departamento", "ciudad")
     @classmethod
@@ -44,6 +44,14 @@ class ColoniaCrear (BaseModel):
             #Permitir letras tildes, espacios y guiones únicamente
             if not re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-]+$", v):
                 raise ValueError("El campo solo puede contener letras.")
+
+        return v
+    
+    @field_validator("lider")
+    @classmethod
+    def lider_no_cero(cls, v):
+        if v == 0:
+            raise ValueError("El campo líder no puede ser 0. Debe ser null o un ID válido.")
         return v
     
     @model_validator(mode="after")

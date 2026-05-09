@@ -2,7 +2,10 @@
 Documentación para la función de desactivación de una colonia.
 """
 
-from fastapi import status
+from fastapi import status, Body
+from typing import Annotated
+
+from app.colonias.schemas.colonia_schemas import ColoniaCrear
 
 desactivar_colonia_docs = dict(
     status_code=status.HTTP_200_OK,
@@ -146,3 +149,36 @@ cambiar_lider_colonia_docs = dict(
         },
     },
 )
+
+crear_colonia_body = Annotated[
+    ColoniaCrear,
+    Body(
+        openapi_examples={
+            "ejemplo_colombia": {
+                "summary": "Colonia en Colombia",
+                "value": {
+                    "pais": "Colombia",
+                    "departamento": "Cauca",
+                    "ciudad": "Popayán",
+                    "lider": None
+                }
+            },
+            "ejemplo_extranjera": {
+                "summary": "Colonia extranjera",
+                "value": {
+                    "pais": "Argentina",
+                    "lider": None
+                }
+            },
+            "ejemplo_con_lider": {
+                "summary": "Colonia con líder asignado",
+                "value": {
+                    "pais": "Colombia",
+                    "departamento": "Cundinamarca",
+                    "ciudad": "Bogotá",
+                    "lider": 2
+                }
+            },
+        }
+    )
+]

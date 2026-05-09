@@ -19,7 +19,7 @@ from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear
 from app.colonias.services.colonia_services import ColoniaService
 from app.colonias.services.solicitud_colonias_services import SolicitudColoniaService
 from app.usuarios.services.usuario_servicio import UsuarioServicio
-from app.colonias.docs.docs_colonia import desactivar_colonia_docs, cambiar_lider_colonia_docs
+from app.colonias.docs.docs_colonia import desactivar_colonia_docs, cambiar_lider_colonia_docs, crear_colonia_body
 
 from app.colonias.docs.docs_solicitud_colonia import (
     crear_solicitud_docs,
@@ -83,7 +83,7 @@ router = APIRouter()
         }
     }
 )
-async def crear_colonia(datos: ColoniaCrear, servicio: ColoniaService = Depends(get_colonia_service)):
+async def crear_colonia(datos: crear_colonia_body, servicio: ColoniaService = Depends(get_colonia_service)):
     """Endpoint para crear una nueva colonia"""
     return await servicio.servicio_crear_colonia(datos)
 

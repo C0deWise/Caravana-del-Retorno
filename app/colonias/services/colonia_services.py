@@ -81,7 +81,7 @@ class ColoniaService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Usuario con ID {lider_id} no encontrado")
         
-        if colonia.lider != 0:
+        if colonia.lider is not None:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail=f"La colonia con código {colonia_codigo} ya tiene un líder asignado")
 
