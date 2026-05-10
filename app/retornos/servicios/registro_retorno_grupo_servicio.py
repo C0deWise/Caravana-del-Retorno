@@ -60,7 +60,7 @@ class RegistroRetornoGrupoServicio:
         num_usuarios_adicionales = await self.repositorio_usuario_grupo.contar_miembros_adicionales(datos.cod_grupo)
         personas_en_grupo = await self.repositorio_persona.obtener_personas_por_grupo(datos.cod_grupo)
         num_personas = len(personas_en_grupo)
-        total_integrantes_adicionales = num_usuarios_adicionales + num_personas
+        total_integrantes_adicionales = num_usuarios_adicionales + num_personas + 1 # +1 para incluir al líder en el conteo total de integrantes del grupo
         if total_integrantes_adicionales < 1:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -95,6 +95,8 @@ class RegistroRetornoGrupoServicio:
             )
 
         registro = await self.repositorio_registro_grupo.crear_registro_grupo_retorno(datos)
+        #asociar al lider con el grupo de retorno registrado
+        await self.repositorio_usuario_grupo.asociar_usuario_a_grupo_retorno(grupo.us_codigo_lider, datos.cod_grupo)
         return RegistroRetornoGrupoRespuesta.model_validate(registro)
 
     async def obtener_usuarios_por_grupo(self, gr_codigo: int) -> list[UsuarioSalida]:
