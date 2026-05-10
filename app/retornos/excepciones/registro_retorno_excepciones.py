@@ -14,6 +14,12 @@ class RetornoNoExistente(HTTPException):
             detail=f"El retorno con código {retorno_id} no existe."
         )
 
+class NoHayColonias(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No se encontraron colonias."
+        )
 class RetornoEstadoInvalido(HTTPException):
     def __init__(self, retorno_id: int, retorno_estado: str):
         super().__init__(

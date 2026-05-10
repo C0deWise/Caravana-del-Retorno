@@ -13,6 +13,7 @@ from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from app.colonias.excepciones.excepciones import ColoniaNoExistente
 from app.reportes.mapper.mapper import RegistroRetornoGrupoDetalladoMapper, RegistroRetornoIndividualDetalladoMapper
 from app.reportes.models.necesidades_totales_modelo import NecesidadesTotales
 from app.reportes.repositories.colonia_reporte_repositorio import ColoniaReporteRepositorio
@@ -20,6 +21,7 @@ from app.reportes.repositories.grupo_retorno_reporte_repositorio import GrupoRep
 from app.reportes.repositories.persona_reporte_repositorio import PersonaReporteRepositorio
 from app.reportes.repositories.usuario_retorno_reporte_repositorio import UsuarioRetornoReporteRepositorio
 from app.reportes.utils.pdf_utils import render_to_pdf
+from app.retornos.excepciones.registro_retorno_excepciones import NoHayColonias, RetornoNoExistente
 from app.retornos.modelos.retorno_grupo_usuario_modelo import Edades
 from app.usuarios.models.usuario import Genero
 
@@ -39,6 +41,13 @@ class ReportesService:
         self.repositorio_persona = repositorio_persona
 
     async def generar_reporte_asistencia_retorno_colonia(self, request: Request, cod_colonia:int, cod_retorno:int):
+       
+        retorno = await self.repositorio_colonia.obtener_retorno(cod_retorno)
+        if retorno is None:
+            raise RetornoNoExistente(cod_retorno)
+        colonia = await self.repositorio_colonia.obtener_colonia(cod_colonia)
+        if colonia is None:
+            raise ColoniaNoExistente(cod_colonia)
         lider_colonia = await self.repositorio_colonia.obtener_lider_colonia(cod_colonia)
         colonia = await self.repositorio_colonia.obtener_colonia(cod_colonia)
         retorno = await self.repositorio_colonia.obtener_retorno(cod_retorno)
@@ -119,10 +128,17 @@ class ReportesService:
         )
 
     async def generar_reporte_general_retorno(self, request: Request,cod_retorno:int):
+        retorno = await self.repositorio_colonia.obtener_retorno(cod_retorno)
+        if retorno is None:
+            raise RetornoNoExistente(cod_retorno)
+        
         colonias = list(await self.repositorio_colonia.obtener_colonias())
+        if colonias is None or len(colonias) == 0:
+            raise NoHayColonias()
+        
         asistencia_colonia = []
         for colonia in colonias:
-            logger.info(f"Colonia:{colonia.co_ciudad}")
+            logger.info(f"Colonia:{colonia.ciudad}")
             cantidad_asistentes_individuales = await self.repositorio_usuario.obtener_cantidad_asistentes_individuales_retorno(cod_retorno, colonia.codigo)
             logger.info(f"cantidad asistentes individuales: {cantidad_asistentes_individuales}" )
             cantidad_asistentes_usuario_grupo = await self.repositorio_grupo.obtener_cantidad_asistentes_retorno(colonia.codigo, cod_retorno)
@@ -131,7 +147,7 @@ class ReportesService:
             logger.info(f"cantidad asistentes persona grupo: {cantidad_asistentes_individuales}")
             cantidad_asistentes = cantidad_asistentes_individuales + cantidad_asistentes_usuario_grupo + cantidad_asistentes_persona_grupo
             asistencia_colonia.append({
-                "colonia": colonia.co_ciudad,
+                "colonia": colonia.ciudad,
                 "cantidad_asistentes": cantidad_asistentes})
             cantidad_asistentes = 0
 
