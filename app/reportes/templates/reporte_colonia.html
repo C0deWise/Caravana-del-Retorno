@@ -323,7 +323,7 @@
   <div class="header">
     <div>
       <div class="header-title">Reporte de Asistencia al Retorno</div>
-      <div class="header-sub">Colonia: {{ colonia.co_ciudad if colonia.co_ciudad else colonia.co_pais }}</div>
+      <div class="header-sub">Colonia: {{ colonia.ciudad if colonia.ciudad else colonia.pais }}</div>
       <div class="header-sub">Retorno: {{ retorno.anio if retorno.anio else "—" }}</div>
     </div>
     <div class="header-right">
