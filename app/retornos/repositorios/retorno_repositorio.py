@@ -6,7 +6,7 @@ sin incluir lógica de negocio.
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.retornos.modelos.retorno_modelo import Retorno
-from app.retornos.esquemas.retorno_esquemas import RetornoCreate
+from app.retornos.esquemas.retorno_esquemas import RetornoCreate, RetornoEstado
 import datetime
 
 
@@ -45,4 +45,20 @@ class RetornoRepository:
     async def get_by_anio(self, anio: int) -> Retorno | None:
         """Busca un retorno existente por año."""
         result = await self.db.execute(select(Retorno).filter(Retorno.anio == anio))
+        return result.scalars().first()
+    
+    async def cambiar_estado_retorno(self, codigo: int, nuevo_estado: RetornoEstado) -> Retorno | None:
+        """Actualiza el estado de un retorno existente."""
+        retorno = await self.get_by_codigo(codigo)
+        if retorno:
+            retorno.estado = nuevo_estado.value
+            self.db.add(retorno)
+            await self.db.commit()
+            await self.db.refresh(retorno)
+            return retorno
+        return None
+
+    async def obtener_ultimo_retorno(self) -> Retorno | None:
+        """Obtiene el retorno más reciente basado en el año."""
+        result = await self.db.execute(select(Retorno).order_by(Retorno.anio.desc()).limit(1))
         return result.scalars().first()

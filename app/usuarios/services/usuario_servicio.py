@@ -22,7 +22,7 @@ class UsuarioServicio:
     Servicio para gestionar la lógica de negocio de los usuarios.
     """
 
-    def __init__(self, repositorio: UsuarioRepositorio, repositorio_parentesco: ParentescoRepositorio = None) -> None:
+    def __init__(self, repositorio: UsuarioRepositorio, repositorio_parentesco: ParentescoRepositorio | None = None) -> None:
         """
         Inicializa el servicio con un repositorio de usuarios.
 
@@ -110,6 +110,21 @@ class UsuarioServicio:
         """
         return await self.repositorio.buscar_por_documento(documento)
 
+    async def obtener_por_id(self, usuario_id: int) -> Usuario | None:
+        """
+        Obtiene un usuario por su ID.
+
+        Args:
+            usuario_id (int): El ID del usuario a buscar.
+
+        Returns:
+            Usuario | None: El usuario encontrado o None si no existe.
+        """
+        usuario = await self.repositorio.obtener_usuario_por_id(usuario_id)
+        if not usuario:
+            raise ValueError(f"No se encontró un usuario con ID {usuario_id}.")
+        return usuario
+    
     async def existe_usuario(self, campo: str, valor: str) -> bool:
         """
         Verifica si un usuario ya existe basado en un campo y valor específicos.

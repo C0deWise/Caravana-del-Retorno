@@ -12,6 +12,7 @@ import datetime
 class RetornoEstado(str, Enum):
     """Estados permitidos para un evento de Retorno."""
     ACTIVO = "activo"
+    EN_CURSO = "en_curso"
     FINALIZADO = "finalizado"
 
 
@@ -20,6 +21,9 @@ class RetornoCreate(BaseModel):
     anio: int = Field(..., examples=[datetime.date.today().year], description="Año del retorno. No puede ser anterior al año actual.")
     estado: RetornoEstado = Field(default=RetornoEstado.ACTIVO, examples=[RetornoEstado.ACTIVO], description="Estado del retorno")
 
+class CambiarEstadoRetorno(BaseModel):
+    """Daatos requeridos para cambiar el estado de un retorno"""
+    estado: RetornoEstado = Field(..., description="Nuevo estado del retorno")
 
 class RetornoResponse(BaseModel):
     """Datos retornados tras crear o consultar un retorno."""

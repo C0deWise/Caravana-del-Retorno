@@ -14,10 +14,16 @@ from app.colonias.models.colonia_model import Colonia
 from app.usuarios.models.usuario import Rol
 from app.usuarios.models.usuario import Usuario
 from app.usuarios.models.parentesco import Parentesco
-from app.retornos.api.v1.endpoints.retorno_router import router as retornos_router
 from app.colonias.models.solicitud_colonia import SolicitudColonia
 from app.retornos.modelos.registro_retorno_modelo import RegistroRetorno
+from app.retornos.modelos.retorno_modelo import Retorno
+from app.retornos.modelos.grupo_retorno_modelo import GrupoRetorno
+from app.retornos.modelos.persona_modelo import Persona
+from app.retornos.modelos.registro_retorno_grupo_modelo import RegistroRetornoGrupo
+from app.retornos.modelos.retorno_grupo_usuario_modelo import RetornoGrupoUsuario
+from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
 from scripts.seed_roles import seed_roles
+from scripts.seed_data import seed_data
 import app.core.scheduler as scheduler
 
 logging.basicConfig(
@@ -28,19 +34,27 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
-# ─────────────────────────────────────────
+
 #  Lifespan
-# ─────────────────────────────────────────
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting %s v%s...", settings.APP_NAME, settings.APP_VERSION)
     await check_db_connection()
+    
+    # IMPORTANTE: No usar create_tables() junto con Alembic. 
+    # Alembic gestiona la creación mediante 'alembic upgrade head' en el entrypoint.sh.
+    
     print(">>> lifespan ejecutándose")
     
     # Ejecutar seed de roles automáticamente al iniciar la app
     logger.info("Verificando e insertando roles iniciales...")
     await seed_roles()
+    
+    # Ejecutar seed de datos de prueba
+    logger.info("Cargando datos de prueba...")
+    await seed_data()
 
     logger.info("Application ready.")
 
@@ -64,7 +78,7 @@ app = FastAPI(
 )
 
 
-# ─────────────────────────────────────────
+
 #  Middleware
 # ─────────────────────────────────────────
 app.add_middleware(
@@ -81,11 +95,15 @@ app.add_middleware(
 # ─────────────────────────────────────────
 # esta seccion esta destinada a los routers de la aplicacion
 from app.colonias.api.v1.router import router as colonia_router
-from app.retornos.api.v1.endpoints.retorno_router import router as retornos_router
+from app.retornos.api.v1.router import api_router as retornos_module_router
 from app.usuarios.api.v1.usuario_router import router as usuario_router
-app.include_router(colonia_router, prefix="/api/v1")
-app.include_router(usuario_router, prefix="/api/v1")
-app.include_router(retornos_router, prefix="/api/v1")
+from app.reportes.api.v1.router import router as reportes_router
+prefix = "/api/v1"
+app.include_router(colonia_router, prefix=prefix)
+app.include_router(usuario_router, prefix=prefix)
+app.include_router(retornos_module_router, prefix=prefix)
+app.include_router(reportes_router, prefix=prefix)
+
 
 # ─────────────────────────────────────────
 #  Core endpoints
