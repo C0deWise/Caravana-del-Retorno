@@ -1,17 +1,19 @@
 from fastapi import HTTPException, status
 
-from app.multimedia.config import EXTENSIONES_IMAGEN, EXTENSIONES_VIDEO
+from app.multimedia.config import EXTENSIONES_POR_TIPO
 
 
 class TipoArchivoNoValidoError(HTTPException):
     def __init__(self):
-        extensiones_imagen = ','.join(EXTENSIONES_IMAGEN)
-        extensiones_video = ','.join(EXTENSIONES_VIDEO)
+        extensiones_imagen = ','.join(EXTENSIONES_POR_TIPO.get("imagen", []))
+        extensiones_video = ','.join(EXTENSIONES_POR_TIPO.get("video", []))
+        extensiones_documento = ','.join(EXTENSIONES_POR_TIPO.get("documento", []))
         super().__init__(
             status_code = status.HTTP_400_BAD_REQUEST,
             detail = f"Tipo de archivo no permitido. Solo se permiten: "
                 f"imágenes ({extensiones_imagen}) o "
-                f"videos ({extensiones_video})"
+                f"videos ({extensiones_video}) o "
+                f"documentos ({extensiones_documento})"
         )
 
 class RetornoNoExistenteError(HTTPException):

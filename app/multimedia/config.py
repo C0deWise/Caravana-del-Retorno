@@ -1,13 +1,13 @@
-from enum import Enum
-
-class TipoMultimedia(str, Enum):
-    IMAGEN = "imagen"
-    VIDEO = "video"
-
-EXTENSIONES_IMAGEN = {'.jpg', '.jpeg', '.png', '.gif'}
-EXTENSIONES_VIDEO = {'.mp4', '.avi', '.mov', '.mkv'}
+from app.multimedia.modelos.multimedia_modelo import FormatoMultimedia, TipoMultimedia
 
 EXTENSIONES_POR_TIPO = {
-    TipoMultimedia.IMAGEN: EXTENSIONES_IMAGEN,
-    TipoMultimedia.VIDEO: EXTENSIONES_VIDEO
+    (TipoMultimedia.IMAGEN, FormatoMultimedia.JPG): [".jpg"],
+    (TipoMultimedia.IMAGEN, FormatoMultimedia.JPEG): [".jpeg"],
+    (TipoMultimedia.IMAGEN, FormatoMultimedia.PNG): [".png"],
+    (TipoMultimedia.IMAGEN, FormatoMultimedia.GIF): [".gif"],
+    (TipoMultimedia.VIDEO, FormatoMultimedia.MP4): [".mp4"],
+    (TipoMultimedia.VIDEO, FormatoMultimedia.AVI): [".avi"],
+    (TipoMultimedia.VIDEO, FormatoMultimedia.MOV): [".mov"],
+    (TipoMultimedia.VIDEO, FormatoMultimedia.MKV): [".mkv"],
+    (TipoMultimedia.DOCUMENTO, FormatoMultimedia.PDF): [".pdf"],
 }

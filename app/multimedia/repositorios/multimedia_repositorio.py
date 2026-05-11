@@ -10,17 +10,19 @@ class MultimediaRepositorio:
 
     async def crear_multimedia(self, data:MultimediaCrear) -> Multimedia:
         nuevo_multimedia = Multimedia(
-            retorno=data.retorno,
+            publicacion=data.publicacion,
             tipo=data.tipo,
+            formato=data.formato,
             url=data.url,
-            nombre_archivo=data.nombre_archivo
+            descripcion=data.descripcion
         )
         self.db.add(nuevo_multimedia)
+        print(f"Multimedia agregado a la sesión: {nuevo_multimedia}")
         await self.db.commit()
         await self.db.refresh(nuevo_multimedia)
         return nuevo_multimedia
     
-    async def obtener_multimedia_por_retorno(self, retorno_id: int) -> list[Multimedia]:
-        query = select(Multimedia).where(Multimedia.retorno == retorno_id)
+    async def obtener_multimedia_por_publicacion(self, publicacion_id: int) -> list[Multimedia]:
+        query = select(Multimedia).where(Multimedia.publicacion == publicacion_id)
         resultado = await self.db.execute(query)
         return resultado.scalars().all()

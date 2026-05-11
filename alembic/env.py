@@ -39,7 +39,7 @@ from app.retornos.modelos.registro_retorno_grupo_modelo import RegistroRetornoGr
 from app.retornos.modelos.retorno_grupo_usuario_modelo import RetornoGrupoUsuario
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
 from app.retornos.modelos.persona_grupo_retorno_modelo import persona_grupo_retorno
-
+from app.publicacion.modelos.publicacion_modelo import Publicacion
 
 # Verificar que los modelos se cargan correctamente
 print("Modelos detectados:", list(Base.metadata.tables.keys()))

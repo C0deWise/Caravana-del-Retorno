@@ -23,6 +23,7 @@ from app.retornos.modelos.persona_modelo import Persona
 from app.retornos.modelos.registro_retorno_grupo_modelo import RegistroRetornoGrupo
 from app.retornos.modelos.retorno_grupo_usuario_modelo import RetornoGrupoUsuario
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
+from app.publicacion.modelos.publicacion_modelo import Publicacion
 from scripts.seed_roles import seed_roles
 import app.core.scheduler as scheduler
 
@@ -94,12 +95,13 @@ from app.colonias.api.v1.router import router as colonia_router
 from app.retornos.api.v1.router import api_router as retornos_module_router
 from app.usuarios.api.v1.usuario_router import router as usuario_router
 from app.multimedia.api.v1.endpoints.multimedia_router import router as multimedia_router
+from app.publicacion.api.v1.endpoints.publicacion_router import router as publicacion_router
 prefix = "/api/v1"
 app.include_router(colonia_router, prefix=prefix)
 app.include_router(usuario_router, prefix=prefix)
 app.include_router(retornos_module_router, prefix=prefix)
 app.include_router(multimedia_router, prefix=prefix)
-
+app.include_router(publicacion_router, prefix=prefix)
 
 # ─────────────────────────────────────────
 #  Core endpoints

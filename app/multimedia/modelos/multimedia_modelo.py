@@ -1,16 +1,47 @@
+import enum
+
 from sqlalchemy import Integer, String, DateTime, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
 from app.core.database import Base
 
+class TipoMultimedia(str, enum.Enum):
+    IMAGEN = "imagen"
+    VIDEO = "video"
+    DOCUMENTO = "documento"
+class FormatoMultimedia(str, enum.Enum):
+    JPG = "jpg"
+    JPEG = "jpeg"
+    PNG = "png"
+    GIF = "gif"
+    MP4 = "mp4"
+    AVI = "avi"
+    MOV = "mov"
+    MKV = "mkv"
+    PDF = "pdf"
+    EMBED = "embed"
 
 class Multimedia(Base):
     __tablename__ = "multimedia"
 
-    codigo: Mapped[int] = mapped_column("mm_codigo", Integer, primary_key=True, autoincrement=True)
-    retorno: Mapped[int] = mapped_column("re_codigo", Integer, ForeignKey("retorno.codigo"), nullable=False)
-    tipo: Mapped[str] = mapped_column("mm_tipo", String(10), nullable=False)
-    url: Mapped[str] = mapped_column("mm_url", String(500), nullable=False)
-    nombre_archivo: Mapped[str] = mapped_column("mm_nombre_archivo", String(255), nullable=False)
-    fecha_creacion: Mapped[datetime] = mapped_column("mm_fecha_creacion", DateTime, default=datetime.utcnow)
+    codigo: Mapped[int] = mapped_column("mu_codigo", Integer, primary_key=True, autoincrement=True)
+    publicacion: Mapped[int] = mapped_column("pu_codigo", Integer, ForeignKey("publicacion.pu_codigo"), nullable=False)
+    tipo: Mapped[TipoMultimedia] = mapped_column("mu_tipo", SQLEnum(TipoMultimedia, name="tipomultimedia", create_type=True), nullable=False)
+    formato: Mapped[FormatoMultimedia] = mapped_column("mu_formato", SQLEnum(FormatoMultimedia, name="formatomultimedia", create_type=True), nullable=False)
+    url: Mapped[str] = mapped_column("mu_url", String(500), nullable=False)
+    descripcion: Mapped[str] = mapped_column("mu_descripcion", String(255), nullable=False)
+
+    publicacion_ref: Mapped["Publicacion"] = relationship(
+        "Publicacion", 
+        back_populates="multimedia_lista"
+    )
+
+    def __repr__(self) -> str:
+        """Representación en cadena del objeto Multimedia."""
+        return (
+            f"Multimedia(codigo={self.codigo!r}, publicacion={self.publicacion!r}, "
+            f"tipo={self.tipo!r}, formato={self.formato!r}, url={self.url!r}, "
+            f"descripcion={self.descripcion!r})"
+        )
