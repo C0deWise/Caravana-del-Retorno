@@ -8,14 +8,14 @@ from app.colonias.excepciones.excepciones import ColoniaInactiva, ColoniaNoExist
 from app.colonias.models.colonia_model import ColoniaEstado
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.colonias.excepciones.excepciones import (
-    AutoRemocionUsuarioColonia,
-    ColoniaInactiva, 
-    ColoniaNoExistente,
-    ColoniaSinLiderAsignado,
-    UsuarioNoExistente, 
-    UsuarioYaEsLider,
-    UsuarioNoEsMiembroColonia,
-    UsuarioInscritoRetornoActivo)
+AutoRemocionUsuarioColonia,
+ColoniaInactiva, 
+ColoniaNoExistente,
+ColoniaSinLiderAsignado,
+UsuarioNoExistente, 
+UsuarioYaEsLider,
+UsuarioNoEsMiembroColonia,
+UsuarioInscritoRetornoActivo)
 from app.colonias.models.colonia_model import ColoniaEstado
 from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta, UsuarioRemovidoColonia, UsuarioRemovidoColoniaRespuesta
 from app.colonias.repositories.colonia_repository import ColoniaRepository
@@ -80,7 +80,9 @@ class ColoniaService:
         if not colonia:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Colonia con código {colonia_codigo} no encontrada")
-        
+        if colonia.estado == ColoniaEstado.INACTIVA:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail=f"La colonia con código {colonia_codigo} está inactiva")
         usuario_lider = await self.usuario_servicio.obtener_usuario_por_id(lider_id)
         if not usuario_lider:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -168,7 +170,8 @@ class ColoniaService:
         colonia = await self.repositorio.obtener_colonia_por_id(colonia_codigo)
         if not colonia:
             raise ColoniaNoExistente(colonia_codigo)
-        
+        if colonia.estado == ColoniaEstado.INACTIVA:
+            raise ColoniaInactiva(colonia_codigo)
         if colonia.lider is None:
             raise ColoniaSinLiderAsignado(colonia_codigo)
         

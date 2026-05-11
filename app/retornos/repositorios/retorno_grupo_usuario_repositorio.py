@@ -14,8 +14,11 @@ class RetornoGrupoUsuarioRepositorio:
     
     async def asociar_usuario_a_grupo_retorno(self, usuario_id: int, grupo_retorno_id: int):
         """Asocia un usuario a un grupo de retorno específico."""
-        # Aquí se implementaría la lógica para crear una asociación entre el usuario y el grupo de retorno en la base de datos.
-        pass
+        asociacion = RetornoGrupoUsuario(us_codigo=usuario_id, gr_codigo=grupo_retorno_id)
+        self.db.add(asociacion)
+        await self.db.commit()
+        await self.db.refresh(asociacion)
+        return asociacion
 
     async def darse_de_baja_de_grupo_retorno(self, usuario_id: int, grupo_retorno_id: int):
         """Permite a un usuario darse de baja de un grupo de retorno específico."""

@@ -29,7 +29,7 @@ class SolicitudColoniaRepository:
         resultado = await self.db.execute(
             select(Colonia)
             .where(
-                Colonia.co_codigo == cod_colonia,
+                Colonia.codigo == cod_colonia,
             )
         )
         colonia = resultado.scalar_one_or_none()
@@ -96,7 +96,7 @@ class SolicitudColoniaRepository:
         return solicitud
     
     async def obtener_solicitudes_recientes_por_colonia(self, cod_colonia: int) -> list[SolicitudColonia]:
-        limite = datetime.datetime.now(timezone.utc) - timedelta(days=30)
+        limite = datetime.now() - timedelta(days=30)
         resultado = await self.db.execute(
             select(SolicitudColonia)
             .where(
@@ -108,7 +108,7 @@ class SolicitudColoniaRepository:
         return resultado.scalars().all()
  
     async def obtener_solicitudes_recientes_por_usuario(self, cod_usuario: int) -> list[SolicitudColonia]:
-        limite = datetime.datetime.now(timezone.utc) - timedelta(days=30)
+        limite = datetime.now() - timedelta(days=30)
         resultado = await self.db.execute(
             select(SolicitudColonia)
             .where(
@@ -120,7 +120,7 @@ class SolicitudColoniaRepository:
         return resultado.scalars().all()
  
     async def expirar_pendientes(self) -> int:
-        limite = datetime.utcnow() - timedelta(days=30)
+        limite = datetime.now() - timedelta(days=30)
         resultado = await self.db.execute(
             update(SolicitudColonia)
             .where(

@@ -40,8 +40,10 @@ class RegistroRetornoRepositorio:
             registro.num_hospedaje = datos_actualizados.num_hospedaje
         if datos_actualizados.num_transporte is not None:
             registro.num_transporte = datos_actualizados.num_transporte
-        if datos_actualizados.num_parqueadero is not None:
-            registro.num_parqueadero = datos_actualizados.num_parqueadero
+        if datos_actualizados.num_parqueadero_moto is not None:
+            registro.num_parqueadero_moto = datos_actualizados.num_parqueadero_moto
+        if datos_actualizados.num_parqueadero_carro is not None:
+            registro.num_parqueadero_carro = datos_actualizados.num_parqueadero_carro
         if datos_actualizados.anotacion is not None:
             registro.anotacion = datos_actualizados.anotacion
 

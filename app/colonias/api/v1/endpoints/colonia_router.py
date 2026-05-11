@@ -8,10 +8,11 @@
 
 from fastapi import APIRouter, Depends, status, Response
 from typing import Union
+from app.colonias.models.colonia_model import ColoniaEstado
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.schemas.usuario_esquemas import UsuarioConsultaColonia
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.colonias.excepciones.excepciones import ColoniaNoEncontrada, UsuarioNoEncontrado
+from app.colonias.excepciones.excepciones import ColoniaInactiva, ColoniaNoEncontrada, UsuarioNoEncontrado
 from typing import Annotated
 from app.colonias.services.colonia_services import ColoniaService
 from sqlalchemy.orm import Session
@@ -204,8 +205,12 @@ async def crear_solicitud_colonia(
     
     if not await servicio_usuario.existe_usuario("us_codigo", datos.codigo_usuario):
         raise UsuarioNoEncontrado(datos.codigo_usuario)
-    if not await servicio_colonia.obtener_colonia(datos.codigo_colonia):
+    colonia = await servicio_colonia.obtener_colonia(datos.codigo_colonia)
+    if not colonia:
         raise ColoniaNoEncontrada(datos.codigo_colonia)
+    if colonia.estado == ColoniaEstado.INACTIVA:
+        raise ColoniaInactiva(datos.codigo_colonia)
+    
         
     resultado = await servicio.crear_solicitud(datos)
     
