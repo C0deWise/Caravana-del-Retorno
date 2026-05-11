@@ -10,18 +10,18 @@ import logging
 
 from app.core.config import get_settings
 from app.core.database import check_db_connection, create_tables
-from app.colonias.models.colonia_model import Colonia  
 from app.usuarios.models.usuario import Rol
-from app.usuarios.models.usuario import Usuario
 from app.usuarios.models.parentesco import Parentesco
+from app.colonias.models.colonia_model import Colonia
 from app.colonias.models.solicitud_colonia import SolicitudColonia
-from app.retornos.modelos.registro_retorno_modelo import RegistroRetorno
 from app.retornos.modelos.retorno_modelo import Retorno
+from app.retornos.modelos.registro_retorno_modelo import RegistroRetorno
 from app.retornos.modelos.grupo_retorno_modelo import GrupoRetorno
 from app.retornos.modelos.persona_modelo import Persona
 from app.retornos.modelos.registro_retorno_grupo_modelo import RegistroRetornoGrupo
 from app.retornos.modelos.retorno_grupo_usuario_modelo import RetornoGrupoUsuario
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
+from app.retornos.modelos.persona_grupo_retorno_modelo import persona_grupo_retorno
 from scripts.seed_roles import seed_roles
 from scripts.seed_data import seed_data
 import app.core.scheduler as scheduler
@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI):
     # Alembic gestiona la creación mediante 'alembic upgrade head' en el entrypoint.sh.
     
     print(">>> lifespan ejecutándose")
-    
+    #await create_tables()  # Solo para desarrollo, en producción usar Alembic
     # Ejecutar seed de roles automáticamente al iniciar la app
     logger.info("Verificando e insertando roles iniciales...")
     await seed_roles()

@@ -3,6 +3,7 @@ import logging
 from datetime import datetime, date
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy import func, select
 
 import sys
 import os
@@ -58,6 +59,21 @@ async def seed_data() -> None:
     async with async_session() as db:
         try:
             logger.info("Iniciando seed de datos...")
+
+            # ═════════════════════════════════════════
+            # VALIDACIÓN: Verificar si los datos ya existen
+            # ═════════════════════════════════════════
+            colonia_count_query = select(func.count(Colonia.codigo))
+            result = await db.execute(colonia_count_query)
+            colonia_count = result.scalar()
+            
+            if colonia_count > 0:
+                logger.info("════════════════════════════════════════")
+                logger.info("⚠ Datos de seed ya existen en la base de datos")
+                logger.info(f"  • Colonias encontradas: {colonia_count}")
+                logger.info("  • Omitiendo ejecución de seed de datos")
+                logger.info("════════════════════════════════════════")
+                return
 
             # ═════════════════════════════════════════
             # 1. CREAR COLONIAS
