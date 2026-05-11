@@ -15,16 +15,9 @@ if config.config_file_name is not None:
 from app.core.database import Base
 # Aqui importas tus modelos para que Alembic pueda detectarlos
 # from app.models import Usuario, Colonia, Rol etc...
-from app.usuarios.models.usuario import Usuario
-from app.colonias.models.colonia_model import Colonia
-from app.usuarios.models.usuario import Rol
-from app.usuarios.models.parentesco import Parentesco
-from app.colonias.models.solicitud_colonia import SolicitudColonia
-from app.retornos.modelos.retorno_modelo import Retorno
-from app.retornos.modelos.registro_retorno_modelo import RegistroRetorno
 
 # Importación de modelos para que Alembic los detecte
-from app.usuarios.models.usuario import Usuario, Rol
+from app.usuarios.models.usuario import Rol
 from app.usuarios.models.parentesco import Parentesco
 from app.colonias.models.colonia_model import Colonia
 from app.colonias.models.solicitud_colonia import SolicitudColonia
