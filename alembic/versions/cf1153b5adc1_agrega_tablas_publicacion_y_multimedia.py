@@ -1,8 +1,8 @@
 """Agrega tablas publicacion y multimedia
 
-Revision ID: f34c444c4f8e
-Revises: 073dfca8eded
-Create Date: 2026-05-11 03:25:15.211242
+Revision ID: cf1153b5adc1
+Revises: 90e12dc4b0ee
+Create Date: 2026-05-11 06:05:42.023029
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'f34c444c4f8e'
-down_revision: Union[str, Sequence[str], None] = '073dfca8eded'
+revision: str = 'cf1153b5adc1'
+down_revision: Union[str, Sequence[str], None] = '90e12dc4b0ee'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
