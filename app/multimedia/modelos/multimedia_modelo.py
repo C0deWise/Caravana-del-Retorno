@@ -1,3 +1,10 @@
+"""
+Modulo de modelos para la gestión de multimedia en la aplicación. Contiene la clase Multimedia, que representa
+un archivo multimedia asociado a una publicación específica, con atributos como tipo, formato, URL y descripción.
+También se definen los enumerados TipoMultimedia y FormatoMultimedia para restringir los valores permitidos en los
+campos correspondientes.
+"""
+
 import enum
 
 from sqlalchemy import Integer, String, DateTime, ForeignKey

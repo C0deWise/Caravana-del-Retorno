@@ -1,3 +1,10 @@
+"""
+Modulo de modelos para la gestión de publicaciones en la aplicación. Contiene la clase Publicacion, que representa
+la entidad de una publicación en la base de datos. Esta clase define los atributos de una publicación, como su código,
+retorno asociado, autor, reseña, título, fecha de creación y la relación con los archivos multimedia asociados a la 
+publicación.
+"""
+
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime

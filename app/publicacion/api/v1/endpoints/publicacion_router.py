@@ -10,6 +10,7 @@ from app.multimedia.servicios.multimedia_servicio import MultimediaServicio
 from app.retornos.servicios.retorno_servicio import RetornoService
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.services.usuario_servicio import UsuarioServicio
+from app.publicacion.docs.docs_publicacion import crear_publicacion_docs, obtener_publicaciones_retorno_docs
 
 def get_publicacion_servicio(db: Annotated[AsyncSession, Depends(get_db)]):
     publicacion_repositorio = PublicacionRepositorio(db)
@@ -29,7 +30,7 @@ router = APIRouter()
 
 @router.post(
     "/crear-publicacion/",
-    response_model=PublicacionRespuesta,
+    response_model=PublicacionRespuesta, **crear_publicacion_docs
 )
 async def crear_publicacion(
     retorno_id: Annotated[int, Form(...)],
@@ -49,7 +50,7 @@ async def crear_publicacion(
 
 @router.get(
     "/obtener-publicaciones-retorno/{retorno_id}/",
-    response_model=List[PublicacionRespuesta],
+    response_model=List[PublicacionRespuesta], **obtener_publicaciones_retorno_docs
 )
 async def consultar_publicaciones_por_retorno(
     retorno_id: int,
