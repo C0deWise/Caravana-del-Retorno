@@ -60,3 +60,19 @@ class PersonaServicio:
     async def listar_personas_por_grupo(self, gr_codigo: int) -> List[PersonaRespuesta]:
         personas = await self.repositorio.obtener_personas_por_grupo(gr_codigo)
         return [PersonaRespuesta.model_validate(p) for p in personas]
+    
+    async def listar_personas(self) -> List[PersonaRespuesta]:
+        personas = await self.repositorio.obtener_todas_las_personas()
+        return [PersonaRespuesta.model_validate(p) for p in personas]
+    
+    async def obtener_persona_por_id(self, pe_codigo: int) -> PersonaRespuesta|None:
+        persona = await self.repositorio.obtener_por_id(pe_codigo)
+        if not persona:
+            raise HTTPException(status_code=404, detail="Persona no encontrada.")
+        return PersonaRespuesta.model_validate(persona)
+    
+    async def obtener_persona_por_documento(self, documento: str) -> PersonaRespuesta|None:
+        persona = await self.repositorio.obtener_por_documento(documento)
+        if not persona:
+            raise HTTPException(status_code=404, detail="Persona no encontrada.")
+        return PersonaRespuesta.model_validate(persona)

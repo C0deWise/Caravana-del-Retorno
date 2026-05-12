@@ -37,6 +37,27 @@ async def obtener_personas_de_grupo(
 ):
     """Lista todas las personas que pertenecen a un grupo específico."""
     return await servicio.listar_personas_por_grupo(gr_codigo)
+
+@router.get("/{pe_codigo}", response_model=PersonaRespuesta)
+async def obtener_persona_por_id(pe_codigo:int, servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
+    """Obtiene los detalles de una persona por su código."""
+    persona = await servicio.repositorio.obtener_por_id(pe_codigo)
+    if not persona:
+        return None
+    return PersonaRespuesta.model_validate(persona)
+
+@router.get("/documento/{documento}", response_model=PersonaRespuesta)
+async def obtener_persona_por_documento(documento:str, servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
+    persona = await servicio.repositorio.obtener_persona_por_documento(documento)
+    if not persona:
+        return None
+    return PersonaRespuesta.model_validate(persona)
+
+
+@router.get("/",response_model=List[PersonaRespuesta])
+async def listar_personas(servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
+    """Lista todas las personas registradas en el sistema."""
+    return await servicio.repositorio.obtener_todas_las_personas()
 """
 Este archivo ha sido deprecado. 
 Los endpoints de personas han sido movidos a app/retornos/api/v1/endpoints/retorno_router.py
