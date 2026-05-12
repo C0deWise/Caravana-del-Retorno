@@ -58,8 +58,3 @@ async def obtener_persona_por_documento(documento:str, servicio: Annotated[Perso
 async def listar_personas(servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
     """Lista todas las personas registradas en el sistema."""
     return await servicio.repositorio.obtener_todas_las_personas()
-"""
-Este archivo ha sido deprecado. 
-Los endpoints de personas han sido movidos a app/retornos/api/v1/endpoints/retorno_router.py
-bajo el prefijo /grupoRetorno.
-"""
