@@ -80,6 +80,9 @@ class MultimediaServicio:
         Returns:
             str: La ruta donde se guardó el archivo.
         """
+        if not isinstance(retorno_codigo, int) or retorno_codigo < 0:
+            raise ValueError("retorno_codigo inválido")
+
         upload_dir = Path(f"/app/multimedia/retorno_{retorno_codigo}")
         upload_dir.mkdir(parents=True, exist_ok=True)
 
