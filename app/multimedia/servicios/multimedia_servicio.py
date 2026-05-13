@@ -68,7 +68,7 @@ class MultimediaServicio:
 
             return url_publica
         
-        except Exception as e:
+        except Exception:
             raise ErrorCargaArchivo()
         
     async def guardar_archivo_local(self, archivo: UploadFile, retorno_codigo: int) -> str:
@@ -83,7 +83,10 @@ class MultimediaServicio:
         upload_dir = Path(f"/app/multimedia/retorno_{retorno_codigo}")
         upload_dir.mkdir(parents=True, exist_ok=True)
 
-        ruta_archivo = upload_dir / archivo.filename
+        extension = Path(archivo.filename).suffix or ".bin"
+        nombre_seguro = f"{uuid.uuid4()}{extension}"
+
+        ruta_archivo = upload_dir / nombre_seguro
         print(f"Guardando archivo '{archivo.filename}' en '{ruta_archivo}'")
 
         async with aiofiles.open(ruta_archivo, 'wb') as buffer:
