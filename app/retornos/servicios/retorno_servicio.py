@@ -46,6 +46,17 @@ class RetornoService:
         retorno = await self.repo.create(data)
         return RetornoResponse.model_validate(retorno)
 
+    async def obtener_retorno_vigente(self) -> RetornoResponse | None:
+        """Obtiene el retorno vigente, si existe alguno."""
+        retornos_activos = await self.repo.obtener_retorno_por_estado(RetornoEstado.ACTIVO)
+        if retornos_activos:
+            return RetornoResponse.model_validate(retornos_activos[0])
+        
+        retornos_en_curso = await self.repo.obtener_retorno_por_estado(RetornoEstado.EN_CURSO)
+        if retornos_en_curso:
+            return RetornoResponse.model_validate(retornos_en_curso[0])
+        
+        return None
     async def listar_retornos(self) -> list[RetornoResponse]:
         """Retorna todos los retornos registrados."""
         retornos = await self.repo.get_all()

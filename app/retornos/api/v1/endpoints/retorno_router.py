@@ -128,6 +128,13 @@ async def verificar_usuario_registrado(us_codigo: int, re_codigo: int, servicio:
     registro_usuario = await servicio.obtener_registro_retorno_por_usuario_y_retorno(us_codigo, re_codigo)
     return bool(registro_usuario)
 
+@router.get("/vigente",
+            response_model=RetornoResponse | None,
+            summary="Obtener el retorno vigente",
+            description="Retorna el retorno que está actualmente activo o en curso, si existe.")
+async def obtener_retorno_vigente(servicio: Annotated[RetornoService, Depends(obtener_retorno_servicio)]):
+    return await servicio.obtener_retorno_vigente()
+
 @router.get(
     "/",
     response_model=list[RetornoResponse],
