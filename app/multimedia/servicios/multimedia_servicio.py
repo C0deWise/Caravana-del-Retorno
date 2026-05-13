@@ -6,18 +6,23 @@ con el repositorio de multimedia para persistir la información en la base de da
 necesarios para las respuestas de la API.  
 """
 
+import uuid
 import aiofiles
 from fastapi import UploadFile
 from pathlib import Path
 
 from app.multimedia.esquemas.multimedia_esquemas import MultimediaCrear, MultimediaRespuesta
 from app.multimedia.repositorios.multimedia_repositorio import MultimediaRepositorio
-from app.multimedia.excepciones.multimedia_excepciones import TipoArchivoNoValidoError
+from app.multimedia.excepciones.multimedia_excepciones import TipoArchivoNoValidoError, ErrorCargaArchivo
 from app.multimedia.config import EXTENSIONES_POR_TIPO
+from app.core.supabase_client import get_supabase_client
+from app.core.config import get_settings
 
 class MultimediaServicio:
     def __init__(self, repositorio: MultimediaRepositorio):
         self.repositorio = repositorio
+        self.settings = get_settings()
+        self.supabase = get_supabase_client()
 
     def validar_archivo(self, nombre_archivo: str) -> tuple[str, str]:
         """
@@ -36,6 +41,35 @@ class MultimediaServicio:
                 return tipo, formato
                 
         raise TipoArchivoNoValidoError()
+    
+    async def guardar_archivo_supabase(self, archivo: UploadFile, retorno_codigo: int) -> str:
+        """
+        Guarda un archivo multimedia en Supabase Storage.
+        Args:
+            archivo (UploadFile): El archivo a guardar.
+            retorno_codigo (int): El código del retorno asociado al archivo.
+        Returns:
+            str: La URL pública del archivo guardado en Supabase.
+        """
+
+        try:
+            extension = Path(archivo.filename).suffix
+            nombre_unico = f"retorno_{retorno_codigo}/{uuid.uuid4()}{extension}"
+
+            contenido = await archivo.read()
+
+            self.supabase.storage.from_(self.settings.SUPABASE_BUCKET).upload(
+                path=nombre_unico,
+                file=contenido,
+                file_options={"content-type": archivo.content_type}
+            )
+
+            url_publica = self.supabase.storage.from_(self.settings.SUPABASE_BUCKET).get_public_url(nombre_unico)
+
+            return url_publica
+        
+        except Exception as e:
+            raise ErrorCargaArchivo()
         
     async def guardar_archivo_local(self, archivo: UploadFile, retorno_codigo: int) -> str:
         """
@@ -73,7 +107,12 @@ class MultimediaServicio:
 
         for archivo in archivos:
             tipo, formato = self.validar_archivo(archivo.filename)
-            ruta_guardada = await self.guardar_archivo_local(archivo, retorno_codigo)
+
+            if self.supabase:
+                ruta_guardada = await self.guardar_archivo_supabase(archivo, retorno_codigo)
+            else:
+                ruta_guardada = await self.guardar_archivo_local(archivo, retorno_codigo)
+
             print(f"Archivo '{archivo.filename}' guardado en '{ruta_guardada}'")
 
             multimedia_data = MultimediaCrear(
@@ -92,7 +131,7 @@ class MultimediaServicio:
         
         return [MultimediaRespuesta.model_validate(m, from_attributes=True) for m in resultados]
 
-    async def obtener_multimedia_por_retorno(self, publicacion_id: int) -> list[MultimediaRespuesta]:
+    async def obtener_multimedia_por_retorno  (self, publicacion_id: int) -> list[MultimediaRespuesta]:
         """
         Obtiene la lista de archivos multimedia asociados a una publicación específica.
         Args:
