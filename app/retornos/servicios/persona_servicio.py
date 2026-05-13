@@ -76,3 +76,10 @@ class PersonaServicio:
         if not persona:
             raise HTTPException(status_code=404, detail="Persona no encontrada.")
         return PersonaRespuesta.model_validate(persona)
+    
+    async def verificar_registro_retorno_persona(self, pe_codigo: int, re_codigo: int) -> bool:
+        """Verifica si una persona está registrada para un retorno específico."""
+        persona_grupo = await self.repositorio.persona_ya_en_retorno(pe_codigo, re_codigo)
+        return bool(persona_grupo)
+
+

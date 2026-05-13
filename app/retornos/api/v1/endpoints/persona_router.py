@@ -53,6 +53,10 @@ async def obtener_persona_por_documento(documento:str, servicio: Annotated[Perso
         return None
     return PersonaRespuesta.model_validate(persona)
 
+@router.get("/registro/{us_codigo}/{re_codigo}", response_model=bool)
+async def verificar_registro_persona_retorno(pe_codigo: int, re_codigo: int, servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
+        """Verifica si una persona está registrada para un retorno específico."""
+        return await servicio.verificar_registro_persona_retorno(pe_codigo, re_codigo)
 
 @router.get("/",response_model=List[PersonaRespuesta])
 async def listar_personas(servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
