@@ -4,10 +4,12 @@
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+from app.retornos.modelos.grupo_retorno_modelo import GrupoRetorno
 from app.retornos.modelos.retorno_grupo_usuario_modelo import RetornoGrupoUsuario
 from app.retornos.modelos.registro_retorno_grupo_modelo import RegistroRetornoGrupo
 from app.usuarios.models.usuario import Usuario
-
+from sqlalchemy.orm import selectinload
 class RetornoGrupoUsuarioRepositorio:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -52,3 +54,20 @@ class RetornoGrupoUsuarioRepositorio:
         )
         result = await self.db.execute(stmt)
         return result.scalar() or 0
+    
+    
+
+    async def obtener_grupo_por_usuario_retorno(self, usuario_id: int, retorno_id: int):
+        """Obtiene el grupo de retorno al que pertenece un usuario específico para un retorno dado."""
+        stmt = (select(RetornoGrupoUsuario)
+            .options(selectinload(RetornoGrupoUsuario.grupo))
+            .join(RegistroRetornoGrupo, RetornoGrupoUsuario.gr_codigo == RegistroRetornoGrupo.cod_grupo)
+            .where(
+                RetornoGrupoUsuario.us_codigo == usuario_id,
+                RegistroRetornoGrupo.retorno == retorno_id
+            )
+        )
+        result = await self.db.execute(stmt)
+        retorno_grupo_usuario = result.scalars().first()
+        return retorno_grupo_usuario.grupo if retorno_grupo_usuario else None
+       

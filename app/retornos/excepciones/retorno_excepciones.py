@@ -92,3 +92,11 @@ class RetornoYaEnEstadoSolicitadoError(HTTPException):
             detail=f"El retorno ya se encuentra en estado '{estado}'. "
             f"No es necesario cambiar de estado."
         )
+
+class NoHayRetornoVigenteError(HTTPException):
+    """Se lanza cuando se intenta obtener un retorno vigente pero no existe ninguno."""
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No hay ningún retorno vigente en este momento."
+        )
