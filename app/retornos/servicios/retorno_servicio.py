@@ -16,6 +16,7 @@ from app.retornos.excepciones.retorno_excepciones import (
     RetornoAnioDuplicadoError,
     RetornoAnioPasadoError,
     RetornoVigenteError,
+    NoHayRetornoVigenteError
 )
 import datetime
 
@@ -56,7 +57,7 @@ class RetornoService:
         if retornos_en_curso:
             return RetornoResponse.model_validate(retornos_en_curso[0])
         
-        return None
+        raise  NoHayRetornoVigenteError()
     async def listar_retornos(self) -> list[RetornoResponse]:
         """Retorna todos los retornos registrados."""
         retornos = await self.repo.get_all()

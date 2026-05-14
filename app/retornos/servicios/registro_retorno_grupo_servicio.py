@@ -99,7 +99,7 @@ class RegistroRetornoGrupoServicio:
         await self.repositorio_usuario_grupo.asociar_usuario_a_grupo_retorno(grupo.us_codigo_lider, datos.cod_grupo)
         return RegistroRetornoGrupoRespuesta.model_validate(registro)
 
-    async def obtener_usuarios_por_grupo(self, gr_codigo: int) -> list[UsuarioSalida]:
+    async def obtener_miembros_por_grupo(self, gr_codigo: int) -> list[UsuarioSalida]:
         """
         Retorna la lista completa de integrantes de un grupo, incluyendo al líder,
         usuarios adicionales y personas (asistentes no usuarios).
@@ -111,19 +111,15 @@ class RegistroRetornoGrupoServicio:
                 detail=f"El grupo con código {gr_codigo} no existe."
             )
         
-        # 1. Obtener los datos del líder
-        lider = await self.repositorio_grupo.obtener_lider_por_grupo_id(gr_codigo)
+    
         
-        # 2. Obtener usuarios miembros (invitados que aceptaron)
+        # 1. Obtener usuarios miembros (invitados que aceptaron)
         miembros_usuarios = await self.repositorio_usuario_grupo.obtener_miembros_por_grupo(gr_codigo)
         
-        # 3. Obtener personas (asistentes adicionales no registrados como usuarios)
+        # 2. Obtener personas (asistentes adicionales no registrados como usuarios)
         personas = await self.repositorio_persona.obtener_personas_por_grupo(gr_codigo)
         
         resultado: list[UsuarioSalida] = []
-        
-        if lider:
-            resultado.append(UsuarioSalida.model_validate(lider))
             
         for m in miembros_usuarios:
             resultado.append(UsuarioSalida.model_validate(m))
