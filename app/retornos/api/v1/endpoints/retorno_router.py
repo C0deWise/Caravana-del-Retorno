@@ -128,6 +128,13 @@ async def verificar_usuario_registrado(us_codigo: int, re_codigo: int, servicio:
     registro_usuario = await servicio.obtener_registro_retorno_por_usuario_y_retorno(us_codigo, re_codigo)
     return bool(registro_usuario)
 
+@router.get("/vigente",
+            response_model=RetornoResponse | None,
+            summary="Obtener el retorno vigente",
+            description="Retorna el retorno que está actualmente activo o en curso, si existe.")
+async def obtener_retorno_vigente(servicio: Annotated[RetornoService, Depends(obtener_retorno_servicio)]):
+    return await servicio.obtener_retorno_vigente()
+
 @router.get(
     "/",
     response_model=list[RetornoResponse],
@@ -323,8 +330,8 @@ async def registrar_grupo_en_retorno_endpoint(
 @grupo_retorno_router.get(
     "/{gr_codigo}/miembros",
     response_model=List[UsuarioSalida],
-    summary="Ver usuarios pertenecientes a un grupo",
-    description="Lista todos los usuarios que han aceptado unirse y forman parte activa de un grupo de retorno."
+    summary="Ver miembros pertenecientes a un grupo",
+    description="Lista todos los miembros (personas y usuarios) que han aceptado unirse y forman parte activa de un grupo de retorno."
 )
 async def obtener_miembros_grupo_endpoint(
     gr_codigo: int,
@@ -333,7 +340,7 @@ async def obtener_miembros_grupo_endpoint(
     """
     Endpoint para obtener la lista de integrantes de un grupo.
     """
-    return await servicio.obtener_usuarios_por_grupo(gr_codigo)
+    return await servicio.obtener_miembros_por_grupo(gr_codigo)
 @grupo_retorno_router.patch("/solicitudes/aceptar/{solicitud_id}", 
               response_model= SolicitudRetornoGrupoRespuesta,
               status_code= status.HTTP_200_OK,
@@ -367,5 +374,21 @@ async def obtener_solicitudes_recientes_grupo_por_usuario(usuario_id: int, servi
             description="Obtiene las solicitudes de ingreso a grupos de retorno enviadas por el lider del grupo.")
 async def obtener_solicitudes_grupo_por_lider(grupo_retorno_id: int, servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)):
     return await servicio.obtener_solicitudes_por_grupo_retorno(grupo_retorno_id)
+
+@grupo_retorno_router.get("/grupo/usuario/{usuario_id}/{retorno_id}",    
+                          response_model=GrupoRetornoRespuesta | None,
+                          status_code=status.HTTP_200_OK,
+                            summary="Obtener grupo de retorno por usuario",
+                            description="Obtiene el grupo de retorno al que pertenece un usuario específico.")
+async def obtener_grupo_por_usuario(usuario_id: int, retorno_id: int, servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)):
+    return await servicio.obtener_grupo_por_usuario_retorno(usuario_id, retorno_id)
+
+@grupo_retorno_router.get("/grupo/usuarios/{gr_codigo}/",
+                            response_model=List[UsuarioSalida],
+                            status_code=status.HTTP_200_OK,
+                                summary="Obtener usuarios por grupo de retorno",
+                                description="Obtiene la lista de usuarios que pertenecen a un grupo de retorno específico.")
+async def obtener_usuarios_por_grupo(gr_codigo: int, servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)):
+    return await servicio.obtener_usuarios_por_grupo(gr_codigo)
 
     

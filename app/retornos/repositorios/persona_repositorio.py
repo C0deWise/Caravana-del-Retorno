@@ -79,3 +79,15 @@ class PersonaRepositorio:
         )
         result = await self.db.execute(stmt)
         return result.scalars().first() is not None
+    
+    async def obtener_todas_las_personas(self) -> List[Persona]:
+        result = await self.db.execute(select(Persona))
+        return list(result.scalars().all())
+    
+    async def obtener_persona_por_id(self, pe_codigo: int) -> Optional[Persona]:
+        result = await self.db.execute(select(Persona).where(Persona.pe_codigo == pe_codigo))
+        return result.scalars().first()
+    
+    async def obtener_persona_por_documento(self, documento: str) -> Optional[Persona]:
+        result = await self.db.execute(select(Persona).where(Persona.pe_documento == documento))
+        return result.scalars().first()

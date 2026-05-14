@@ -15,6 +15,8 @@ from app.retornos.excepciones.retorno_excepciones import (
     RetornoNotFoundError,
     RetornoAnioDuplicadoError,
     RetornoAnioPasadoError,
+    RetornoVigenteError,
+    NoHayRetornoVigenteError
 )
 import datetime
 
@@ -37,9 +39,25 @@ class RetornoService:
         if existente:
             raise RetornoAnioDuplicadoError(data.anio)
 
+        # Restricción 3: solo puede haber un retorno activo o en curso a la vez
+        retornos_vigentes = await self.repo.obtener_retorno_por_estado(RetornoEstado.ACTIVO) + await self.repo.obtener_retorno_por_estado(RetornoEstado.EN_CURSO)
+        if data.estado != RetornoEstado.FINALIZADO and retornos_vigentes:
+            raise RetornoVigenteError()
+        
         retorno = await self.repo.create(data)
         return RetornoResponse.model_validate(retorno)
 
+    async def obtener_retorno_vigente(self) -> RetornoResponse | None:
+        """Obtiene el retorno vigente, si existe alguno."""
+        retornos_activos = await self.repo.obtener_retorno_por_estado(RetornoEstado.ACTIVO)
+        if retornos_activos:
+            return RetornoResponse.model_validate(retornos_activos[0])
+        
+        retornos_en_curso = await self.repo.obtener_retorno_por_estado(RetornoEstado.EN_CURSO)
+        if retornos_en_curso:
+            return RetornoResponse.model_validate(retornos_en_curso[0])
+        
+        raise  NoHayRetornoVigenteError()
     async def listar_retornos(self) -> list[RetornoResponse]:
         """Retorna todos los retornos registrados."""
         retornos = await self.repo.get_all()
@@ -58,9 +76,6 @@ class RetornoService:
         retorno = await self.repo.get_by_codigo(codigo)
         if not retorno:
             raise RetornoNotFoundError(codigo)
-        
         RetornoEstadoTransicion.validar_transicion(retorno.estado, nuevo_estado)
-        
         retorno_actualizado = await self.repo.cambiar_estado_retorno(codigo, nuevo_estado)
-        
         return RetornoResponse.model_validate(retorno_actualizado)

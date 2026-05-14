@@ -87,3 +87,17 @@ class UsuarioNoPerteneceAlaMismaColonia(HTTPException):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"El usuario con código {usuario_id} no pertenece a la misma colonia que el lider del grupo {lider_id}."
         )
+
+class UsuarioNoEstaEnUnGrupo(HTTPException):
+    def __init__(self, usuario_id: int, retorno_id: int):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"El usuario con código {usuario_id} no está en ningún grupo para el retorno con código {retorno_id}."
+        )
+
+class GrupoNoEncontrado(HTTPException):
+    def __init__(self, gr_codigo: int):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"El grupo con código {gr_codigo} no existe."
+        )
