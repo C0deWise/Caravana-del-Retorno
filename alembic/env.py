@@ -23,13 +23,16 @@ from app.colonias.models.colonia_model import Colonia
 from app.colonias.models.solicitud_colonia import SolicitudColonia
 from app.retornos.modelos.retorno_modelo import Retorno
 from app.retornos.modelos.registro_retorno_modelo import RegistroRetorno
+from app.usuarios.models.usuario import Usuario, Rol
+from app.usuarios.models.parentesco import Parentesco
+from app.multimedia.modelos.multimedia_modelo import Multimedia
 from app.retornos.modelos.grupo_retorno_modelo import GrupoRetorno
 from app.retornos.modelos.persona_modelo import Persona
 from app.retornos.modelos.registro_retorno_grupo_modelo import RegistroRetornoGrupo
 from app.retornos.modelos.retorno_grupo_usuario_modelo import RetornoGrupoUsuario
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
 from app.retornos.modelos.persona_grupo_retorno_modelo import persona_grupo_retorno
-
+from app.publicacion.modelos.publicacion_modelo import Publicacion
 
 # Verificar que los modelos se cargan correctamente
 print("Modelos detectados:", list(Base.metadata.tables.keys()))

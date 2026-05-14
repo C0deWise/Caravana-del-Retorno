@@ -1,8 +1,8 @@
 """tablas sprint 1 y 2
 
-Revision ID: 90e12dc4b0ee
+Revision ID: b11fba19fe82
 Revises: 
-Create Date: 2026-05-11 02:02:11.991095
+Create Date: 2026-05-14 03:34:56.487819
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '90e12dc4b0ee'
+revision: str = 'b11fba19fe82'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -99,6 +99,17 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['us_codigo_solicitante'], ['usuario.us_codigo'], ),
     sa.PrimaryKeyConstraint('pa_codigo')
     )
+    op.create_table('publicacion',
+    sa.Column('pu_codigo', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('re_codigo', sa.Integer(), nullable=False),
+    sa.Column('us_codigo_autor', sa.Integer(), nullable=False),
+    sa.Column('pu_resena', sa.String(length=1000), nullable=True),
+    sa.Column('pu_titulo', sa.String(length=255), nullable=False),
+    sa.Column('pu_fecha_creacion', sa.DateTime(), nullable=False),
+    sa.ForeignKeyConstraint(['re_codigo'], ['retorno.codigo'], ),
+    sa.ForeignKeyConstraint(['us_codigo_autor'], ['usuario.us_codigo'], ),
+    sa.PrimaryKeyConstraint('pu_codigo')
+    )
     op.create_table('registro_retorno',
     sa.Column('reg_codigo', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('us_codigo', sa.Integer(), nullable=False),
@@ -124,6 +135,16 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('so_codigo')
     )
     op.create_index(op.f('ix_solicitud_colonia_so_codigo'), 'solicitud_colonia', ['so_codigo'], unique=False)
+    op.create_table('multimedia',
+    sa.Column('mu_codigo', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('pu_codigo', sa.Integer(), nullable=False),
+    sa.Column('mu_tipo', sa.Enum('IMAGEN', 'VIDEO', 'DOCUMENTO', name='tipomultimedia'), nullable=False),
+    sa.Column('mu_formato', sa.Enum('JPG', 'JPEG', 'PNG', 'GIF', 'MP4', 'AVI', 'MOV', 'MKV', 'PDF', 'EMBED', name='formatomultimedia'), nullable=False),
+    sa.Column('mu_url', sa.String(length=500), nullable=False),
+    sa.Column('mu_descripcion', sa.String(length=255), nullable=False),
+    sa.ForeignKeyConstraint(['pu_codigo'], ['publicacion.pu_codigo'], ),
+    sa.PrimaryKeyConstraint('mu_codigo')
+    )
     op.create_table('persona_grupo_retorno',
     sa.Column('pgr_codigo', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('pe_codigo', sa.Integer(), nullable=False),
@@ -175,9 +196,11 @@ def downgrade() -> None:
     op.drop_table('solicitud_grupo_retorno')
     op.drop_table('registro_retorno_grupo')
     op.drop_table('persona_grupo_retorno')
+    op.drop_table('multimedia')
     op.drop_index(op.f('ix_solicitud_colonia_so_codigo'), table_name='solicitud_colonia')
     op.drop_table('solicitud_colonia')
     op.drop_table('registro_retorno')
+    op.drop_table('publicacion')
     op.drop_table('parentesco')
     op.drop_table('grupo_retorno')
     op.drop_table('usuario')

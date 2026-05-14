@@ -1,7 +1,9 @@
 # App
 fastapi==0.115.12
 uvicorn[standard]==0.34.0
-
+python-multipart==0.0.6
+aiofiles>=24.0.0
+supabase>=2.9.0
 # Templates
 jinja2>=3.1.4,<4.0.0
 # PDF Generation
@@ -12,6 +14,7 @@ sqlalchemy==2.0.39
 psycopg2-binary==2.9.10
 alembic==1.18.4
 asyncpg==0.30.0
+supabase>=2.0.0
 # Configuracion
 pydantic==2.11.1
 email-validator>=2.0.0

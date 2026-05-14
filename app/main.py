@@ -14,6 +14,7 @@ from app.usuarios.models.usuario import Rol
 from app.usuarios.models.parentesco import Parentesco
 from app.colonias.models.colonia_model import Colonia
 from app.colonias.models.solicitud_colonia import SolicitudColonia
+from app.multimedia.modelos.multimedia_modelo import Multimedia
 from app.retornos.modelos.retorno_modelo import Retorno
 from app.retornos.modelos.registro_retorno_modelo import RegistroRetorno
 from app.retornos.modelos.grupo_retorno_modelo import GrupoRetorno
@@ -21,6 +22,7 @@ from app.retornos.modelos.persona_modelo import Persona
 from app.retornos.modelos.registro_retorno_grupo_modelo import RegistroRetornoGrupo
 from app.retornos.modelos.retorno_grupo_usuario_modelo import RetornoGrupoUsuario
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
+from app.publicacion.modelos.publicacion_modelo import Publicacion
 from app.retornos.modelos.persona_grupo_retorno_modelo import persona_grupo_retorno
 from scripts.seed_roles import seed_roles
 from scripts.seed_data import seed_data
@@ -97,11 +99,15 @@ app.add_middleware(
 from app.colonias.api.v1.router import router as colonia_router
 from app.retornos.api.v1.router import api_router as retornos_module_router
 from app.usuarios.api.v1.usuario_router import router as usuario_router
+from app.multimedia.api.v1.endpoints.multimedia_router import router as multimedia_router
+from app.publicacion.api.v1.endpoints.publicacion_router import router as publicacion_router
 from app.reportes.api.v1.router import router as reportes_router
 prefix = "/api/v1"
 app.include_router(colonia_router, prefix=prefix)
 app.include_router(usuario_router, prefix=prefix)
 app.include_router(retornos_module_router, prefix=prefix)
+app.include_router(multimedia_router, prefix=prefix)
+app.include_router(publicacion_router, prefix=prefix)
 app.include_router(reportes_router, prefix=prefix)
 
 
