@@ -38,25 +38,39 @@ async def obtener_personas_de_grupo(
     """Lista todas las personas que pertenecen a un grupo específico."""
     return await servicio.listar_personas_por_grupo(gr_codigo)
 
-@router.get("/{pe_codigo}", response_model=PersonaRespuesta)
+@router.get("/{pe_codigo}", response_model=PersonaRespuesta,
+            status_code=status.HTTP_200_OK,
+            summary="Obtener persona por ID",
+            description="Obtiene los detalles de una persona por su código.")
 async def obtener_persona_por_id(pe_codigo:int, servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
     """Obtiene los detalles de una persona por su código."""
-    persona = await servicio.repositorio.obtener_por_id(pe_codigo)
-    if not persona:
-        return None
+    persona = await servicio.obtener_persona_por_id(pe_codigo)
     return PersonaRespuesta.model_validate(persona)
 
-@router.get("/documento/{documento}", response_model=PersonaRespuesta)
+@router.get("/documento/{documento}", 
+            response_model=PersonaRespuesta, 
+            status_code=status.HTTP_200_OK,
+             summary="Obtener persona por documento",
+             description="Obtiene los detalles de una persona por su número de documento.")
 async def obtener_persona_por_documento(documento:str, servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
-    persona = await servicio.repositorio.obtener_persona_por_documento(documento)
-    if not persona:
-        return None
+    persona = await servicio.obtener_persona_por_documento(documento)
     return PersonaRespuesta.model_validate(persona)
 
-@router.get("/registro/{us_codigo}/{re_codigo}", response_model=bool)
+@router.get("/registro-documento/{pe_documento}/{re_codigo}", response_model=bool,
+            status_code=status.HTTP_200_OK,
+            summary="Verificar registro de persona para retorno",
+            description="Verifica si una persona está registrada para un retorno específico.")
+async def verificar_registro_persona_retorno(pe_documento: str, re_codigo: int, servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
+        """Verifica si una persona está registrada para un retorno específico."""
+        return await servicio.verificar_registro_retorno_persona_por_documento(pe_documento, re_codigo)
+
+@router.get("/registro-id/{pe_codigo}/{re_codigo}", response_model=bool,
+            status_code=status.HTTP_200_OK,
+            summary="Verificar registro de persona para retorno",
+            description="Verifica si una persona está registrada para un retorno específico.")
 async def verificar_registro_persona_retorno(pe_codigo: int, re_codigo: int, servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
         """Verifica si una persona está registrada para un retorno específico."""
-        return await servicio.verificar_registro_persona_retorno(pe_codigo, re_codigo)
+        return await servicio.verificar_registro_retorno_persona(pe_codigo, re_codigo)
 
 @router.get("/",response_model=List[PersonaRespuesta])
 async def listar_personas(servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):

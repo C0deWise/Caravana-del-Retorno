@@ -81,5 +81,15 @@ class PersonaServicio:
         """Verifica si una persona está registrada para un retorno específico."""
         persona_grupo = await self.repositorio.persona_ya_en_retorno(pe_codigo, re_codigo)
         return bool(persona_grupo)
+    
+    async def verificar_registro_retorno_persona_por_documento(self, pe_documento: str, re_codigo: int) -> bool:
+        """Verifica si una persona está registrada para un retorno específico."""
+        persona = await self.repositorio.obtener_por_documento(pe_documento)
+        if not persona:
+            raise HTTPException(status_code=404, detail="Persona no encontrada.")
+        persona_grupo = await self.repositorio.persona_ya_en_retorno(persona.pe_codigo, re_codigo)
+        return bool(persona_grupo)
+    
+    
 
 
