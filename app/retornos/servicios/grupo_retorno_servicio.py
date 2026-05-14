@@ -4,7 +4,7 @@
 """
 
 from app.retornos.esquemas.solicitud_retorno_grupo_esquema import SolicitudRetornoGrupoLiderRespuesta, SolicitudRetornoGrupoRespuesta, SolicitudRetornoGrupoUsuarioRespuesta
-from app.retornos.excepciones.registro_retorno_excepciones import SolicitudGrupoRetornoEstadoInvalido, SolicitudGrupoRetornoNoExistente, UsuarioNoPerteneceAlaMismaColonia
+from app.retornos.excepciones.registro_retorno_excepciones import GrupoNoEncontrado, SolicitudGrupoRetornoEstadoInvalido, SolicitudGrupoRetornoNoExistente, UsuarioNoEstaEnUnGrupo, UsuarioNoPerteneceAlaMismaColonia
 from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
 from app.retornos.repositorios.retorno_grupo_usuario_repositorio import RetornoGrupoUsuarioRepositorio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
@@ -204,4 +204,17 @@ class GrupoRetornoServicio:
 
     async def _rechazar_solicitudes_pendientes_por_usuario(self, usuario_id):
         await self.repositorio_solicitudes.rechazar_solicitudes_pendientes_por_usuario(usuario_id)
-        
+    
+    async def obtener_grupo_por_usuario_retorno(self, usuario_id: int, retorno_id: int) -> GrupoRetornoRespuesta | None:
+        grupo = await self.repositorio_usuario_grupo.obtener_grupo_por_usuario_retorno(usuario_id, retorno_id)
+        if grupo:
+            return GrupoRetornoRespuesta.model_validate(grupo)
+        raise UsuarioNoEstaEnUnGrupo(usuario_id, retorno_id)
+    
+    async def obtener_usuarios_por_grupo(self, gr_codigo: int) -> list[UsuarioSalida]:
+        grupo =  await self.repositorio_grupos.obtener_grupo_por_id(gr_codigo)
+        if not grupo:
+            raise GrupoNoEncontrado(gr_codigo)
+        usuarios = await self.repositorio_usuario_grupo.obtener_miembros_por_grupo(gr_codigo)
+        return [UsuarioSalida.model_validate(usuario) for usuario in usuarios]
+    

@@ -49,6 +49,13 @@ class RetornoEstadoActivoaFinalizadoError(HTTPException):
             detail="No se puede finalizar un retorno que está activo."
         )
 
+class RetornoVigenteError(HTTPException):
+    """Se lanza cuando se intenta crear un nuevo retorno mientras otro está vigente."""
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No se puede crear un nuevo retorno mientras otro está vigente."
+        )
 class RetornoEstadoEnCursoaActivoError(HTTPException):
     """Se lanza cuando se intenta reactivar un retorno que está en curso."""
     def __init__(self):
@@ -84,4 +91,12 @@ class RetornoYaEnEstadoSolicitadoError(HTTPException):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"El retorno ya se encuentra en estado '{estado}'. "
             f"No es necesario cambiar de estado."
+        )
+
+class NoHayRetornoVigenteError(HTTPException):
+    """Se lanza cuando se intenta obtener un retorno vigente pero no existe ninguno."""
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No hay ningún retorno vigente en este momento."
         )

@@ -60,3 +60,36 @@ class PersonaServicio:
     async def listar_personas_por_grupo(self, gr_codigo: int) -> List[PersonaRespuesta]:
         personas = await self.repositorio.obtener_personas_por_grupo(gr_codigo)
         return [PersonaRespuesta.model_validate(p) for p in personas]
+    
+    async def listar_personas(self) -> List[PersonaRespuesta]:
+        personas = await self.repositorio.obtener_todas_las_personas()
+        return [PersonaRespuesta.model_validate(p) for p in personas]
+    
+    async def obtener_persona_por_id(self, pe_codigo: int) -> PersonaRespuesta|None:
+        persona = await self.repositorio.obtener_por_id(pe_codigo)
+        if not persona:
+            raise HTTPException(status_code=404, detail="Persona no encontrada.")
+        return PersonaRespuesta.model_validate(persona)
+    
+    async def obtener_persona_por_documento(self, documento: str) -> PersonaRespuesta|None:
+        persona = await self.repositorio.obtener_por_documento(documento)
+        if not persona:
+            raise HTTPException(status_code=404, detail="Persona no encontrada.")
+        return PersonaRespuesta.model_validate(persona)
+    
+    async def verificar_registro_retorno_persona(self, pe_codigo: int, re_codigo: int) -> bool:
+        """Verifica si una persona está registrada para un retorno específico."""
+        persona_grupo = await self.repositorio.persona_ya_en_retorno(pe_codigo, re_codigo)
+        return bool(persona_grupo)
+    
+    async def verificar_registro_retorno_persona_por_documento(self, pe_documento: str, re_codigo: int) -> bool:
+        """Verifica si una persona está registrada para un retorno específico."""
+        persona = await self.repositorio.obtener_por_documento(pe_documento)
+        if not persona:
+            raise HTTPException(status_code=404, detail="Persona no encontrada.")
+        persona_grupo = await self.repositorio.persona_ya_en_retorno(persona.pe_codigo, re_codigo)
+        return bool(persona_grupo)
+    
+    
+
+

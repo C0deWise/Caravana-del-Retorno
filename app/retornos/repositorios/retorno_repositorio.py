@@ -62,3 +62,8 @@ class RetornoRepository:
         """Obtiene el retorno más reciente basado en el año."""
         result = await self.db.execute(select(Retorno).order_by(Retorno.anio.desc()).limit(1))
         return result.scalars().first()
+    
+    async def obtener_retorno_por_estado(self, estado: RetornoEstado) -> list[Retorno]:
+        """Obtiene todos los retornos que coincidan con un estado específico."""
+        result = await self.db.execute(select(Retorno).filter(Retorno.estado == estado.value))
+        return list(result.scalars().all())
