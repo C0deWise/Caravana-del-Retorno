@@ -174,7 +174,7 @@ async def obtener_retorno(codigo: int, servicio: Annotated[RetornoService, Depen
         },
     }
 )
-async def cambiar_estado_retorno(codigo: int, nuevo_estado: CambiarEstadoRetorno, db: AsyncSession = Depends(get_db)):
+async def cambiar_estado_retorno(codigo: int, nuevo_estado: CambiarEstadoRetorno, db: Annotated[AsyncSession, Depends(get_db)]):
     service = RetornoService(db)
     return await service.cambiar_estado_retorno(codigo, nuevo_estado.estado)
 
@@ -355,7 +355,7 @@ async def obtener_miembros_grupo_endpoint(
               summary="Aceptar solicitud de grupo de retorno", 
               description="Acepta una solicitud pendiente para unirse a un grupo de retorno específico. " \
               "Cambia el estado de la solicitud a aceptada y agrega al usuario al grupo.")
-async def aceptar_solicitud_grupo_retorno(solicitud_id: int, servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)):
+async def aceptar_solicitud_grupo_retorno(solicitud_id: int, servicio: Annotated[GrupoRetornoServicio, Depends(obtener_grupo_retorno_servicio)]):
     return await servicio.aceptar_solicitud_grupo_retorno(solicitud_id)
 
 @grupo_retorno_router.patch("/solicitudes/rechazar/{solicitud_id}", 
@@ -364,7 +364,7 @@ async def aceptar_solicitud_grupo_retorno(solicitud_id: int, servicio: GrupoReto
               summary="Rechazar solicitud de grupo de retorno", 
               description="Rechaza una solicitud pendiente para unirse a un grupo de retorno específico. " \
               "Cambia el estado de la solicitud a rechazada.")
-async def rechazar_solicitud_grupo_retorno(solicitud_id: int, servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)):
+async def rechazar_solicitud_grupo_retorno(solicitud_id: int, servicio: Annotated[GrupoRetornoServicio, Depends(obtener_grupo_retorno_servicio)]):
     return await servicio.rechazar_solicitud_grupo_retorno(solicitud_id)
 
 @grupo_retorno_router.get("/solicitudes/recientes/usuario/{usuario_id}",
@@ -372,7 +372,7 @@ async def rechazar_solicitud_grupo_retorno(solicitud_id: int, servicio: GrupoRet
             status_code=status.HTTP_200_OK,
             summary="Obtener solicitudes de grupos de retorno por usuario",
             description="Obtiene las solicitudes de ingreso a grupos de retorno recientes (ultimos 30 días) dirigidas a un usuario específico, ordenadas por fecha de creación más reciente primero.")
-async def obtener_solicitudes_recientes_grupo_por_usuario(usuario_id: int, servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)):
+async def obtener_solicitudes_recientes_grupo_por_usuario(usuario_id: int, servicio: Annotated[GrupoRetornoServicio, Depends(obtener_grupo_retorno_servicio)]):
     return await servicio.obtener_solicitudes_recientes_por_usuario(usuario_id)
 
 @grupo_retorno_router.get("/solicitudes/grupo/{grupo_retorno_id}",
@@ -380,7 +380,7 @@ async def obtener_solicitudes_recientes_grupo_por_usuario(usuario_id: int, servi
             status_code=status.HTTP_200_OK,
             summary="Obtener solicitudes de grupos de retorno por grupo de retorno",
             description="Obtiene las solicitudes de ingreso a grupos de retorno enviadas por el lider del grupo.")
-async def obtener_solicitudes_grupo_por_lider(grupo_retorno_id: int, servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)):
+async def obtener_solicitudes_grupo_por_lider(grupo_retorno_id: int, servicio: Annotated[GrupoRetornoServicio, Depends(obtener_grupo_retorno_servicio)]):
     return await servicio.obtener_solicitudes_por_grupo_retorno(grupo_retorno_id)
 
 @grupo_retorno_router.get("/grupo/usuario/{usuario_id}/{retorno_id}",    
@@ -388,7 +388,7 @@ async def obtener_solicitudes_grupo_por_lider(grupo_retorno_id: int, servicio: G
                           status_code=status.HTTP_200_OK,
                             summary="Obtener grupo de retorno por usuario",
                             description="Obtiene el grupo de retorno al que pertenece un usuario específico.")
-async def obtener_grupo_por_usuario(usuario_id: int, retorno_id: int, servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)):
+async def obtener_grupo_por_usuario(usuario_id: int, retorno_id: int, servicio: Annotated[GrupoRetornoServicio, Depends(obtener_grupo_retorno_servicio)]):
     return await servicio.obtener_grupo_por_usuario_retorno(usuario_id, retorno_id)
 
 @grupo_retorno_router.get("/grupo/usuarios/{gr_codigo}/",
@@ -396,7 +396,7 @@ async def obtener_grupo_por_usuario(usuario_id: int, retorno_id: int, servicio: 
                             status_code=status.HTTP_200_OK,
                                 summary="Obtener usuarios por grupo de retorno",
                                 description="Obtiene la lista de usuarios que pertenecen a un grupo de retorno específico.")
-async def obtener_usuarios_por_grupo(gr_codigo: int, servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)):
+async def obtener_usuarios_por_grupo(gr_codigo: int, servicio: Annotated[GrupoRetornoServicio, Depends(obtener_grupo_retorno_servicio)]):
     return await servicio.obtener_usuarios_por_grupo(gr_codigo)
 
     
