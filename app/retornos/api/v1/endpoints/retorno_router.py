@@ -391,4 +391,40 @@ async def obtener_grupo_por_usuario(usuario_id: int, retorno_id: int, servicio: 
 async def obtener_usuarios_por_grupo(gr_codigo: int, servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)):
     return await servicio.obtener_usuarios_por_grupo(gr_codigo)
 
-    
+@grupo_retorno_router.get(
+    "/registro/{gr_codigo}/{re_codigo}",
+    response_model=RegistroRetornoGrupoRespuesta,
+    status_code=status.HTTP_200_OK,
+    summary="Obtener registro de grupo de retorno por grupo y retorno",
+    description="Obtiene el registro de un grupo en un retorno específico.",
+    responses = {
+        200: {
+            "description": "Registro encontrado exitosamente.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "regg_codigo": 1,
+                        "retorno": 1,
+                        "cod_grupo": 1,
+                        "num_hospedaje": 2,
+                        "num_transporte": 1,
+                        "num_parqueadero_carro": 1,
+                        "anotacion": "Necesidades especiales de hospedaje"
+                    }
+                }
+            }
+        },
+        404: {
+            "description": "No se encontró un registro para el grupo y retorno especificados.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "No se encontró un registro para el grupo 123 en el retorno 456."
+                    }
+                }
+            },
+        },
+    },
+)
+async def obtener_registro_por_grupo_y_retorno(gr_codigo: int, re_codigo: int, servicio: RegistroRetornoGrupoServicio = Depends(obtener_registro_retorno_grupo_servicio)):
+    return await servicio.consultar_registro_por_grupo_y_retorno(gr_codigo, re_codigo)
