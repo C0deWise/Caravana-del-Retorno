@@ -40,13 +40,15 @@ def datos_crear():
         anotacion="Prueba de registro de grupo"
     )
 
+# ===== PRUEBAS: crear_registro_retorno_grupo =====
+
 @pytest.mark.asyncio
 async def test_crear_registro_grupo_exito(servicio, mocks, datos_crear):
     """Caso de éxito: El grupo cumple todas las condiciones y se registra."""
     mock_grupo = MagicMock(us_codigo_lider=1)
     mocks["repo_grupo"].obtener_grupo_por_id = AsyncMock(return_value=mock_grupo)
     mocks["repo_retorno"].obtener_ultimo_retorno = AsyncMock(return_value=MagicMock(codigo=1, estado="activo"))
-    mocks["repo_usuario_grupo"].contar_miembros_adicionales = AsyncMock(return_value=2)  # 2 usuarios adicionales
+    mocks["repo_usuario_grupo"].contar_miembros_adicionales = AsyncMock(return_value=2)
     mocks["repo_persona"].obtener_personas_por_grupo = AsyncMock(return_value=[])
     mocks["repo_reg"].obtener_registro_por_grupo_y_retorno = AsyncMock(return_value=None)
     mocks["repo_usuario_grupo"].asociar_usuario_a_grupo_retorno = AsyncMock()
@@ -78,7 +80,6 @@ async def test_crear_registro_grupo_no_existe(servicio, mocks, datos_crear):
 async def test_crear_registro_retorno_no_vigente(servicio, mocks, datos_crear):
     """Error: Se intenta registrar en un retorno que no es el último vigente (400)."""
     mocks["repo_grupo"].obtener_grupo_por_id = AsyncMock(return_value=MagicMock())
-    # El último en el sistema es el 2, pero los datos piden el 1
     mocks["repo_retorno"].obtener_ultimo_retorno = AsyncMock(return_value=MagicMock(codigo=2))
 
     with pytest.raises(HTTPException) as exc:
@@ -92,8 +93,6 @@ async def test_crear_registro_sin_integrantes_suficientes(servicio, mocks, datos
     """Error: El grupo no tiene suficientes integrantes para los servicios solicitados (400)."""
     mocks["repo_grupo"].obtener_grupo_por_id = AsyncMock(return_value=MagicMock())
     mocks["repo_retorno"].obtener_ultimo_retorno = AsyncMock(return_value=MagicMock(codigo=1, estado="activo"))
-    # Solo 1 integrante total (0 usuarios + 0 personas + 1 líder)
-    # pero datos_crear solicita 2 hospedajes, esto debe fallar
     mocks["repo_usuario_grupo"].contar_miembros_adicionales = AsyncMock(return_value=0)
     mocks["repo_persona"].obtener_personas_por_grupo = AsyncMock(return_value=[])
 
@@ -101,17 +100,15 @@ async def test_crear_registro_sin_integrantes_suficientes(servicio, mocks, datos
         await servicio.crear_registro_retorno_grupo(datos_crear)
     
     assert exc.value.status_code == status.HTTP_400_BAD_REQUEST
-    # El error será por hospedajes, no por integrantes mínimos
     assert "hospedajes" in exc.value.detail
 
 @pytest.mark.asyncio
 async def test_crear_registro_duplicado(servicio, mocks, datos_crear):
     """Error: El grupo ya fue registrado previamente para este retorno (409)."""
     mocks["repo_grupo"].obtener_grupo_por_id = AsyncMock(return_value=MagicMock())
-    mocks["repo_retorno"].obtener_ultimo_retorno = AsyncMock(return_value=MagicMock(codigo=1))
+    mocks["repo_retorno"].obtener_ultimo_retorno = AsyncMock(return_value=MagicMock(codigo=1, estado="activo"))
     mocks["repo_usuario_grupo"].contar_miembros_adicionales = AsyncMock(return_value=2)
-    # El repo devuelve que ya existe un registro
-    mocks["repo_persona"].obtener_personas_por_grupo = AsyncMock(return_value=[]) # No personas para este test
+    mocks["repo_persona"].obtener_personas_por_grupo = AsyncMock(return_value=[])
     mocks["repo_reg"].obtener_registro_por_grupo_y_retorno = AsyncMock(return_value=MagicMock())
 
     with pytest.raises(HTTPException) as exc:
@@ -120,31 +117,12 @@ async def test_crear_registro_duplicado(servicio, mocks, datos_crear):
     assert exc.value.status_code == status.HTTP_409_CONFLICT
 
 @pytest.mark.asyncio
-async def test_obtener_miembros_por_grupo_exito(servicio, mocks):
-    """Caso de éxito: Se recuperan todos los miembros de un grupo (usuarios + personas)."""
-    mocks["repo_grupo"].obtener_grupo_por_id = AsyncMock(return_value=MagicMock())
-    mock_miembro1 = MagicMock()
-    mock_miembro2 = MagicMock()
-    mocks["repo_usuario_grupo"].obtener_miembros_por_grupo = AsyncMock(return_value=[mock_miembro1, mock_miembro2])
-    mock_persona = MagicMock(pe_codigo=1, pe_nombre="Juan", pe_apellido="Pérez", pe_correo="juan@test.com", pe_documento="123456")
-    mocks["repo_persona"].obtener_personas_por_grupo = AsyncMock(return_value=[mock_persona])
-
-    with patch.object(UsuarioSalida, 'model_validate', return_value=MagicMock()):
-        resultado = await servicio.obtener_miembros_por_grupo(10)
-        # 2 usuarios miembros + 1 persona = 3 total
-        assert len(resultado) == 3
-        mocks["repo_grupo"].obtener_grupo_por_id.assert_called_once_with(10)
-        mocks["repo_usuario_grupo"].obtener_miembros_por_grupo.assert_called_once_with(10)
-        mocks["repo_persona"].obtener_personas_por_grupo.assert_called_once_with(10)
-
-@pytest.mark.asyncio
 async def test_crear_registro_grupo_solo_personas(servicio, mocks, datos_crear):
     """Caso de éxito: El grupo tiene personas pero no usuarios adicionales al líder."""
     mock_grupo = MagicMock(us_codigo_lider=1)
     mocks["repo_grupo"].obtener_grupo_por_id = AsyncMock(return_value=mock_grupo)
     mocks["repo_retorno"].obtener_ultimo_retorno = AsyncMock(return_value=MagicMock(codigo=1, estado="activo"))
     mocks["repo_usuario_grupo"].contar_miembros_adicionales = AsyncMock(return_value=0)
-    # 2 personas = 0 + 2 + 1 (líder) = 3 integrantes total (suficiente para los servicios solicitados)
     mocks["repo_persona"].obtener_personas_por_grupo = AsyncMock(return_value=[MagicMock(), MagicMock()])
     mocks["repo_reg"].obtener_registro_por_grupo_y_retorno = AsyncMock(return_value=None)
     mocks["repo_usuario_grupo"].asociar_usuario_a_grupo_retorno = AsyncMock()
@@ -166,8 +144,7 @@ async def test_crear_registro_grupo_usuarios_y_personas(servicio, mocks, datos_c
     mock_grupo = MagicMock(us_codigo_lider=1)
     mocks["repo_grupo"].obtener_grupo_por_id = AsyncMock(return_value=mock_grupo)
     mocks["repo_retorno"].obtener_ultimo_retorno = AsyncMock(return_value=MagicMock(codigo=1, estado="activo"))
-    mocks["repo_usuario_grupo"].contar_miembros_adicionales = AsyncMock(return_value=1)  # 1 usuario adicional
-    # 1 usuario + 2 personas + 1 (líder) = 4 integrantes (más que suficiente)
+    mocks["repo_usuario_grupo"].contar_miembros_adicionales = AsyncMock(return_value=1)
     mocks["repo_persona"].obtener_personas_por_grupo = AsyncMock(return_value=[MagicMock(), MagicMock()])
     mocks["repo_reg"].obtener_registro_por_grupo_y_retorno = AsyncMock(return_value=None)
     mocks["repo_usuario_grupo"].asociar_usuario_a_grupo_retorno = AsyncMock()
@@ -182,6 +159,27 @@ async def test_crear_registro_grupo_usuarios_y_personas(servicio, mocks, datos_c
         
         assert resultado.regg_codigo == 100
         mocks["repo_reg"].crear_registro_grupo_retorno.assert_called_once_with(datos_crear)
+
+# ===== PRUEBAS: obtener_miembros_por_grupo =====
+
+@pytest.mark.asyncio
+async def test_obtener_miembros_por_grupo_exito(servicio, mocks):
+    """Caso de éxito: Se recuperan todos los miembros de un grupo (usuarios + personas)."""
+    mocks["repo_grupo"].obtener_grupo_por_id = AsyncMock(return_value=MagicMock())
+    mock_miembro1 = MagicMock()
+    mock_miembro2 = MagicMock()
+    mocks["repo_usuario_grupo"].obtener_miembros_por_grupo = AsyncMock(return_value=[mock_miembro1, mock_miembro2])
+    mock_persona = MagicMock(pe_codigo=1, pe_nombre="Juan", pe_apellido="Pérez", pe_correo="juan@test.com", pe_documento="123456")
+    mocks["repo_persona"].obtener_personas_por_grupo = AsyncMock(return_value=[mock_persona])
+
+    with patch.object(UsuarioSalida, 'model_validate', return_value=MagicMock()):
+        resultado = await servicio.obtener_miembros_por_grupo(10)
+        assert len(resultado) == 3
+        mocks["repo_grupo"].obtener_grupo_por_id.assert_called_once_with(10)
+        mocks["repo_usuario_grupo"].obtener_miembros_por_grupo.assert_called_once_with(10)
+        mocks["repo_persona"].obtener_personas_por_grupo.assert_called_once_with(10)
+
+# ===== PRUEBAS: consultar_registro_por_grupo_y_retorno =====
 
 @pytest.mark.asyncio
 async def test_consultar_registro_exito(servicio, mocks):
