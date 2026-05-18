@@ -150,6 +150,9 @@ class RegistroRetornoGrupoServicio:
             datos: Datos actualizados para el registro de grupo.
         Retorna:
             RegistroRetornoGrupoRespuesta: El registro de grupo actualizado.
+        Excepciones:
+            HTTPException 404: Si el registro de grupo no existe.
+            HTTPException 400: Si el retorno asociado al registro no está activo.
         """
         registro_existente = await self.repositorio_registro_grupo.obtener_registro_por_id(registro_id)
         if not registro_existente:

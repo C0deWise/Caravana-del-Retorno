@@ -38,6 +38,8 @@ class RegistroRetornoGrupoRespuesta(BaseModel):
     model_config = {"from_attributes": True}
 
 class RegistroRetornoGrupoEditar(BaseModel):
+    """Esquema para editar un registro de grupo en retorno, permitiendo modificar 
+    las necesidades de transporte, hospedaje, parqueadero y anotaciones."""
     num_hospedaje: Optional[int] = None
     num_transporte: Optional[int] = None
     num_parqueadero_carro: Optional[int] = None
