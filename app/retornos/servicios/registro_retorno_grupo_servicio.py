@@ -33,12 +33,12 @@ class RegistroRetornoGrupoServicio:
         self.repositorio_usuario_grupo = repositorio_usuario_grupo
         self.repositorio_persona = repositorio_persona # Asignar el nuevo repositorio
 
-    def _validar_retorno(self, retorno, codigo_retorno):
+    def _validar_retorno(self, retorno, codigo_retorno, accion):
         if not retorno:
             raise RetornoNoExistente(codigo_retorno)
         
         if retorno.estado != "activo":
-            raise RetornoNoActivo(codigo_retorno, retorno.estado.value)
+            raise RetornoNoActivo(codigo_retorno, retorno.estado.value, accion)
 
     async def crear_registro_retorno_grupo(self, datos: RegistroRetornoGrupoCrear) -> RegistroRetornoGrupoRespuesta:
         """
@@ -60,7 +60,7 @@ class RegistroRetornoGrupoServicio:
                 detail="El registro solo es permitido para el último retorno vigente."
             )
         
-        self._validar_retorno(ultimo_retorno, datos.retorno)
+        self._validar_retorno(ultimo_retorno, datos.retorno, "registrarse")
 
         # 3. Validar que el grupo tenga al menos 1 integrante (usuario o persona) aparte del líder
         num_usuarios_adicionales = await self.repositorio_usuario_grupo.contar_miembros_adicionales(datos.cod_grupo)
@@ -159,7 +159,7 @@ class RegistroRetornoGrupoServicio:
             raise RegistroGrupoRetornoNoExiste(registro_id)
 
         retorno = await self.repositorio_retorno.get_by_codigo(registro_existente.retorno)
-        self._validar_retorno(retorno, registro_existente.retorno)
+        self._validar_retorno(retorno, registro_existente.retorno, "editar este registro")
         
         registro_actualizado = await self.repositorio_registro_grupo.editar_registro_grupo_retorno(registro_id, datos)
         return RegistroRetornoGrupoRespuesta.model_validate(registro_actualizado)
