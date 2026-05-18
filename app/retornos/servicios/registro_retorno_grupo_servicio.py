@@ -157,6 +157,9 @@ class RegistroRetornoGrupoServicio:
         registro_existente = await self.repositorio_registro_grupo.obtener_registro_por_id(registro_id)
         if not registro_existente:
             raise RegistroGrupoRetornoNoExiste(registro_id)
+
+        retorno = await self.repositorio_retorno.get_by_codigo(registro_existente.retorno)
+        self._validar_retorno(retorno, registro_existente.retorno)
         
         registro_actualizado = await self.repositorio_registro_grupo.editar_registro_grupo_retorno(registro_id, datos)
         return RegistroRetornoGrupoRespuesta.model_validate(registro_actualizado)

@@ -436,5 +436,5 @@ async def obtener_registro_por_grupo_y_retorno(gr_codigo: int, re_codigo: int, s
     summary="Editar registro de grupo en retorno",
     description="Edita un registro de grupo en un retorno específico, permitiendo modificar las necesidades de hospedaje, transporte, parqueadero y anotaciones."
 )
-async def editar_registro_retorno_grupo(registro_id: int, datos: RegistroRetornoGrupoEditar, servicio: RegistroRetornoGrupoServicio = Depends(obtener_registro_retorno_grupo_servicio)):
+async def editar_registro_retorno_grupo(registro_id: int, datos: RegistroRetornoGrupoEditar, servicio: Annotated[RegistroRetornoGrupoServicio, Depends(obtener_registro_retorno_grupo_servicio)]):
     return await servicio.editar_registro_retorno_grupo(registro_id, datos)
