@@ -29,6 +29,12 @@ class RegistroRetornoGrupoRepositorio:
         await self.db.refresh(nuevo_registro)
         return nuevo_registro
 
+    async def obtener_registro_por_id(self, registro_id: int) -> RegistroRetornoGrupo | None:
+        """Obtiene un registro de grupo en retorno por su ID."""
+        consulta = select(RegistroRetornoGrupo).where(RegistroRetornoGrupo.regg_codigo == registro_id)
+        result = await self.db.execute(consulta)
+        return result.scalars().first()
+
     async def obtener_registro_por_grupo_y_retorno(self, gr_codigo: int, re_codigo: int) -> RegistroRetornoGrupo | None:
         """Verifica si un grupo ya está registrado en un retorno específico."""
         stmt = select(RegistroRetornoGrupo).where(
