@@ -136,4 +136,21 @@ class RegistroRetornoGrupoServicio:
             
         return resultado
 
-    
+    async def editar_registro_retorno_grupo(self, registro_id: int, datos: RegistroRetornoGrupoCrear) -> RegistroRetornoGrupoRespuesta:
+        """
+        Edita un registro de grupo en un retorno aplicando validaciones de negocio.
+        Parámetros:
+            registro_id: ID del registro de grupo a editar.
+            datos: Datos actualizados para el registro de grupo.
+        Retorna:
+            RegistroRetornoGrupoRespuesta: El registro de grupo actualizado.
+        """
+        registro_existente = await self.repositorio_registro_grupo.obtener_registro_por_id(registro_id)
+        if not registro_existente:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"El registro con ID {registro_id} no existe."
+            )
+        
+        registro_actualizado = await self.repositorio_registro_grupo.editar_registro_grupo_retorno(registro_id, datos)
+        return RegistroRetornoGrupoRespuesta.model_validate(registro_actualizado)

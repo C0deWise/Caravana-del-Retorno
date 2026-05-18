@@ -49,3 +49,25 @@ class RegistroRetornoGrupoRepositorio:
         )
         result = await self.db.execute(stmt)
         return result.scalars().first() is not None
+    
+    async def editar_registro_grupo_retorno(self, registro_id: int, datos: RegistroRetornoGrupo) -> RegistroRetornoGrupo:
+        """Edita un registro de grupo en un retorno."""
+        registro = await self.obtener_registro_por_id(registro_id)
+        if not registro:
+            return None
+
+        campos_editables = {
+            "num_hospedaje",
+            "num_transporte",
+            "num_parqueadero_carro",
+            "num_parqueadero_moto",
+            "anotacion"
+        }
+
+        for campo, valor in datos.model_dump(exclude_none=True).items():
+            if campo in campos_editables:
+                setattr(registro, campo, valor)
+        
+        await self.db.commit()
+        await self.db.refresh(registro)
+        return registro
