@@ -3,7 +3,7 @@
 """
 
 from fastapi import HTTPException, status
-from app.retornos.esquemas.registro_retorno_grupo_esquema import RegistroRetornoGrupoCrear, RegistroRetornoGrupoRespuesta
+from app.retornos.esquemas.registro_retorno_grupo_esquema import RegistroRetornoGrupoCrear, RegistroRetornoGrupoRespuesta, RegistroRetornoGrupoEditar
 from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
 from app.retornos.repositorios.registro_retorno_grupo_repositorio import RegistroRetornoGrupoRepositorio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
@@ -14,7 +14,8 @@ from app.retornos.excepciones.registro_retorno_grupo_excepciones import (
     RetornoNoExistente, 
     RetornoNoActivo, 
     RegistroGrupoRetornoNoExistente,
-    GrupoRetornoNoExistente
+    GrupoRetornoNoExistente,
+    RegistroGrupoRetornoNoExiste
 )
 
 class RegistroRetornoGrupoServicio: 
@@ -141,7 +142,7 @@ class RegistroRetornoGrupoServicio:
             
         return resultado
 
-    async def editar_registro_retorno_grupo(self, registro_id: int, datos: RegistroRetornoGrupoCrear) -> RegistroRetornoGrupoRespuesta:
+    async def editar_registro_retorno_grupo(self, registro_id: int, datos: RegistroRetornoGrupoEditar) -> RegistroRetornoGrupoRespuesta:
         """
         Edita un registro de grupo en un retorno aplicando validaciones de negocio.
         Parámetros:
@@ -152,10 +153,7 @@ class RegistroRetornoGrupoServicio:
         """
         registro_existente = await self.repositorio_registro_grupo.obtener_registro_por_id(registro_id)
         if not registro_existente:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"El registro con ID {registro_id} no existe."
-            )
+            raise RegistroGrupoRetornoNoExiste(registro_id)
         
         registro_actualizado = await self.repositorio_registro_grupo.editar_registro_grupo_retorno(registro_id, datos)
         return RegistroRetornoGrupoRespuesta.model_validate(registro_actualizado)
