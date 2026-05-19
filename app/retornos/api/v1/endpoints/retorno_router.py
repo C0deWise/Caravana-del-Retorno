@@ -201,6 +201,14 @@ async def cambiar_estado_retorno(codigo: int, nuevo_estado: CambiarEstadoRetorno
 async def inscribir_usuario_en_retorno(registro: RegistroRetornoCrear, servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)]):
     return await servicio.crear_registro_retorno(registro)
 
+@router.get(
+    "/registro/usuario/{usuario_id}/retorno/{retorno_id}",
+    response_model=RegistroRetornoRespuesta | None,
+    summary="Obtener registro de retorno por usuario y retorno",
+    description="Busca y retorna el registro de participación de un usuario específico en un retorno determinado. Retorna None si no existe.",
+)
+async def obtener_registro_por_usuario_y_retorno(usuario_id: int, retorno_id: int, servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)]):
+    return await servicio.obtener_registro_retorno_por_usuario_y_retorno(usuario_id, retorno_id)
 
 @router.delete(
     "/darse-de-baja",
