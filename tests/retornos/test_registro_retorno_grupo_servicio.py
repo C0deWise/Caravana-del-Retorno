@@ -74,6 +74,14 @@ def setup_consultar_registro_mocks(mocks, retorno_existe=True, grupo_existe=True
         return_value=MagicMock() if registro_existe else None
     )
 
+def create_estado_mock(valor="activo"):
+    """Helper para crear un mock de Enum estado."""
+    estado = MagicMock()
+    estado.value = valor
+    estado.__eq__ = lambda self, other: other == valor
+    estado.__ne__ = lambda self, other: other != valor
+    return estado
+
 # ===== PRUEBAS: crear_registro_retorno_grupo =====
 
 @pytest.mark.asyncio
@@ -218,3 +226,67 @@ async def test_consultar_registro_no_existe_para_grupo_y_retorno(servicio, mocks
         await servicio.consultar_registro_por_grupo_y_retorno(10, 1)
     
     assert exc.value.status_code == status.HTTP_404_NOT_FOUND
+
+# PRUEBAS: EDITAR REGISTRO RETORNO GRUPO
+
+@pytest.mark.asyncio
+async def test_editar_registro_retorno_grupo_exitoso(servicio, mocks):
+    datos_editar = MagicMock()
+    datos_editar.num_hospedaje = 3
+    datos_editar.num_transporte = 2
+
+    mock_registro = MagicMock(retorno=1)
+    mocks["repo_reg"].obtener_registro_por_id =AsyncMock(return_value=mock_registro)
+
+    mock_retorno = MagicMock(estado="activo")
+    mocks["repo_retorno"].get_by_codigo = AsyncMock(return_value=mock_retorno)
+
+    mock_registro_actualizado = MagicMock()
+    mocks["repo_reg"].editar_registro_grupo_retorno = AsyncMock(return_value=mock_registro_actualizado)
+
+    with patch.object(RegistroRetornoGrupoRespuesta, 'model_validate') as mock_validate:
+        mock_validate.return_value = MagicMock(regg_codigo=1)
+
+        resultado = await servicio.editar_registro_retorno_grupo(1, datos_editar)
+
+        assert resultado.regg_codigo == 1
+        mocks["repo_reg"].obtener_registro_por_id.assert_called_once_with(1)
+        mocks["repo_retorno"].get_by_codigo.assert_called_once_with(1)
+        mocks["repo_reg"].editar_registro_grupo_retorno.assert_called_once_with(1, datos_editar)
+
+@pytest.mark.asyncio
+async def test_editar_registro_grupo_no_existente(servicio, mocks):
+    datos_editar = MagicMock()
+    mocks["repo_reg"].obtener_registro_por_id = AsyncMock(return_value=None)
+
+    with pytest.raises(HTTPException) as exc:
+        await servicio.editar_registro_retorno_grupo(999, datos_editar)
+    
+    assert exc.value.status_code == status.HTTP_404_NOT_FOUND
+    assert "no existe" in exc.value.detail
+
+@pytest.mark.asyncio
+async def test_editar_registro_retorno_no_existe(servicio, mocks):
+    datos_editar = MagicMock()
+    mock_registro = MagicMock(retorno=999)
+    mocks["repo_reg"].obtener_registro_por_id = AsyncMock(return_value=mock_registro)
+    mocks["repo_retorno"].get_by_codigo = AsyncMock(return_value=None)
+
+    with pytest.raises(HTTPException) as exc:
+        await servicio.editar_registro_retorno_grupo(1, datos_editar)
+    
+    assert exc.value.status_code == status.HTTP_404_NOT_FOUND
+    assert "no existe" in exc.value.detail
+
+async def test_editar_registro_retorno_no_activo(servicio, mocks):
+    datos_editar = MagicMock()
+    mock_registro = MagicMock(retorno=1)
+    mocks["repo_reg"].obtener_registro_por_id = AsyncMock(return_value=mock_registro)
+    mock_retorno = create_estado_mock("finalizado")
+    mocks["repo_retorno"].get_by_codigo = AsyncMock(return_value=mock_retorno)
+
+    with pytest.raises(HTTPException) as exc:
+        await servicio.editar_registro_retorno_grupo(1, datos_editar)
+    
+    assert exc.value.status_code == status.HTTP_409_CONFLICT
+    assert "No es posible editar este registro" in exc.value.detail
