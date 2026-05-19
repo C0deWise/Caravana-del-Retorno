@@ -21,7 +21,7 @@ from app.retornos.servicios.registro_retorno_grupo_servicio import RegistroRetor
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
 from app.retornos.esquemas.solicitud_grupo_retorno_esquema import SolicitudGrupoRetornoRespuesta, SolicitudGrupoRetornoEstado
 from app.retornos.esquemas.grupo_retorno_esquema import GrupoRetornoCrear, GrupoRetornoRespuesta
-from app.retornos.esquemas.registro_retorno_grupo_esquema import RegistroRetornoGrupoCrear, RegistroRetornoGrupoRespuesta
+from app.retornos.esquemas.registro_retorno_grupo_esquema import RegistroRetornoGrupoCrear, RegistroRetornoGrupoEditar, RegistroRetornoGrupoRespuesta
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.usuarios.schemas.usuario_esquemas import UsuarioSalida
@@ -436,3 +436,13 @@ async def obtener_usuarios_por_grupo(gr_codigo: int, servicio: Annotated[GrupoRe
 )
 async def obtener_registro_por_grupo_y_retorno(gr_codigo: int, re_codigo: int, servicio: Annotated[RegistroRetornoGrupoServicio, Depends(obtener_registro_retorno_grupo_servicio)]):
     return await servicio.consultar_registro_por_grupo_y_retorno(gr_codigo, re_codigo)
+
+@grupo_retorno_router.patch(
+    "/registro/{registro_id}",
+    response_model=RegistroRetornoGrupoRespuesta,
+    status_code=status.HTTP_200_OK,
+    summary="Editar registro de grupo en retorno",
+    description="Edita un registro de grupo en un retorno específico, permitiendo modificar las necesidades de hospedaje, transporte, parqueadero y anotaciones."
+)
+async def editar_registro_retorno_grupo(registro_id: int, datos: RegistroRetornoGrupoEditar, servicio: Annotated[RegistroRetornoGrupoServicio, Depends(obtener_registro_retorno_grupo_servicio)]):
+    return await servicio.editar_registro_retorno_grupo(registro_id, datos)

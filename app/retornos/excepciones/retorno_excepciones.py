@@ -21,7 +21,7 @@ class RegistroIndividualParqueaderoExcedidoError(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"El usuario solo puede registrar un parqueadero."
+            detail="El usuario solo puede registrar un parqueadero."
         )
 
 class RetornoAnioDuplicadoError(HTTPException):
