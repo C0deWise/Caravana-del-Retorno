@@ -19,3 +19,17 @@ class RetornoNoActivo(HTTPException):
             status_code=status.HTTP_409_CONFLICT,
             detail=f"No es posible incribirse en el retorno con código {retorno_id} porque su estado es {retorno_estado}."
         )
+
+class RegistroGrupoRetornoNoExistente(HTTPException):
+    def __init__(self, grupo_id: int, retorno_id: int):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No existe un registro para el grupo con código {grupo_id} en el retorno con código {retorno_id}."
+        )
+
+class GrupoRetornoNoExistente(HTTPException):
+    def __init__(self, grupo_id: int):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"El grupo con código {grupo_id} no existe."
+        )
