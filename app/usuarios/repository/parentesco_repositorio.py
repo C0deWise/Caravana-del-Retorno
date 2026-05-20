@@ -54,3 +54,21 @@ class ParentescoRepositorio:
             )
         )
         return result.scalars().all()
+    
+    async def obtener_parentesco_por_id(self, id_parentesco: int) -> Parentesco | None:
+        """Obtiene un parentesco por su ID."""
+        result = await self.db.execute(
+            select(Parentesco).where(Parentesco.id == id_parentesco)
+        )
+        return result.scalar_one_or_none()
+    
+    async def actualizar_estado_parentesco(self, id_parentesco: int, nuevo_estado: EstadoSolicitudParentesco) -> Parentesco:
+        """Actualiza el estado de una solicitud de parentesco."""
+        parentesco = await self.obtener_parentesco_por_id(id_parentesco)
+        if not parentesco:
+            raise ValueError("La solicitud de parentesco no existe.")
+        parentesco.estado = nuevo_estado
+        self.db.add(parentesco)
+        await self.db.commit()
+        await self.db.refresh(parentesco)
+        return parentesco

@@ -7,6 +7,7 @@ de datos requeridas antes de interactuar con la capa de repositorio.
 from passlib.context import CryptContext
 from sqlalchemy import select
 
+from app.usuarios.models.parentesco import EstadoSolicitudParentesco
 from app.usuarios.models.usuario import Usuario
 from app.usuarios.repository.parentesco_repositorio import ParentescoRepositorio
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
@@ -144,6 +145,25 @@ class UsuarioServicio:
         if not self.repositorio_parentesco:
             raise RuntimeError("Repositorio de parentesco no inicializado.")
         return await self.repositorio_parentesco.existe_parentesco(codigo_solicitante, codigo_destinatario)
+
+    async def aceptar_solicitud_parentesco(self, codigo_solicitud:int):
+        """Acepta una solicitud de parentesco pendiente."""
+        solicitud = await self.repositorio_parentesco.obtener_parentesco_por_id(codigo_solicitud)
+        if not solicitud:
+            raise ValueError("La solicitud de parentesco no existe.")
+        if solicitud.estado != EstadoSolicitudParentesco.pendiente:
+            raise ValueError("Solo se pueden aceptar solicitudes que estén en estado pendiente.")
+        return await self.repositorio_parentesco.actualizar_estado_parentesco(codigo_solicitud, EstadoSolicitudParentesco.aceptada)
+
+
+    async def rechazar_solicitud_parentesco(self, codigo_solicitud:int):
+        """Rechaza una solicitud de parentesco pendiente."""
+        solicitud = await self.repositorio_parentesco.obtener_parentesco_por_id(codigo_solicitud)
+        if not solicitud:
+            raise ValueError("La solicitud de parentesco no existe.")
+        if solicitud.estado != EstadoSolicitudParentesco.pendiente:
+            raise ValueError("Solo se pueden rechazar solicitudes que estén en estado pendiente.")
+        return await self.repositorio_parentesco.actualizar_estado_parentesco(codigo_solicitud, EstadoSolicitudParentesco.rechazada)
 
     async def existe_solicitud_parentesco(self, codigo_solicitante: int, codigo_destinatario: int) -> bool:
         """Verifica si ya existe una solicitud de parentesco entre dos usuarios."""

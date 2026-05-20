@@ -70,6 +70,34 @@ async def solicitar_parentesco(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
+    
+@router.patch("/solicitud-parentesco/aceptar/{solicitud_id}", status_code=status.HTTP_200_OK, summary="Aceptar solicitud de parentesco") 
+async def aceptar_solicitud_parentesco(
+    solicitud_id: int,
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
+):
+    try:
+        solicitud = await servicio.aceptar_solicitud_parentesco(solicitud_id)
+        return solicitud
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )  
+
+@router.patch("/solicitud-parentesco/rechazar/{solicitud_id}", status_code=status.HTTP_200_OK, summary="Rechazar solicitud de parentesco")
+async def rechazar_solicitud_parentesco(
+    solicitud_id: int,
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
+):
+    try:
+        solicitud =  await servicio.rechazar_solicitud_parentesco(solicitud_id)
+        return solicitud
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )     
 
 @router.get("/", response_model=list[UsuarioSalida], summary="Listar todos los usuarios (básico)")
 async def listar_usuarios(
