@@ -153,6 +153,20 @@ class ColoniaRepository:
         
         return usuarios_desasociados
 
+    async def activar_colonia(self, colonia_codigo: int) -> Colonia:
+        """
+        Activa una colonia existente, estableciendo su estado a activa.
+        Parámetros:
+            colonia_codigo (int): Código de la colonia a activar.
+        Retorna:
+             Colonia: La colonia activada.
+        """
+        colonia = await self.obtener_colonia_por_id(colonia_codigo)
+        colonia.estado = ColoniaEstado.ACTIVA
+        await self.db.commit()
+        await self.db.refresh(colonia)
+        return colonia
+    
     async def desactivar_colonia(self, colonia: Colonia) -> Colonia:
         """
         Desactiva una colonia existente, estableciendo su estado a inactiva y su líder a None.
