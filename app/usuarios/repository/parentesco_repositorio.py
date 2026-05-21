@@ -52,7 +52,7 @@ class ParentescoRepositorio:
         result = await self.db.execute(
             select(Parentesco)
             .where(
-                (Parentesco.codigo_destinatario == codigo_usuario) | (Parentesco.codigo_solicitante == codigo_usuario),)
+                (Parentesco.codigo_destinatario == codigo_usuario) | (Parentesco.codigo_solicitante == codigo_usuario), Parentesco.estado != EstadoSolicitudParentesco.expirada)
             .options(selectinload(Parentesco.solicitante), selectinload(Parentesco.destinatario))
         )
         return result.scalars().all()
