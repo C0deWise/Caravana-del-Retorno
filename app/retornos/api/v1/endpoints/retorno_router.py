@@ -111,6 +111,12 @@ async def crear_retorno(data: RetornoCreate, servicio: Annotated[RetornoService,
     return await servicio.crear_retorno(data)
 
 
+@router.get("/ultimo-retorno",
+            response_model=RetornoResponse | None,
+            summary="Obtener el último retorno",
+            description="Retorna el retorno con el año más reciente.")
+async def obtener_ultimo_retorno(servicio: Annotated[RetornoService, Depends(obtener_retorno_servicio)]):
+    return await servicio.obtener_ultimo_retorno()
 @router.put("/editar-registro/{registro_id}",
                response_model=RegistroRetornoRespuesta, 
                summary="Editar un registro de retorno existente",

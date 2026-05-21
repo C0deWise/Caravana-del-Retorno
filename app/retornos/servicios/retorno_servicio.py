@@ -58,6 +58,12 @@ class RetornoService:
             return RetornoResponse.model_validate(retornos_en_curso[0])
         
         raise  NoHayRetornoVigenteError()
+    async def obtener_ultimo_retorno(self) -> RetornoResponse | None:
+        """Obtiene el retorno con el año más reciente."""
+        retorno = await self.repo.obtener_ultimo_retorno()
+        if retorno:
+            return RetornoResponse.model_validate(retorno)
+        return None
     async def listar_retornos(self) -> list[RetornoResponse]:
         """Retorna todos los retornos registrados."""
         retornos = await self.repo.get_all()
