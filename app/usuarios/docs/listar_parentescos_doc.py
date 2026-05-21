@@ -5,13 +5,13 @@ las relaciones de parentesco asociadas a un usuario específico, ya sea como sol
 Se incluyen detalles sobre el acceso, los parámetros requeridos y las posibles respuestas del endpoint.
 """
 
-from app.usuarios.schemas.parentesco_esquemas import ParentescoLista
+from app.usuarios.schemas.parentesco_esquemas import ParentescoLista, ParentescoRespuestaDetallada
 from fastapi import Body
 from typing import Annotated
 
 listar_parentescos_docs = dict(
     summary="Listar parentescos de un usuario",
-    response_model=list[ParentescoLista],
+    response_model=list[ParentescoRespuestaDetallada],
     description="""
 Obtiene una lista de todas 
 las relaciones de parentesco asociadas a un usuario específico, ya sea como solicitante o destinatario.

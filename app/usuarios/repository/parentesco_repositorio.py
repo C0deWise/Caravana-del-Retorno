@@ -5,6 +5,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from app.usuarios.models.parentesco import Parentesco, EstadoSolicitudParentesco
 from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear, ParentescoLista
 
@@ -49,22 +50,33 @@ class ParentescoRepositorio:
     async def listar_parentescos_usuario(self, codigo_usuario: int) -> list[ParentescoLista]:
         """Lista todas las relaciones de parentesco de un usuario."""
         result = await self.db.execute(
-            select(Parentesco).where(
-                (Parentesco.codigo_destinatario == codigo_usuario) | (Parentesco.codigo_solicitante == codigo_usuario),
-            )
+            select(Parentesco)
+            .where(
+                (Parentesco.codigo_destinatario == codigo_usuario) | (Parentesco.codigo_solicitante == codigo_usuario),)
+            .options(selectinload(Parentesco.solicitante), selectinload(Parentesco.destinatario))
         )
         return result.scalars().all()
     
-    async def obtener_parentesco_por_id(self, id_parentesco: int) -> Parentesco | None:
-        """Obtiene un parentesco por su ID."""
+    async def obtener_parentesco_por_id_detallado(self, id_parentesco: int) -> Parentesco | None:
+        """Obtiene un parentesco por su ID con sus relaciones cargadas."""
         result = await self.db.execute(
-            select(Parentesco).where(Parentesco.id == id_parentesco)
+            select(Parentesco)
+            .where(Parentesco.codigo == id_parentesco)
+            .options(selectinload(Parentesco.solicitante), selectinload(Parentesco.destinatario))
+        )
+        return result.scalar_one_or_none()
+    
+    async def obtener_parentesco_por_id(self, id_parentesco: int) -> Parentesco | None:
+        """Obtiene un parentesco por su ID con sus relaciones cargadas."""
+        result = await self.db.execute(
+            select(Parentesco)
+            .where(Parentesco.codigo == id_parentesco)
         )
         return result.scalar_one_or_none()
     
     async def actualizar_estado_parentesco(self, id_parentesco: int, nuevo_estado: EstadoSolicitudParentesco) -> Parentesco:
         """Actualiza el estado de una solicitud de parentesco."""
-        parentesco = await self.obtener_parentesco_por_id(id_parentesco)
+        parentesco = await self.obtener_parentesco_por_id_detallado(id_parentesco)
         if not parentesco:
             raise ValueError("La solicitud de parentesco no existe.")
         parentesco.estado = nuevo_estado

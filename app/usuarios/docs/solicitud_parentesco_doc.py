@@ -71,7 +71,7 @@ solicitar_parentesco_body = Annotated[
                 "value": {
                     "codigo_solicitante": 1,
                     "codigo_destinatario": 2,
-                    "tipo_parentesco": "hermano",
+                    "tipo_parentesco": "hermano (a)",
                 },
             },
             "ejemplo_completo": {

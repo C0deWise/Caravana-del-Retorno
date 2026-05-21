@@ -28,9 +28,9 @@ class ParentescoRespuesta(BaseModel):
     model_config = {"from_attributes": True}
 
 class ParentescoRespuestaDetallada(BaseModel):
-    codigo: int = Field(alias="pa_codigo")
-    tipo_parentesco: TipoParentesco = Field(alias="pa_tipo_parentesco")
-    estado: EstadoSolicitudParentesco = Field(alias="pa_estado")
+    codigo: int 
+    tipo_parentesco: TipoParentesco 
+    estado: EstadoSolicitudParentesco 
     solicitante: UsuarioResumen
     destinatario: UsuarioResumen
     model_config = {"from_attributes": True, "populate_by_name": True}

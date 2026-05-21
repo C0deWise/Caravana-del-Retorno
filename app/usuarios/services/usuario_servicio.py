@@ -11,13 +11,29 @@ from app.usuarios.models.parentesco import EstadoSolicitudParentesco
 from app.usuarios.models.usuario import Usuario
 from app.usuarios.repository.parentesco_repositorio import ParentescoRepositorio
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
-from app.usuarios.schemas.usuario_esquemas import UsuarioConsultaColonia, UsuarioCrear
-from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear
+from app.usuarios.schemas.usuario_esquemas import UsuarioConsultaColonia, UsuarioCrear, UsuarioResumen
+from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear, ParentescoLista, ParentescoRespuestaDetallada
 
 # Contexto para el cifrado y verificación de contraseñas utilizando el algoritmo bcrypt.
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+def mapear_usuario_a_resumen(usuario: Usuario) -> UsuarioResumen:
+    """Función auxiliar para mapear un objeto Usuario a UsuarioResumen."""
+    return UsuarioResumen(
+        codigo=usuario.us_codigo,
+        nombre=usuario.us_nombre,
+        apellido=usuario.us_apellido
+    )
 
+def mapear_parentesco_a_respuesta_detallada(parentesco, solicitante: Usuario, destinatario: Usuario) -> ParentescoRespuestaDetallada:
+    """Función auxiliar para mapear un objeto Parentesco a ParentescoRespuestaDetallada."""
+    return ParentescoRespuestaDetallada(
+        codigo=parentesco.codigo,
+        tipo_parentesco=parentesco.tipo_parentesco,
+        estado=parentesco.estado,
+        solicitante= mapear_usuario_a_resumen(solicitante),
+        destinatario= mapear_usuario_a_resumen(destinatario)
+    )
 class UsuarioServicio:
     """
     Servicio para gestionar la lógica de negocio de los usuarios.
@@ -153,7 +169,14 @@ class UsuarioServicio:
             raise ValueError("La solicitud de parentesco no existe.")
         if solicitud.estado != EstadoSolicitudParentesco.pendiente:
             raise ValueError("Solo se pueden aceptar solicitudes que estén en estado pendiente.")
-        return await self.repositorio_parentesco.actualizar_estado_parentesco(codigo_solicitud, EstadoSolicitudParentesco.aceptada)
+        parentesco = await self.repositorio_parentesco.actualizar_estado_parentesco(codigo_solicitud, EstadoSolicitudParentesco.aceptada)
+        return ParentescoLista(
+            codigo=parentesco.codigo,
+            codigo_solicitante=parentesco.codigo_solicitante,
+            codigo_destinatario=parentesco.codigo_destinatario,
+            tipo_parentesco=parentesco.tipo_parentesco,
+            estado=parentesco.estado
+        )
 
 
     async def rechazar_solicitud_parentesco(self, codigo_solicitud:int):
@@ -163,8 +186,19 @@ class UsuarioServicio:
             raise ValueError("La solicitud de parentesco no existe.")
         if solicitud.estado != EstadoSolicitudParentesco.pendiente:
             raise ValueError("Solo se pueden rechazar solicitudes que estén en estado pendiente.")
-        return await self.repositorio_parentesco.actualizar_estado_parentesco(codigo_solicitud, EstadoSolicitudParentesco.rechazada)
+        parentesco = await self.repositorio_parentesco.actualizar_estado_parentesco(codigo_solicitud, EstadoSolicitudParentesco.rechazada)
+        return ParentescoLista(
+            codigo=parentesco.codigo,
+            codigo_solicitante=parentesco.codigo_solicitante,
+            codigo_destinatario=parentesco.codigo_destinatario,
+            tipo_parentesco=parentesco.tipo_parentesco,
+            estado=parentesco.estado
+        )
 
+    async def obtener_parentesco_por_id(self, id_parentesco: int):
+        """Obtiene un parentesco por su ID."""
+        return await self.repositorio_parentesco.obtener_parentesco_por_id_detallado(id_parentesco)
+    
     async def existe_solicitud_parentesco(self, codigo_solicitante: int, codigo_destinatario: int) -> bool:
         """Verifica si ya existe una solicitud de parentesco entre dos usuarios."""
         if not self.repositorio_parentesco:
@@ -203,7 +237,16 @@ class UsuarioServicio:
     
     async def listar_parentescos_usuario(self, codigo_usuario: int):
         """Lista todas las relaciones de parentesco de un usuario."""
-        return await self.repositorio_parentesco.listar_parentescos_usuario(codigo_usuario)
+
+        parentescos = await self.repositorio_parentesco.listar_parentescos_usuario(codigo_usuario)
+        return [mapear_parentesco_a_respuesta_detallada(p, p.solicitante, p.destinatario) for p in parentescos]
+    
+    async def obtener_parentesco_por_id(self, codigo_parentesco: int):
+        """Obtiene un parentesco específico por su ID."""
+        parentesco = await self.repositorio_parentesco.obtener_parentesco_por_id_detallado(codigo_parentesco)
+        if not parentesco:
+            raise ValueError("La solicitud de parentesco no existe.")
+        return mapear_parentesco_a_respuesta_detallada(parentesco, parentesco.solicitante, parentesco.destinatario)
     
     async def buscar_por_colonia(self, colonia: int) -> list[Usuario]:
         """Busca usuarios miembros por colonia."""
