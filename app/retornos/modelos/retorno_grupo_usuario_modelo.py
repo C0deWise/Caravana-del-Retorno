@@ -29,7 +29,7 @@ class RetornoGrupoUsuario(Base):
     #  Relaciones
     # ─────────────────────────────────────────
     usuario: Mapped["Usuario"] = relationship(Usuario)
-    grupo: Mapped["GrupoRetorno"] = relationship("GrupoRetorno") 
+    grupo: Mapped["GrupoRetorno"] = relationship("GrupoRetorno", back_populates="usuarios") 
 
     __table_args__ = (
         UniqueConstraint("us_codigo", "gr_codigo", name="uk1_uk2_usuario_grupo_retorno"),

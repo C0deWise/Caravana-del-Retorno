@@ -38,3 +38,16 @@ class GrupoRetornoRepositorio:
         """Obtiene un grupo de retorno por su código."""
         result = await self.db.execute(select(GrupoRetorno).filter(GrupoRetorno.gr_codigo == gr_codigo))
         return result.scalars().first()
+    
+    async def eliminar_grupo_retorno(self, gr_codigo: int):
+        """Elimina un grupo de retorno por su código con eliminación en cascada.
+        
+        Esto eliminará automáticamente:
+        - Todos los miembros (persona_grupo_retorno)
+        - Todas las solicitudes relacionadas (SolicitudGrupoRetorno)
+        - Todos los registros de retorno (RegistroRetornoGrupo)
+        """
+        grupo = await self.obtener_grupo_por_id(gr_codigo)
+        if grupo:
+            await self.db.delete(grupo)
+            await self.db.commit()
