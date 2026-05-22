@@ -3,14 +3,20 @@
 """
 
 from fastapi import HTTPException, status
-from app.retornos.esquemas.registro_retorno_grupo_esquema import RegistroRetornoGrupoCrear, RegistroRetornoGrupoRespuesta
+from app.retornos.esquemas.registro_retorno_grupo_esquema import RegistroRetornoGrupoCrear, RegistroRetornoGrupoRespuesta, RegistroRetornoGrupoEditar
 from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
 from app.retornos.repositorios.registro_retorno_grupo_repositorio import RegistroRetornoGrupoRepositorio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.retornos.repositorios.persona_repositorio import PersonaRepositorio
 from app.retornos.repositorios.retorno_grupo_usuario_repositorio import RetornoGrupoUsuarioRepositorio
 from app.usuarios.schemas.usuario_esquemas import UsuarioSalida
-from app.retornos.excepciones.registro_retorno_grupo_excepciones import RetornoNoExistente, RetornoNoActivo
+from app.retornos.excepciones.registro_retorno_grupo_excepciones import (
+    RetornoNoExistente, 
+    RetornoNoActivo, 
+    RegistroGrupoRetornoNoExistente,
+    GrupoRetornoNoExistente,
+    RegistroGrupoRetornoNoExiste
+)
 
 class RegistroRetornoGrupoServicio: 
     def __init__(
@@ -27,12 +33,12 @@ class RegistroRetornoGrupoServicio:
         self.repositorio_usuario_grupo = repositorio_usuario_grupo
         self.repositorio_persona = repositorio_persona # Asignar el nuevo repositorio
 
-    def _validar_retorno(self, retorno, codigo_retorno):
+    def _validar_retorno(self, retorno, codigo_retorno, accion):
         if not retorno:
             raise RetornoNoExistente(codigo_retorno)
         
         if retorno.estado != "activo":
-            raise RetornoNoActivo(codigo_retorno, retorno.estado.value)
+            raise RetornoNoActivo(codigo_retorno, retorno.estado.value, accion)
 
     async def crear_registro_retorno_grupo(self, datos: RegistroRetornoGrupoCrear) -> RegistroRetornoGrupoRespuesta:
         """
@@ -54,7 +60,7 @@ class RegistroRetornoGrupoServicio:
                 detail="El registro solo es permitido para el último retorno vigente."
             )
         
-        self._validar_retorno(ultimo_retorno, datos.retorno)
+        self._validar_retorno(ultimo_retorno, datos.retorno, "registrarse")
 
         # 3. Validar que el grupo tenga al menos 1 integrante (usuario o persona) aparte del líder
         num_usuarios_adicionales = await self.repositorio_usuario_grupo.contar_miembros_adicionales(datos.cod_grupo)
@@ -136,4 +142,48 @@ class RegistroRetornoGrupoServicio:
             
         return resultado
 
+    async def editar_registro_retorno_grupo(self, registro_id: int, datos: RegistroRetornoGrupoEditar) -> RegistroRetornoGrupoRespuesta:
+        """
+        Edita un registro de grupo en un retorno aplicando validaciones de negocio.
+        Parámetros:
+            registro_id: ID del registro de grupo a editar.
+            datos: Datos actualizados para el registro de grupo.
+        Retorna:
+            RegistroRetornoGrupoRespuesta: El registro de grupo actualizado.
+        Excepciones:
+            HTTPException 404: Si el registro de grupo no existe.
+            HTTPException 400: Si el retorno asociado al registro no está activo.
+        """
+        registro_existente = await self.repositorio_registro_grupo.obtener_registro_por_id(registro_id)
+        if not registro_existente:
+            raise RegistroGrupoRetornoNoExiste(registro_id)
+
+        retorno = await self.repositorio_retorno.get_by_codigo(registro_existente.retorno)
+        self._validar_retorno(retorno, registro_existente.retorno, "editar este registro")
+        
+        registro_actualizado = await self.repositorio_registro_grupo.editar_registro_grupo_retorno(registro_id, datos)
+        return RegistroRetornoGrupoRespuesta.model_validate(registro_actualizado)
     
+    async def consultar_registro_por_grupo_y_retorno(self, gr_codigo: int, re_codigo: int) -> RegistroRetornoGrupoRespuesta:
+        """
+        Consulta el registro de un grupo en un retorno específico.
+        Parámetros:
+            gr_codigo: Código del grupo a consultar.
+            re_codigo: Código del retorno a consultar.
+        Retorna:
+            RegistroRetornoGrupoRespuesta con los detalles del registro encontrado.
+        Excepciones:
+            HTTPException 404: Si el grupo o el retorno no existen, o si no hay un registro para ese grupo en ese retorno.
+        """
+        retorno = await self.repositorio_retorno.get_by_codigo(re_codigo)
+        if not retorno:
+            raise RetornoNoExistente(re_codigo)
+        
+        grupo = await self.repositorio_grupo.obtener_grupo_por_id(gr_codigo)
+        if not grupo:
+            raise GrupoRetornoNoExistente(gr_codigo)
+        
+        registro = await self.repositorio_registro_grupo.obtener_registro_por_grupo_y_retorno(gr_codigo, re_codigo)
+        if not registro:
+            raise RegistroGrupoRetornoNoExistente(gr_codigo, re_codigo)
+        return RegistroRetornoGrupoRespuesta.model_validate(registro)

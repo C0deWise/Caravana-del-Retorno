@@ -29,6 +29,12 @@ class RegistroRetornoGrupoRepositorio:
         await self.db.refresh(nuevo_registro)
         return nuevo_registro
 
+    async def obtener_registro_por_id(self, registro_id: int) -> RegistroRetornoGrupo | None:
+        """Obtiene un registro de grupo en retorno por su ID."""
+        consulta = select(RegistroRetornoGrupo).where(RegistroRetornoGrupo.regg_codigo == registro_id)
+        result = await self.db.execute(consulta)
+        return result.scalars().first()
+
     async def obtener_registro_por_grupo_y_retorno(self, gr_codigo: int, re_codigo: int) -> RegistroRetornoGrupo | None:
         """Verifica si un grupo ya está registrado en un retorno específico."""
         stmt = select(RegistroRetornoGrupo).where(
@@ -49,3 +55,25 @@ class RegistroRetornoGrupoRepositorio:
         )
         result = await self.db.execute(stmt)
         return result.scalars().first() is not None
+    
+    async def editar_registro_grupo_retorno(self, registro_id: int, datos: RegistroRetornoGrupo) -> RegistroRetornoGrupo:
+        """Edita un registro de grupo en un retorno."""
+        registro = await self.obtener_registro_por_id(registro_id)
+        if not registro:
+            return None
+
+        campos_editables = {
+            "num_hospedaje",
+            "num_transporte",
+            "num_parqueadero_carro",
+            "num_parqueadero_moto",
+            "anotacion"
+        }
+
+        for campo, valor in datos.model_dump(exclude_none=True).items():
+            if campo in campos_editables:
+                setattr(registro, campo, valor)
+        
+        await self.db.commit()
+        await self.db.refresh(registro)
+        return registro
