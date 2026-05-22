@@ -13,7 +13,8 @@ def mocks():
         "repo_grupo": MagicMock(),
         "repo_retorno": MagicMock(),
         "repo_usuario_grupo": MagicMock(),
-        "repo_persona": MagicMock()
+        "repo_persona": MagicMock(),
+        "repo_solicitudes": MagicMock()
     }
 
 @pytest.fixture
@@ -24,7 +25,8 @@ def servicio(mocks):
         mocks["repo_grupo"],
         mocks["repo_retorno"],
         mocks["repo_usuario_grupo"],
-        mocks["repo_persona"]
+        mocks["repo_persona"],
+        mocks["repo_solicitudes"]
     )
 
 @pytest.fixture
@@ -61,6 +63,7 @@ def setup_crear_registro_mocks(mocks, grupo_lider=1, retorno_codigo=1, retorno_e
     
     mock_entidad = MagicMock()
     mocks["repo_reg"].crear_registro_grupo_retorno = AsyncMock(return_value=mock_entidad)
+    mocks["repo_solicitudes"].expirar_solicitudes_pendientes_por_grupo_retorno = AsyncMock()
 
 def setup_consultar_registro_mocks(mocks, retorno_existe=True, grupo_existe=True, registro_existe=True):
     """Helper para configurar mocks comunes en pruebas de consultar_registro_por_grupo_y_retorno."""
@@ -96,6 +99,7 @@ async def test_crear_registro_grupo_exito(servicio, mocks, datos_crear):
         
         assert resultado.regg_codigo == 100
         mocks["repo_reg"].crear_registro_grupo_retorno.assert_called_once_with(datos_crear)
+        mocks["repo_solicitudes"].expirar_solicitudes_pendientes_por_grupo_retorno.assert_called_once_with(datos_crear.cod_grupo)
 
 @pytest.mark.asyncio
 async def test_crear_registro_grupo_no_existe(servicio, mocks, datos_crear):
