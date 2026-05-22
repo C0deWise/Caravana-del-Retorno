@@ -448,7 +448,7 @@ async def editar_registro_retorno_grupo(registro_id: int, datos: RegistroRetorno
     return await servicio.editar_registro_retorno_grupo(registro_id, datos)
 
 
-@grupo_retorno_router.delete("eliminar-grupo/{gr_codigo}",
+@grupo_retorno_router.delete("/eliminar-grupo/{gr_codigo}",
                 response_model=GrupoRetornoEliminadoRespuesta,
                 status_code=status.HTTP_200_OK,
                 summary="Eliminar un grupo de retorno",
