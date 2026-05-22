@@ -11,11 +11,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.usuarios.repository.parentesco_repositorio import ParentescoRepositorio
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
-from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear, ParentescoLista, ParentescoRespuestaDetallada
+from app.usuarios.schemas.parentesco_esquemas import ParentescoRespuesta, ParentescoRespuestaDetallada
 from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.usuarios.docs.registro_doc import registrar_docs, registrar_body
 from app.usuarios.docs.solicitud_parentesco_doc import solicitar_parentesco_docs, solicitar_parentesco_body
-from app.usuarios.schemas.usuario_esquemas import UsuarioConsultaColonia, UsuarioCrear, UsuarioSalida, UsuarioNombre, UsuarioDetallado
+from app.usuarios.schemas.usuario_esquemas import UsuarioConsultaColonia, UsuarioSalida, UsuarioNombre, UsuarioDetallado
 from app.usuarios.docs.registro_doc import registrar_body, registrar_docs
 from app.usuarios.docs.listar_parentescos_doc import listar_parentescos_docs
 
@@ -63,8 +63,8 @@ async def solicitar_parentesco(
     servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
 ):
     try:
-        await servicio.solicitar_parentesco(parentesco_crear)
-        return {"mensaje": "Solicitud de parentesco enviada exitosamente."}
+        solicitud = await servicio.solicitar_parentesco(parentesco_crear)
+        return solicitud
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -72,7 +72,7 @@ async def solicitar_parentesco(
         )
     
 @router.patch("/solicitud-parentesco/aceptar/{solicitud_id}",
-               response_model=ParentescoLista,
+               response_model=ParentescoRespuesta,
                status_code=status.HTTP_200_OK, 
                summary="Aceptar solicitud de parentesco") 
 async def aceptar_solicitud_parentesco(
@@ -89,7 +89,7 @@ async def aceptar_solicitud_parentesco(
         )  
 
 @router.patch("/solicitud-parentesco/rechazar/{solicitud_id}", 
-              response_model=ParentescoLista,
+              response_model=ParentescoRespuesta,
               status_code=status.HTTP_200_OK, 
               summary="Rechazar solicitud de parentesco")
 async def rechazar_solicitud_parentesco(

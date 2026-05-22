@@ -12,7 +12,7 @@ from app.usuarios.models.usuario import Usuario
 from app.usuarios.repository.parentesco_repositorio import ParentescoRepositorio
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.schemas.usuario_esquemas import UsuarioConsultaColonia, UsuarioCrear, UsuarioResumen
-from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear, ParentescoLista, ParentescoRespuestaDetallada
+from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear, ParentescoRespuesta, ParentescoRespuestaDetallada
 
 # Contexto para el cifrado y verificación de contraseñas utilizando el algoritmo bcrypt.
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -170,7 +170,7 @@ class UsuarioServicio:
         if solicitud.estado != EstadoSolicitudParentesco.pendiente:
             raise ValueError("Solo se pueden aceptar solicitudes que estén en estado pendiente.")
         parentesco = await self.repositorio_parentesco.actualizar_estado_parentesco(codigo_solicitud, EstadoSolicitudParentesco.aceptada)
-        return ParentescoLista(
+        return ParentescoRespuesta(
             codigo=parentesco.codigo,
             codigo_solicitante=parentesco.codigo_solicitante,
             codigo_destinatario=parentesco.codigo_destinatario,
@@ -187,7 +187,7 @@ class UsuarioServicio:
         if solicitud.estado != EstadoSolicitudParentesco.pendiente:
             raise ValueError("Solo se pueden rechazar solicitudes que estén en estado pendiente.")
         parentesco = await self.repositorio_parentesco.actualizar_estado_parentesco(codigo_solicitud, EstadoSolicitudParentesco.rechazada)
-        return ParentescoLista(
+        return ParentescoRespuesta(
             codigo=parentesco.codigo,
             codigo_solicitante=parentesco.codigo_solicitante,
             codigo_destinatario=parentesco.codigo_destinatario,
@@ -222,7 +222,14 @@ class UsuarioServicio:
         if await self.existe_solicitud_parentesco(parentesco_crear.codigo_solicitante, parentesco_crear.codigo_destinatario):
             raise ValueError("Ya existe una solicitud de parentesco pendiente entre estos usuarios.")
 
-        return await self.repositorio_parentesco.solicitar_parentesco(parentesco_crear)
+        solicitud_parentesco =  await self.repositorio_parentesco.solicitar_parentesco(parentesco_crear)
+        return ParentescoRespuesta(
+            codigo=solicitud_parentesco.codigo,
+            codigo_solicitante=solicitud_parentesco.codigo_solicitante,
+            codigo_destinatario=solicitud_parentesco.codigo_destinatario,
+            tipo_parentesco=solicitud_parentesco.tipo_parentesco,
+            estado=solicitud_parentesco.estado
+        )
     async def obtener_usuario_por_id(self, us_id: int) -> Usuario | None:
         """
         Obtiene un usuario por su ID.

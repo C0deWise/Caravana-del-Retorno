@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.usuarios.models.parentesco import Parentesco, EstadoSolicitudParentesco
-from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear, ParentescoLista
+from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear, ParentescoRespuesta
 
 class ParentescoRepositorio:
 
@@ -47,7 +47,7 @@ class ParentescoRepositorio:
         )
         return result.scalar_one_or_none() is not None
     
-    async def listar_parentescos_usuario(self, codigo_usuario: int) -> list[ParentescoLista]:
+    async def listar_parentescos_usuario(self, codigo_usuario: int) -> list[ParentescoRespuesta]:
         """Lista todas las relaciones de parentesco de un usuario."""
         result = await self.db.execute(
             select(Parentesco)
