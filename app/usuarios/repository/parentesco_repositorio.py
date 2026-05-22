@@ -4,7 +4,7 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.orm import selectinload
 from app.usuarios.models.parentesco import Parentesco, EstadoSolicitudParentesco
 from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear, ParentescoRespuesta
@@ -26,22 +26,30 @@ class ParentescoRepositorio:
         return parentesco
 
     async def existe_solicitud_parentesco(self, codigo_solicitante: int, codigo_destinatario: int) -> bool:
-        """Verifica si ya existe una solicitud de parentesco entre dos usuarios."""
+        """Verifica si ya existe una solicitud de parentesco bidireccional entre dos usuarios."""
         result = await self.db.execute(
             select(Parentesco).where(
-                Parentesco.codigo_solicitante == codigo_solicitante,
-                Parentesco.codigo_destinatario == codigo_destinatario,
+                or_(
+                    # Caso 1: A solicita a B
+                    (Parentesco.codigo_solicitante == codigo_solicitante) & (Parentesco.codigo_destinatario == codigo_destinatario),
+                    # Caso 2: B solicita a A
+                    (Parentesco.codigo_solicitante == codigo_destinatario) & (Parentesco.codigo_destinatario == codigo_solicitante)
+                ),
                 Parentesco.estado == EstadoSolicitudParentesco.pendiente
             )
         )
         return result.scalar_one_or_none() is not None
     
     async def existe_parentesco(self, codigo_solicitante: int, codigo_destinatario: int) -> bool:
-        """Verifica si ya existe una relacion de parentesco entre dos usuarios."""
+        """Verifica si ya existe una relación de parentesco aceptada bidireccional entre dos usuarios."""
         result = await self.db.execute(
             select(Parentesco).where(
-                Parentesco.codigo_solicitante == codigo_solicitante,
-                Parentesco.codigo_destinatario == codigo_destinatario,
+                or_(
+                    # Caso 1: A y B aceptaron parentesco (A solicitó a B)
+                    (Parentesco.codigo_solicitante == codigo_solicitante) & (Parentesco.codigo_destinatario == codigo_destinatario),
+                    # Caso 2: A y B aceptaron parentesco (B solicitó a A)
+                    (Parentesco.codigo_solicitante == codigo_destinatario) & (Parentesco.codigo_destinatario == codigo_solicitante)
+                ),
                 Parentesco.estado == EstadoSolicitudParentesco.aceptada   
             )
         )
