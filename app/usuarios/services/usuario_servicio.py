@@ -10,11 +10,13 @@ from sqlalchemy import select
 from app.usuarios.models.usuario import Usuario
 from app.usuarios.repository.parentesco_repositorio import ParentescoRepositorio
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
-from app.usuarios.schemas.usuario_esquemas import UsuarioConsultaColonia, UsuarioCrear
+from app.usuarios.schemas.usuario_esquemas import UsuarioConsultaColonia, UsuarioCrear, UsuarioSesion
 from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear
+from app.usuarios.security import create_access_token, create_refresh_token, role_name_from_code
 
 # Contexto para el cifrado y verificación de contraseñas utilizando el algoritmo bcrypt.
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+ERROR_PARENTESCO_REPO_NO_INICIALIZADO = "Repositorio de parentesco no inicializado."
 
 
 class UsuarioServicio:
@@ -76,6 +78,48 @@ class UsuarioServicio:
         schema.contrasenia = pwd_context.hash(schema.contrasenia)
 
         return await self.repositorio.registrar(schema)
+
+    def verificar_contrasenia(self, contrasenia_plana: str, contrasenia_hash: str) -> bool:
+        """Compara una contrasena en texto plano contra su hash."""
+        return pwd_context.verify(contrasenia_plana, contrasenia_hash)
+
+    async def autenticar(self, correo: str, contrasenia: str) -> Usuario:
+        """
+        Valida credenciales de inicio de sesion por correo y contrasena.
+        """
+        usuario = await self.repositorio.buscar_por_correo(correo.strip().lower())
+        if not usuario:
+            raise ValueError("Credenciales inválidas")
+
+        if not self.verificar_contrasenia(contrasenia, usuario.us_contrasenia):
+            raise ValueError("Credenciales inválidas")
+
+        return usuario
+
+    def construir_sesion_usuario(self, usuario: Usuario) -> UsuarioSesion:
+        """Construye payload estandar de sesion para respuestas de autenticacion."""
+        return UsuarioSesion(
+            id=usuario.us_codigo,
+            documento=usuario.us_documento,
+            correo=usuario.us_correo,
+            nombre=usuario.us_nombre,
+            apellido=usuario.us_apellido,
+            codigo_rol=usuario.ro_codigo,
+            role_name=role_name_from_code(usuario.ro_codigo),
+            codigo_colonia=usuario.co_codigo,
+        )
+
+    def generar_tokens(self, usuario: Usuario) -> tuple[str, str]:
+        """Genera access token y refresh token para un usuario autenticado."""
+        access_token = create_access_token(
+            user_id=usuario.us_codigo,
+            documento=usuario.us_documento,
+            correo=usuario.us_correo,
+            role_code=usuario.ro_codigo,
+            colonia_id=usuario.co_codigo,
+        )
+        refresh_token = create_refresh_token(user_id=usuario.us_codigo, role_code=usuario.ro_codigo)
+        return access_token, refresh_token
 
     async def obtener_todos(self) -> list[Usuario]:
         """
@@ -142,19 +186,19 @@ class UsuarioServicio:
     async def existe_parentesco(self, codigo_solicitante: int, codigo_destinatario: int) -> bool:
         """Verifica si ya existe una relación de parentesco entre dos usuarios."""
         if not self.repositorio_parentesco:
-            raise RuntimeError("Repositorio de parentesco no inicializado.")
+            raise RuntimeError(ERROR_PARENTESCO_REPO_NO_INICIALIZADO)
         return await self.repositorio_parentesco.existe_parentesco(codigo_solicitante, codigo_destinatario)
 
     async def existe_solicitud_parentesco(self, codigo_solicitante: int, codigo_destinatario: int) -> bool:
         """Verifica si ya existe una solicitud de parentesco entre dos usuarios."""
         if not self.repositorio_parentesco:
-            raise RuntimeError("Repositorio de parentesco no inicializado.")
+            raise RuntimeError(ERROR_PARENTESCO_REPO_NO_INICIALIZADO)
         return await self.repositorio_parentesco.existe_solicitud_parentesco(codigo_solicitante, codigo_destinatario)
     
     async def solicitar_parentesco(self, parentesco_crear: ParentescoCrear):
         """Solicita un parentesco entre dos usuarios."""
         if not self.repositorio_parentesco:
-            raise RuntimeError("Repositorio de parentesco no inicializado.")
+            raise RuntimeError(ERROR_PARENTESCO_REPO_NO_INICIALIZADO)
         if parentesco_crear.codigo_solicitante == parentesco_crear.codigo_destinatario:
             raise ValueError("El solicitante y el destinatario no pueden ser el mismo usuario.")
         # Verificar que ambos usuarios existan

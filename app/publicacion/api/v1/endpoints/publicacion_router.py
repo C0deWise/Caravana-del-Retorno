@@ -10,6 +10,8 @@ from app.multimedia.servicios.multimedia_servicio import MultimediaServicio
 from app.retornos.servicios.retorno_servicio import RetornoService
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.services.usuario_servicio import UsuarioServicio
+from app.usuarios.auth_dependencies import require_roles
+from app.usuarios.models.usuario import Usuario
 from app.publicacion.docs.docs_publicacion import crear_publicacion_docs, obtener_publicaciones_retorno_docs
 
 def get_publicacion_servicio(db: Annotated[AsyncSession, Depends(get_db)]):
@@ -39,6 +41,7 @@ async def crear_publicacion(
     resena: Annotated[str, Form(...)],
     archivos: Annotated[List[UploadFile], File(...)],
     servicio: Annotated[PublicacionServicio, Depends(get_publicacion_servicio)],
+    _: Usuario = Depends(require_roles(2, 3)),
 ):
     datos_publicacion = PublicacionCrear(
         retorno=retorno_id,

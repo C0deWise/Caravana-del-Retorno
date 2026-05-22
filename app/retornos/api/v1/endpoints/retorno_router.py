@@ -25,6 +25,8 @@ from app.retornos.esquemas.registro_retorno_grupo_esquema import RegistroRetorno
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.usuarios.schemas.usuario_esquemas import UsuarioSalida
+from app.usuarios.auth_dependencies import require_roles
+from app.usuarios.models.usuario import Usuario
 from fastapi import APIRouter, Depends, status, HTTPException, Body
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Annotated
@@ -107,7 +109,11 @@ def obtener_retorno_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> Re
         },
     },
 )
-async def crear_retorno(data: RetornoCreate, servicio: Annotated[RetornoService, Depends(obtener_retorno_servicio)]):
+async def crear_retorno(
+    data: RetornoCreate,
+    servicio: Annotated[RetornoService, Depends(obtener_retorno_servicio)],
+    _: Usuario = Depends(require_roles(2, 3)),
+):
     return await servicio.crear_retorno(data)
 
 
@@ -115,7 +121,12 @@ async def crear_retorno(data: RetornoCreate, servicio: Annotated[RetornoService,
                response_model=RegistroRetornoRespuesta, 
                summary="Editar un registro de retorno existente",
                description="Permite modificar las necesidades de transporte, hospedaje, parqueadero y anotaciones")
-async def editar_registro_retorno(registro_id: int, data: RegistroRetornoEditar, servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)]):
+async def editar_registro_retorno(
+    registro_id: int,
+    data: RegistroRetornoEditar,
+    servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)],
+    _: Usuario = Depends(require_roles(1, 2, 3)),
+):
     registro_actualizado = await servicio.editar_registro_retorno(registro_id, data)
     return registro_actualizado
 
@@ -124,7 +135,12 @@ async def editar_registro_retorno(registro_id: int, data: RegistroRetornoEditar,
             response_model=bool,
             summary="Verificar si un usuario ya está registrado en un retorno",
             description="Consulta si un usuario específico ya tiene un registro de participación en un retorno determinado.")
-async def verificar_usuario_registrado(us_codigo: int, re_codigo: int, servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)]):
+async def verificar_usuario_registrado(
+    us_codigo: int,
+    re_codigo: int,
+    servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)],
+    _: Usuario = Depends(require_roles(2, 3)),
+):
     registro_usuario = await servicio.obtener_registro_retorno_por_usuario_y_retorno(us_codigo, re_codigo)
     return bool(registro_usuario)
 
@@ -174,7 +190,12 @@ async def obtener_retorno(codigo: int, servicio: Annotated[RetornoService, Depen
         },
     }
 )
-async def cambiar_estado_retorno(codigo: int, nuevo_estado: CambiarEstadoRetorno, db: Annotated[AsyncSession, Depends(get_db)]):
+async def cambiar_estado_retorno(
+    codigo: int,
+    nuevo_estado: CambiarEstadoRetorno,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Usuario = Depends(require_roles(3)),
+):
     service = RetornoService(db)
     return await service.cambiar_estado_retorno(codigo, nuevo_estado.estado)
 
@@ -198,7 +219,11 @@ async def cambiar_estado_retorno(codigo: int, nuevo_estado: CambiarEstadoRetorno
         },
     },
 )
-async def inscribir_usuario_en_retorno(registro: RegistroRetornoCrear, servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)]):
+async def inscribir_usuario_en_retorno(
+    registro: RegistroRetornoCrear,
+    servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)],
+    _: Usuario = Depends(require_roles(1, 2, 3)),
+):
     return await servicio.crear_registro_retorno(registro)
 
 @router.get(
@@ -207,7 +232,12 @@ async def inscribir_usuario_en_retorno(registro: RegistroRetornoCrear, servicio:
     summary="Obtener registro de retorno por usuario y retorno",
     description="Busca y retorna el registro de participación de un usuario específico en un retorno determinado. Retorna None si no existe.",
 )
-async def obtener_registro_por_usuario_y_retorno(usuario_id: int, retorno_id: int, servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)]):
+async def obtener_registro_por_usuario_y_retorno(
+    usuario_id: int,
+    retorno_id: int,
+    servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)],
+    _: Usuario = Depends(require_roles(2, 3)),
+):
     return await servicio.obtener_registro_retorno_por_usuario_y_retorno(usuario_id, retorno_id)
 
 @router.delete(
@@ -217,7 +247,11 @@ async def obtener_registro_por_usuario_y_retorno(usuario_id: int, retorno_id: in
     status_code=status.HTTP_200_OK,
     description="Permite a un usuario darse de baja de un retorno específico.",
 )
-async def darse_de_baja(datos: RegistroRetornoDarseDeBaja, servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)]):
+async def darse_de_baja(
+    datos: RegistroRetornoDarseDeBaja,
+    servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)],
+    _: Usuario = Depends(require_roles(1, 2, 3)),
+):
     resultado = await servicio.darse_de_baja(datos)
     if resultado:
         return RegistroRetornoDarseDeBajaRespuesta(mensaje=f"El usuario {datos.usuario} ha sido dado de baja exitosamente del retorno {datos.retorno}.")
