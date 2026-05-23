@@ -2,7 +2,7 @@
     retorno_grupo_usuario_repositorio.py define el repositorio para gestionar la asociación de usuarios a grupos de retorno.
 """
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from app.retornos.modelos.grupo_retorno_modelo import GrupoRetorno
@@ -70,4 +70,17 @@ class RetornoGrupoUsuarioRepositorio:
         result = await self.db.execute(stmt)
         retorno_grupo_usuario = result.scalars().first()
         return retorno_grupo_usuario.grupo if retorno_grupo_usuario else None
-       
+    
+    async def remover_miembro_de_grupo_retorno(self, usuario_id: int, grupo_retorno_id: int):
+        """Elimina la asociación de un usuario con un grupo de retorno específico."""
+        consulta = select(RetornoGrupoUsuario).where(
+            RetornoGrupoUsuario.us_codigo == usuario_id,
+            RetornoGrupoUsuario.gr_codigo == grupo_retorno_id
+        )
+        resultado = await self.db.execute(consulta)
+        usuario_grupo_retorno = resultado.scalars().first()
+        if not usuario_grupo_retorno:
+            return False
+        await self.db.delete(usuario_grupo_retorno)
+        await self.db.commit()
+        return True

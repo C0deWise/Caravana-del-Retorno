@@ -119,7 +119,6 @@ async def editar_registro_retorno(registro_id: int, data: RegistroRetornoEditar,
     registro_actualizado = await servicio.editar_registro_retorno(registro_id, data)
     return registro_actualizado
 
-
 @router.get("/esta-registrado-retorno/{us_codigo}/{re_codigo}",
             response_model=bool,
             summary="Verificar si un usuario ya está registrado en un retorno",
@@ -143,7 +142,6 @@ async def obtener_retorno_vigente(servicio: Annotated[RetornoService, Depends(ob
 )
 async def listar_retornos(servicio: Annotated[RetornoService, Depends(obtener_retorno_servicio)]):
     return await servicio.listar_retornos()
-
 
 @router.get(
     "/{codigo}",
@@ -201,7 +199,6 @@ async def cambiar_estado_retorno(codigo: int, nuevo_estado: CambiarEstadoRetorno
 async def inscribir_usuario_en_retorno(registro: RegistroRetornoCrear, servicio: Annotated[RegistroRetornoServicio, Depends(obtener_registro_retorno_servicio)]):
     return await servicio.crear_registro_retorno(registro)
 
-
 @router.delete(
     "/darse-de-baja",
     response_model= RegistroRetornoDarseDeBajaRespuesta,
@@ -213,6 +210,7 @@ async def darse_de_baja(datos: RegistroRetornoDarseDeBaja, servicio: Annotated[R
     resultado = await servicio.darse_de_baja(datos)
     if resultado:
         return RegistroRetornoDarseDeBajaRespuesta(mensaje=f"El usuario {datos.usuario} ha sido dado de baja exitosamente del retorno {datos.retorno}.")
+
 @grupo_retorno_router.post(
     "/",
     response_model=GrupoRetornoRespuesta,
@@ -235,7 +233,6 @@ async def crear_grupo_retorno_endpoint(
     """
     return await servicio.crear_grupo_retorno(data)
 
-
 @grupo_retorno_router.get(
     "/lider/{us_codigo_lider}",
     response_model=List[GrupoRetornoRespuesta],
@@ -256,7 +253,6 @@ async def obtener_grupos_por_lider_endpoint(
     Endpoint para obtener grupos de retorno por el código del líder.
     """
     return await servicio.obtener_grupos_por_lider_id(us_codigo_lider)
-
 
 @grupo_retorno_router.get(
     "/{gr_codigo}/lider",
@@ -341,6 +337,7 @@ async def obtener_miembros_grupo_endpoint(
     Endpoint para obtener la lista de integrantes de un grupo.
     """
     return await servicio.obtener_miembros_por_grupo(gr_codigo)
+
 @grupo_retorno_router.patch("/solicitudes/aceptar/{solicitud_id}", 
               response_model= SolicitudRetornoGrupoRespuesta,
               status_code= status.HTTP_200_OK,
@@ -391,4 +388,10 @@ async def obtener_grupo_por_usuario(usuario_id: int, retorno_id: int, servicio: 
 async def obtener_usuarios_por_grupo(gr_codigo: int, servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)):
     return await servicio.obtener_usuarios_por_grupo(gr_codigo)
 
-    
+@grupo_retorno_router.delete("/grupo/usuario/eliminar-miembro",    
+    response_model=bool,
+    status_code=status.HTTP_200_OK,
+    summary="Eliminar miembro de grupo de retorno",
+    description="Elimina un miembro de un grupo de retorno específico.")
+async def eliminar_miembro_de_grupo(grupo_id: int, usuario_id: int, servicio: GrupoRetornoServicio = Depends(obtener_grupo_retorno_servicio)):
+    return await servicio.remover_miembro_de_grupo_retorno(usuario_id, grupo_id)

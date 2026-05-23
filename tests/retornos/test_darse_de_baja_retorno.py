@@ -7,7 +7,7 @@ import sys
 import os
 import pytest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-from app.retornos.excepciones.registro_retorno_excepciones import RetornoEstadoFinalizado, RetornoEstadoFinalizadoDarseDeBaja, RetornoNoExistente, UsuarioNoExistente, UsuarioNoRegistradoEnRetorno
+from app.retornos.excepciones.registro_retorno_excepciones import RetornoEstadoFinalizadoDarseDeBaja, RetornoNoExistente, UsuarioNoExistente, UsuarioNoRegistradoEnRetorno
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
 
 @pytest.fixture
