@@ -208,7 +208,7 @@ async def registrar_usuario(
 async def solicitar_parentesco(
     parentesco_crear: solicitar_parentesco_body,
     servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
-    _: Usuario = Depends(require_roles(1, 2, 3)),
+    _: Usuario = Depends(require_roles(1, 2)),
 ):
     try:
         await servicio.solicitar_parentesco(parentesco_crear)
@@ -222,7 +222,7 @@ async def solicitar_parentesco(
 @router.get("/", response_model=list[UsuarioSalida], summary="Listar todos los usuarios (básico)")
 async def listar_usuarios(
     servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
-    _: Usuario = Depends(require_roles(2, 3)),
+    _: Usuario = Depends(require_roles(3)),
 ):
     """
     Obtiene una lista de todos los usuarios con su información básica.
@@ -268,7 +268,7 @@ async def listar_nombres_usuarios(
 @router.get("/todos", response_model=list[UsuarioDetallado], summary="Listar todos los usuarios (detallado)")
 async def listar_usuarios_completo(
     servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
-    _: Usuario = Depends(require_roles(2, 3)),
+    _: Usuario = Depends(require_roles(3)),
 ):
     """
     Obtiene una lista de todos los usuarios con toda su información detallada.
@@ -319,7 +319,7 @@ async def buscar_usuario_por_documento(
 async def listar_parentescos_usuario(
     codigo_usuario: int,
     servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
-    _: Usuario = Depends(require_roles(1, 2, 3)),
+    _: Usuario = Depends(require_roles(1, 2)),
 ):
     try:
         parentescos = await servicio.listar_parentescos_usuario(codigo_usuario)
@@ -334,7 +334,7 @@ async def listar_parentescos_usuario(
 async def buscar_usuario_por_colonia(
     colonia: int, 
     servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
-    _: Usuario = Depends(require_roles(2, 3)),
+    _: Usuario = Depends(require_roles(1, 2, 3)),
 ):
     """Busca y devuelve una lista de usuarios miembros  en una colonia específica."""
     return await servicio.buscar_por_colonia(colonia)

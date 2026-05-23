@@ -100,7 +100,7 @@ router = APIRouter()
 async def crear_colonia(
     datos: crear_colonia_body,
     servicio: Annotated[ColoniaService, Depends(get_colonia_service)],
-    _: Usuario = Depends(require_roles(2, 3)),
+    _: Usuario = Depends(require_roles(3)),
 ):
     """Endpoint para crear una nueva colonia"""
     return await servicio.servicio_crear_colonia(datos)
@@ -142,7 +142,7 @@ async def crear_colonia(
 async def aceptar_solicitud_colonia(
     codigo: int,
     servicio: Annotated[SolicitudColoniaService, Depends(get_solicitud_colonia_servicio)],
-    _: Usuario = Depends(require_roles(2, 3)),
+    _: Usuario = Depends(require_roles(2)),
 ):
     return await servicio.aceptar_solicitud(codigo)
 
@@ -182,7 +182,7 @@ async def aceptar_solicitud_colonia(
 async def rechazar_solicitud_colonia(
     codigo: int,
     servicio: Annotated[SolicitudColoniaService, Depends(get_solicitud_colonia_servicio)],
-    _: Usuario = Depends(require_roles(2, 3)),
+    _: Usuario = Depends(require_roles(2)),
 ):
     return await servicio.rechazar_solicitud(codigo)
 
@@ -193,7 +193,10 @@ async def rechazar_solicitud_colonia(
     summary = "Obtener todas las colonias",
     description = "Obtiene una lista de todas las colonias registradas en el sistema",
 )
-async def obtener_colonias(servicio: Annotated[ColoniaService, Depends(get_colonia_service)]):
+async def obtener_colonias(
+    servicio: Annotated[ColoniaService, Depends(get_colonia_service)],
+    _: Usuario = Depends(require_roles(3)),
+):
     return await servicio.obtener_colonias()
 
 @router.get(
@@ -347,7 +350,7 @@ async def desactivar_colonia(
 )
 async def obtener_colonias_activas(
     servicio: ColoniaService = Depends(get_colonia_service),
-    _: Usuario = Depends(require_roles(3)),
+    _: Usuario = Depends(require_roles(1, 2, 3)),
 ) -> list[ColoniaRespuesta]:
     """Endpoint para obtener la lista de colonias activas"""
     return await servicio.obtener_colonias_activas()
