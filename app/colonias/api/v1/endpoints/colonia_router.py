@@ -9,6 +9,8 @@
 from fastapi import APIRouter, Depends, status, Response
 from typing import Union
 from app.colonias.models.colonia_model import ColoniaEstado
+from app.notificaciones.repositories.notificacion_repositorio import NotificacionRepository
+from app.notificaciones.services.notificacion_crear_service import NotificacionCrearService
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.schemas.usuario_esquemas import UsuarioConsultaColonia
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,15 +42,19 @@ from app.colonias.docs.docs_solicitud_colonia import (
 
 def get_solicitud_colonia_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> SolicitudColoniaRepository:
     repositorio = SolicitudColoniaRepository(db)
-    return SolicitudColoniaService(repositorio)
+    repositorio_notificacion = NotificacionRepository(db)
+    servicio_notificaciones = NotificacionCrearService(repositorio_notificacion)
+    return SolicitudColoniaService(repositorio, servicio_notificaciones)
 
 
 def get_colonia_service(db: Annotated[AsyncSession, Depends(get_db)]) -> ColoniaService:
     """Dependencia para obtener una instancia de ColoniaService con el repositorio inyectado."""
     repositorio = ColoniaRepository(db)
+    repositorio_notificacion = NotificacionRepository(db)
     servicio_usuario = UsuarioServicio(UsuarioRepositorio(db))
     servicio_registro_retorno = RegistroRetornoServicio(RegistroRetornoRepositorio(db), RetornoRepository(db), servicio_usuario)
-    return ColoniaService(repositorio, servicio_usuario, servicio_registro_retorno)
+    servicio_notificaciones = NotificacionCrearService(repositorio_notificacion)
+    return ColoniaService(repositorio, servicio_usuario, servicio_registro_retorno, servicio_notificaciones)
 
 router = APIRouter()
 

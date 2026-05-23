@@ -7,6 +7,8 @@ con documentación Swagger integrada.
 
 from typing import Annotated
 
+from app.notificaciones.repositories.notificacion_repositorio import NotificacionRepository
+from app.notificaciones.services.notificacion_crear_service import NotificacionCrearService
 from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoEditar, RegistroRetornoDarseDeBaja, RegistroRetornoDarseDeBajaRespuesta, RegistroRetornoRespuesta
 from app.retornos.esquemas.solicitud_retorno_grupo_esquema import SolicitudRetornoGrupoLiderRespuesta, SolicitudRetornoGrupoRespuesta, SolicitudRetornoGrupoUsuarioRespuesta
 from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
@@ -61,8 +63,10 @@ def obtener_registro_retorno_grupo_servicio(db: Annotated[AsyncSession, Depends(
     repositorio_retorno = RetornoRepository(db)
     repositorio_usuario_grupo = RetornoGrupoUsuarioRepositorio(db)
     repositorio_persona = PersonaRepositorio(db) # Instanciar PersonaRepositorio
+    repositorio_notificacion = NotificacionRepository(db)
+    servicio_notificaciones = NotificacionCrearService(repositorio_notificacion)
     return RegistroRetornoGrupoServicio(
-        repositorio_registro_grupo, repositorio_grupo, repositorio_retorno, repositorio_usuario_grupo, repositorio_persona
+        repositorio_registro_grupo, repositorio_grupo, repositorio_retorno, repositorio_usuario_grupo, repositorio_persona, servicio_notificaciones
     )
 
 def obtener_grupo_retorno_servicio(db: Annotated[AsyncSession, Depends(get_db)]):
