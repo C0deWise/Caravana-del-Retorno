@@ -46,7 +46,7 @@ class RegistroRetornoServicio:
             - RegistroRetornoRespuesta: Esquema con los datos del registro de retorno creado.
         Excepciones:
             - RetornoNoExistente: Si el retorno especificado no existe.
-            - RetornoEstadoFinalizado: Si el retorno especificado ya ha finalizado.
+            - RetornoEstadoInvalido: Si el retorno especificado tiene un estado inválido.
             - UsuarioNoExistente: Si el usuario especificado no existe.
             - UsuarioSinColonia: Si el usuario especificado no pertenece a ninguna colonia.
             - UsuarioYaRegistrado: Si el usuario ya está registrado en el retorno especificado.
