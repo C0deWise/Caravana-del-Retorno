@@ -7,8 +7,9 @@ import sys
 import os
 import pytest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-from app.retornos.excepciones.registro_retorno_excepciones import RetornoEstadoFinalizadoDarseDeBaja, RetornoNoExistente, UsuarioNoExistente, UsuarioNoRegistradoEnRetorno
+from app.retornos.excepciones.registro_retorno_excepciones import RetornoEstadoFinalizadoDarseDeBaja, RetornoEstadoInvalido, RetornoNoExistente, UsuarioNoExistente, UsuarioNoRegistradoEnRetorno
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
+from app.retornos.esquemas.retorno_esquemas import RetornoEstado
 
 @pytest.fixture
 def mock_repositorio():
@@ -46,7 +47,7 @@ def retorno_mock():
 def retorno_finalizado_mock():
     retorno = MagicMock()
     retorno.anio = 2026
-    retorno.estado = "finalizado"
+    retorno.estado = RetornoEstado.FINALIZADO
     return retorno
 
 @pytest.fixture
@@ -128,7 +129,7 @@ async def test_darse_baja_retorno_retorno_finalizado(servicio, mock_repositorio,
     mock_usuario_servicio.obtener_usuario_por_id.return_value = usuario_mock
     mock_retorno_repositorio.get_by_codigo.return_value = retorno_finalizado_mock
     mock_repositorio.obtener_registro_retorno_por_usuario_y_retorno.return_value = registro_retorno_mock
-    with pytest.raises(RetornoEstadoFinalizadoDarseDeBaja) as exc_info:
+    with pytest.raises(RetornoEstadoInvalido) as exc_info:
         await servicio.darse_de_baja(data)
 
-    assert exc_info.value.detail == "No es posible darse de baja en el retorno con código 1 porque ya ha finalizado."
+    assert exc_info.value.detail == "No es posible darse de baja del retorno con código 1 porque su estado es 'finalizado'."

@@ -37,13 +37,54 @@ def servicio(mocks):
         repositorio_registro_grupo=mocks["registro_grupo"]
     )
 
+@pytest.fixture
+def usuario_lider_mock():
+    """Mock de un usuario líder con datos válidos."""
+    mock = MagicMock()
+    mock.us_codigo = 1
+    mock.us_nombre = "Juan"
+    mock.us_apellido = "Pérez"
+    mock.us_correo = "juan@example.com"
+    mock.us_documento = "12345678"
+    return mock
+
+@pytest.fixture
+def grupo_mock():
+    """Mock de un grupo de retorno con datos válidos."""
+    mock = MagicMock()
+    mock.gr_codigo = 1
+    mock.us_codigo_lider = 1
+    return mock
+
+@pytest.fixture
+def usuario_grupo_mock():
+    """Mock de un usuario miembro de un grupo."""
+    mock = MagicMock()
+    mock.us_codigo = 2
+    mock.us_nombre = "María"
+    mock.us_apellido = "Gómez"
+    mock.us_correo = "maria.gomez@gmail.com"
+    mock.us_documento = "87654321"
+    return mock
+
+@pytest.fixture
+def usuario_dos_grupo_mock():
+    """Mock de un usuario miembro de un grupo."""
+    mock = MagicMock()
+    mock.us_codigo = 3
+    mock.us_nombre = "Carlos"
+    mock.us_apellido = "López"
+    mock.us_correo = "carlos.lopez@gmail.com"
+    mock.us_documento = "11223344"
+    return mock
+
 @pytest.mark.asyncio
 async def test_validar_grupo_existente_no_existe(servicio, mocks):
     """Validación: El grupo no existe."""
     mocks["grupos"].obtener_grupo_por_id = AsyncMock(return_value=None)
 
     with pytest.raises(GrupoNoEncontrado):
-        servicio._validar_grupo_existente(999)
+        await servicio._validar_grupo_existente(999)
 
 @pytest.mark.asyncio
 async def test_validar_grupo_existente_existe(servicio, mocks):
@@ -51,7 +92,7 @@ async def test_validar_grupo_existente_existe(servicio, mocks):
     mock_grupo = MagicMock()
     mocks["grupos"].obtener_grupo_por_id = AsyncMock(return_value=mock_grupo)
 
-    resultado = servicio._validar_grupo_existente(1)
+    resultado = await servicio._validar_grupo_existente(1)
     assert resultado == mock_grupo
 
 @pytest.mark.asyncio
@@ -60,7 +101,7 @@ async def test_validar_usuario_existente_no_existe(servicio, mocks):
     mocks["usuario"].obtener_usuario_por_id = AsyncMock(return_value=None)
 
     with pytest.raises(HTTPException) as exc:
-        servicio._validar_usuario_existente(999)
+        await servicio._validar_usuario_existente(999)
     
     assert exc.value.status_code == status.HTTP_404_NOT_FOUND
     assert "no encontrado" in exc.value.detail
@@ -71,7 +112,7 @@ async def test_validar_usuario_existente_existe(servicio, mocks):
     mock_usuario = MagicMock()
     mocks["usuario"].obtener_usuario_por_id = AsyncMock(return_value=mock_usuario)
 
-    resultado = servicio._validar_usuario_existente(1)
+    resultado = await servicio._validar_usuario_existente(1)
     assert resultado == mock_usuario
 
 @pytest.mark.asyncio
@@ -80,7 +121,7 @@ async def test_validar_si_usuario_es_miembro_no_es_miembro(servicio, mocks):
     mocks["usuario_grupo"].existe_usuario_en_grupo_para_retorno = AsyncMock(return_value=False)
 
     with pytest.raises(UsuarioNoEstaEnUnGrupo):
-        servicio._validar_si_usuario_es_miembro(1, 1)
+        await servicio._validar_si_usuario_es_miembro(1, 1)
 
 @pytest.mark.asyncio
 async def test_validar_si_usuario_es_lider_es_lider(servicio, mocks):
@@ -89,7 +130,7 @@ async def test_validar_si_usuario_es_lider_es_lider(servicio, mocks):
     mocks["grupos"].obtener_grupo_por_id = AsyncMock(return_value=mock_grupo)
 
     with pytest.raises(HTTPException) as exc:
-        servicio._validar_si_usuario_es_lider(1, 1)
+        await servicio._validar_si_usuario_es_lider(1, 1)
     
     assert exc.value.status_code == status.HTTP_400_BAD_REQUEST
     assert "líder del grupo no puede ser removido" in exc.value.detail
@@ -101,7 +142,7 @@ async def test_validar_si_usuario_es_lider_no_es_lider(servicio, mocks):
     mocks["grupos"].obtener_grupo_por_id = AsyncMock(return_value=mock_grupo)
 
     # No debería lanzar excepción
-    servicio._validar_si_usuario_es_lider(1, 1)
+    await servicio._validar_si_usuario_es_lider(1, 1)
 
 @pytest.mark.asyncio
 async def test_obtener_grupos_por_lider_id_usuario_no_existe(servicio, mocks):
@@ -141,15 +182,16 @@ async def test_obtener_lider_por_grupo_id_no_existe(servicio, mocks):
     assert "no encontrado" in exc.value.detail
 
 @pytest.mark.asyncio
-async def test_obtener_lider_por_grupo_id_exito(servicio, mocks):
+async def test_obtener_lider_por_grupo_id_exito(servicio, mocks, usuario_lider_mock):
     """Caso de éxito: Se obtiene el líder del grupo."""
-    mock_lider = MagicMock()
-    mocks["grupos"].obtener_lider_por_grupo_id = AsyncMock(return_value=mock_lider)
+    mocks["grupos"].obtener_lider_por_grupo_id = AsyncMock(return_value=usuario_lider_mock)
 
     resultado = await servicio.obtener_lider_por_grupo_id(1)
 
-    assert isinstance(resultado, UsuarioSalida)
-    mocks["grupos"].obtener_lider_por_grupo_id.assert_awaited_once_with(1)
+    assert resultado.nombre == "Juan"
+    assert resultado.apellido == "Pérez"
+    assert resultado.correo == "juan@example.com"
+    assert resultado.documento == "12345678"
 
 @pytest.mark.asyncio
 async def test_existe_grupo_retorno_no_existe(servicio, mocks):
@@ -236,22 +278,17 @@ async def test_obtener_usuarios_por_grupo_no_existe(servicio, mocks):
         await servicio.obtener_usuarios_por_grupo(999)
 
 @pytest.mark.asyncio
-async def test_obtener_usuarios_por_grupo_exito(servicio, mocks):
+async def test_obtener_usuarios_por_grupo_exito(servicio, mocks, grupo_mock, usuario_grupo_mock, usuario_dos_grupo_mock):
     """Caso de éxito: Se obtienen los usuarios del grupo."""
-    mock_grupo = MagicMock()
-    mock_usuario1 = MagicMock(us_codigo=1)
-    mock_usuario2 = MagicMock(us_codigo=2)
-    
-    mocks["grupos"].obtener_grupo_por_id = AsyncMock(return_value=mock_grupo)
+    mocks["grupos"].obtener_grupo_por_id = AsyncMock(return_value=grupo_mock)
     mocks["usuario_grupo"].obtener_miembros_por_grupo = AsyncMock(
-        return_value=[mock_usuario1, mock_usuario2]
+        return_value=[usuario_grupo_mock, usuario_dos_grupo_mock]
     )
 
     resultado = await servicio.obtener_usuarios_por_grupo(1)
 
-    assert len(resultado) == 2
-    assert isinstance(resultado[0], UsuarioSalida)
-    mocks["usuario_grupo"].obtener_miembros_por_grupo.assert_awaited_once_with(1)
+    assert resultado[0].nombre == "María"
+    assert resultado[1].nombre == "Carlos"
 
 @pytest.mark.asyncio
 async def test_obtener_grupo_por_usuario_retorno_no_existe(servicio, mocks):

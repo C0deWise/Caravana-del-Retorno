@@ -22,12 +22,12 @@ class RegistroRetornoServicio:
         self.retorno_repositorio = retorno_repositorio
         self.usuario_servicio = usuario_servicio
 
-    def _validar_retorno(self, retorno, codigo_retorno):
+    def _validar_retorno(self, retorno, codigo_retorno, accion):
         if not retorno:
             raise RetornoNoExistente(codigo_retorno)
         
         if retorno.estado != "activo":
-            raise RetornoEstadoInvalido(codigo_retorno, retorno.estado.value)
+            raise RetornoEstadoInvalido(codigo_retorno, retorno.estado.value, accion)
 
     def _validar_usuario(self, usuario, usuario_id):
         if not usuario:
@@ -52,7 +52,7 @@ class RegistroRetornoServicio:
             - UsuarioYaRegistrado: Si el usuario ya está registrado en el retorno especificado.
         """
         retorno = await self.retorno_repositorio.get_by_codigo(data.retorno)
-        self._validar_retorno(retorno, data.retorno)
+        self._validar_retorno(retorno, data.retorno, "inscribirse al")
 
         usuario = await self.usuario_servicio.obtener_usuario_por_id(data.usuario)
         self._validar_usuario(usuario, data.usuario)
@@ -82,7 +82,7 @@ class RegistroRetornoServicio:
         
         retorno = await self.retorno_repositorio.get_by_codigo(registro.retorno)
 
-        self._validar_retorno(retorno, registro.retorno)
+        self._validar_retorno(retorno, registro.retorno, "editar este registro del")
 
         await self.repositorio.actualizar_registro_retorno (registro_id, data)
 
@@ -115,8 +115,8 @@ class RegistroRetornoServicio:
         """
         retorno = await self.retorno_repositorio.get_by_codigo(datos.retorno)
         
-        self._validar_retorno(retorno, datos.retorno)
-        
+        self._validar_retorno(retorno, datos.retorno, "darse de baja del")
+
         usuario = await self.usuario_servicio.obtener_usuario_por_id(datos.usuario)
 
         if not usuario:
