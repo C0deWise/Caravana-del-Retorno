@@ -92,7 +92,7 @@ class PersonaRepositorio:
         result = await self.db.execute(select(Persona).where(Persona.pe_documento == documento))
         return result.scalars().first()
     
-    async def persona_esta_en_grupo(self, pe_codigo: int, gr_codigo: int) -> bool:
+    async def obtener_asociacion_grupo_persona(self, pe_codigo: int, gr_codigo: int):
         consulta = (
             select(persona_grupo_retorno)
             .where(
@@ -100,11 +100,17 @@ class PersonaRepositorio:
                 persona_grupo_retorno.gr_codigo == gr_codigo
             )
         )
-        result = await self.db.execute(consulta)
-        return result.scalars().first() is not None
+        resultado = await self.db.execute(consulta)
+        return resultado.scalars().first()
+    
+    async def persona_esta_en_grupo(self, pe_codigo: int, gr_codigo: int) -> bool:
+        """Verifica si una persona pertenece a un grupo de retorno específico."""
+        asociacion = await self.obtener_asociacion_grupo_persona(pe_codigo, gr_codigo)
+        return asociacion is not None
 
     async def remover_persona_grupo_retorno(self, pe_codigo: int, gr_codigo: int):
-        asociacion = await self.persona_esta_en_grupo(pe_codigo, gr_codigo)
+        """Elimina la asociación de una persona con un grupo de retorno específico."""
+        asociacion = await self.obtener_asociacion_grupo_persona(pe_codigo, gr_codigo)
         if asociacion:
             await self.db.delete(asociacion)
             await self.db.commit()

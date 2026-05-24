@@ -117,9 +117,12 @@ class PersonaServicio:
 
         await self._validar_grupo_existe(gr_codigo)
 
-        await self._validar_persona_pertenece_a_grupo(pe_codigo, gr_codigo)
+        pertenece = await self._validar_persona_pertenece_a_grupo(pe_codigo, gr_codigo)
 
-        return await self.repositorio.remover_persona_grupo_retorno(pe_codigo, gr_codigo)
-    
+        if pertenece:
+            persona_eliminada = await self.repositorio.remover_persona_grupo_retorno(pe_codigo, gr_codigo)
+            return persona_eliminada 
+        
+        return False
 
 
