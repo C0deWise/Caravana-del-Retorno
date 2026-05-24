@@ -50,11 +50,13 @@ def obtener_registro_retorno_servicio(db: Annotated[AsyncSession, Depends(get_db
     retorno_repositorio = RetornoRepository(db)
     
     usuario_servicio = UsuarioServicio(UsuarioRepositorio(db), ParentescoRepositorio(db))
-    
+    repositorio_notificacion = NotificacionRepository(db)
+    servicio_notificaciones = NotificacionCrearService(repositorio_notificacion)
     return RegistroRetornoServicio(
         repositorio,
         retorno_repositorio,
-        usuario_servicio
+        usuario_servicio,
+        servicio_notificaciones
     )
 
 def obtener_registro_retorno_grupo_servicio(db: Annotated[AsyncSession, Depends(get_db)]):
