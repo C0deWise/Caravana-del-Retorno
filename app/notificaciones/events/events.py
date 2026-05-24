@@ -86,7 +86,7 @@ class EventoSolicitudColoniaAceptada(EventoBase):
 
     def construir_mensaje(self) -> str:
         ciudad_colonia = self.datos.get("colonia_ciudad", "la colonia")
-        self.mensaje = f"Tu solicitud para unirte a {ciudad_colonia} ha sido aceptada."
+        self.mensaje = f"Tu solicitud para unirte a la colonia {ciudad_colonia} ha sido aceptada."
 
 class EventoSolicitudColoniaRechazada(EventoBase):
     def __init__(self, datos, receptores):
@@ -94,7 +94,7 @@ class EventoSolicitudColoniaRechazada(EventoBase):
 
     def construir_mensaje(self) -> str:
         ciudad_colonia = self.datos.get("colonia_ciudad", "la colonia")
-        self.mensaje = f"Tu solicitud para unirte a {ciudad_colonia} ha sido rechazada."
+        self.mensaje = f"Tu solicitud para unirte a la colonia {ciudad_colonia} ha sido rechazada."
 
 class EventoDesactivarColonia(EventoBase):
     def __init__(self, datos, receptores):
@@ -111,7 +111,7 @@ class EventoEstablecerLiderColonia(EventoBase):
 
     def construir_mensaje(self) -> str:
         ciudad_colonia = self.datos.get("colonia_ciudad", "la colonia")
-        self.mensaje = f"Has sido designado como líder de {ciudad_colonia}."
+        self.mensaje = f"Has sido designado como líder de la colonia {ciudad_colonia}."
 
 class EventoEliminarLiderColonia(EventoBase):
     def __init__(self, datos, receptores):
@@ -119,7 +119,7 @@ class EventoEliminarLiderColonia(EventoBase):
 
     def construir_mensaje(self) -> str:
         ciudad_colonia = self.datos.get("colonia_ciudad", "la colonia")
-        self.mensaje = f"Tu rol de líder en {ciudad_colonia} ha sido revocado."
+        self.mensaje = f"Tu rol de líder en la colonia {ciudad_colonia} ha sido revocado."
 
 class EventoRegistroGrupoRetorno(EventoBase):
     def __init__(self, datos, receptores):
@@ -135,7 +135,7 @@ class EventoActualizacionRegistroGrupo(EventoBase):
 
     def construir_mensaje(self) -> str:
         retorno_anio = self.datos.get("retorno_anio", "el retorno")
-        self.mensaje = f"El registro de tu grupo de retorno ha sido actualizado en {retorno_anio}."
+        self.mensaje = f"El registro de tu grupo de retorno para el retorno {retorno_anio} ha sido actualizado."
 
 class EventoDarseBajaGrupo(EventoBase):
     def __init__(self, datos, receptores):
