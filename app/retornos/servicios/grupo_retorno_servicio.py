@@ -29,14 +29,14 @@ class GrupoRetornoServicio:
         self.repositorio_registro_individual = repositorio_registro_individual
         self.repositorio_registro_grupo = repositorio_registro_grupo
 
-    def _validar_grupo_existente(self, gr_codigo: int):
-        grupo = self.repositorio_grupos.obtener_grupo_por_id(gr_codigo)
+    async def _validar_grupo_existente(self, gr_codigo: int):
+        grupo = await self.repositorio_grupos.obtener_grupo_por_id(gr_codigo)
         if not grupo:
             raise GrupoNoEncontrado(gr_codigo)
         return grupo
 
-    def _validar_usuario_existente(self, us_codigo: int):
-        usuario = self.repositorio_usuario.obtener_usuario_por_id(us_codigo)
+    async def _validar_usuario_existente(self, us_codigo: int):
+        usuario = await self.repositorio_usuario.obtener_usuario_por_id(us_codigo)
         if not usuario:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, 
@@ -44,13 +44,14 @@ class GrupoRetornoServicio:
             )
         return usuario
     
-    def _validar_si_usuario_es_miembro(self, us_codigo: int, gr_codigo: int):
-        miembro_en_grupo = self.repositorio_usuario_grupo.existe_usuario_en_grupo_para_retorno(us_codigo, gr_codigo)
+    async def _validar_si_usuario_es_miembro(self, us_codigo: int, gr_codigo: int):
+        miembro_en_grupo = await self.repositorio_usuario_grupo.existe_usuario_en_grupo_para_retorno(us_codigo, gr_codigo)
         if not miembro_en_grupo:
             raise UsuarioNoEstaEnUnGrupo(us_codigo, gr_codigo)
         
-    def _validar_si_usuario_es_lider(self, us_codigo: int, gr_codigo: int):
-        grupo = self._validar_grupo_existente(gr_codigo)
+    async def _validar_si_usuario_es_lider(self, us_codigo: int, gr_codigo: int):
+        grupo = await self._validar_grupo_existente(gr_codigo)
+        print(grupo)
         if grupo.us_codigo_lider == us_codigo:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, 
@@ -253,13 +254,12 @@ class GrupoRetornoServicio:
             - us_codigo (int): ID del usuario a eliminar del grupo.
             - gr_codigo (int): ID del grupo de retorno del cual se desea eliminar al usuario.
         Retorna:
-            - bool: True si el usuario fue eliminado exitosamente, False si el usuario no era 
-            miembro del grupo o si se intentó eliminar al líder.
+            - bool: True si el usuario fue eliminado exitosamente, False si el usuario no era miembro del grupo o si se intentó eliminar al líder.
         """
-        self._validar_grupo_existente(gr_codigo)
-        self._validar_usuario_existente(us_codigo)
-        self._validar_si_usuario_es_miembro(us_codigo, gr_codigo)
-        self._validar_si_usuario_es_lider(us_codigo, gr_codigo)
+        await self._validar_grupo_existente(gr_codigo)
+        await self._validar_usuario_existente(us_codigo)
+        await self._validar_si_usuario_es_miembro(us_codigo, gr_codigo)
+        await self._validar_si_usuario_es_lider(us_codigo, gr_codigo)
         return await self.repositorio_usuario_grupo.remover_miembro_de_grupo_retorno(us_codigo, gr_codigo)
 
     
