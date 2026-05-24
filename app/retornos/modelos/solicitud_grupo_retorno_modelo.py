@@ -34,7 +34,7 @@ class SolicitudGrupoRetorno(Base):
 
     #---Relaciones---# 
     usuario: Mapped["Usuario"] = relationship("Usuario")
-    grupo: Mapped["GrupoRetorno"] = relationship("GrupoRetorno")
+    grupo: Mapped["GrupoRetorno"] = relationship("GrupoRetorno", back_populates="solicitudes")
 
     def __repr__(self) -> str:
         """Representación en cadena del objeto SolicitudGrupoRetorno."""

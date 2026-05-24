@@ -17,8 +17,28 @@ class GrupoRetorno(Base):
     # ─────────────────────────────────────────
     #  Relaciones
     # ─────────────────────────────────────────
-    lider: Mapped["Usuario"] = relationship(Usuario)
-
+    lider: Mapped["Usuario"] = relationship(Usuario)    
+    # Relaciones inversas con cascade delete para eliminación en cascada
+    miembros: Mapped[list["persona_grupo_retorno"]] = relationship(
+        "persona_grupo_retorno",
+        cascade="all, delete-orphan",
+        back_populates="grupo"
+    )
+    solicitudes: Mapped[list["SolicitudGrupoRetorno"]] = relationship(
+        "SolicitudGrupoRetorno",
+        cascade="all, delete-orphan",
+        back_populates="grupo"
+    )
+    registros_retornos: Mapped[list["RegistroRetornoGrupo"]] = relationship(
+        "RegistroRetornoGrupo",
+        cascade="all, delete-orphan",
+        back_populates="grupo_retorno_rel"
+    )
+    usuarios: Mapped[list["RetornoGrupoUsuario"]] = relationship(
+        "RetornoGrupoUsuario",
+        cascade="all, delete-orphan",
+        back_populates="grupo"
+    )
     def __repr__(self) -> str:
         """Representación en cadena del objeto Grupo retorno."""
         return (

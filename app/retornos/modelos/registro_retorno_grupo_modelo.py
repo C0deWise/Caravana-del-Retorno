@@ -27,7 +27,7 @@ class RegistroRetornoGrupo(Base):
     #  Relaciones
     # ─────────────────────────────────────────
     retorno_rel: Mapped["Retorno"] = relationship(Retorno)
-    grupo_retorno_rel: Mapped["GrupoRetorno"] = relationship(GrupoRetorno)
+    grupo_retorno_rel: Mapped["GrupoRetorno"] = relationship(GrupoRetorno, back_populates="registros_retornos")
 
     def __repr__(self) -> str:
         """Representación en cadena del objeto RegistroRetornoGrupo."""

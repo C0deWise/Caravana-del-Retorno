@@ -20,7 +20,7 @@ from app.retornos.servicios.grupo_retorno_servicio import GrupoRetornoServicio
 from app.retornos.servicios.registro_retorno_grupo_servicio import RegistroRetornoGrupoServicio
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
 from app.retornos.esquemas.solicitud_grupo_retorno_esquema import SolicitudGrupoRetornoRespuesta, SolicitudGrupoRetornoEstado
-from app.retornos.esquemas.grupo_retorno_esquema import GrupoRetornoCrear, GrupoRetornoRespuesta
+from app.retornos.esquemas.grupo_retorno_esquema import GrupoRetornoCrear, GrupoRetornoEliminadoRespuesta, GrupoRetornoRespuesta
 from app.retornos.esquemas.registro_retorno_grupo_esquema import RegistroRetornoGrupoCrear, RegistroRetornoGrupoEditar, RegistroRetornoGrupoRespuesta
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.services.usuario_servicio import UsuarioServicio
@@ -454,3 +454,12 @@ async def obtener_registro_por_grupo_y_retorno(gr_codigo: int, re_codigo: int, s
 )
 async def editar_registro_retorno_grupo(registro_id: int, datos: RegistroRetornoGrupoEditar, servicio: Annotated[RegistroRetornoGrupoServicio, Depends(obtener_registro_retorno_grupo_servicio)]):
     return await servicio.editar_registro_retorno_grupo(registro_id, datos)
+
+
+@grupo_retorno_router.delete("/eliminar-grupo/{gr_codigo}",
+                response_model=GrupoRetornoEliminadoRespuesta,
+                status_code=status.HTTP_200_OK,
+                summary="Eliminar un grupo de retorno",
+                description="Elimina un grupo de retorno específico, siempre que no tenga registros asociados en retornos vigentes.")
+async def eliminar_grupo_retorno(gr_codigo: int, servicio: Annotated[GrupoRetornoServicio, Depends(obtener_grupo_retorno_servicio)]):
+    return await servicio.eliminar_grupo_retorno(gr_codigo)
