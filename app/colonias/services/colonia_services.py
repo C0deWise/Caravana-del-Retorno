@@ -146,18 +146,19 @@ class ColoniaService:
         tiene_miembros = await self.repositorio.tiene_miembros_colonia(colonia_codigo)
         if tiene_miembros:
             miembros = await self.repositorio.obtener_miembros_colonia(colonia_codigo)
-            miembros_ids = [miembro.co_codigo for miembro in miembros]
+            miembros_ids = [miembro.us_codigo for miembro in miembros]
             #Desasociar miembros de la colonia antes de desactivarla, incluye el cambio de rol de líder a usuario común
             await self.repositorio.sacar_miembros_colonia(colonia_codigo)
-        
-        colonia_desactivada = await self.repositorio.desactivar_colonia(colonia)
-        evento = EventoBase(
+            evento = EventoBase(
                 tipo_evento=TipoEvento.DESACTIVAR_COLONIA,
-                datos={"colonia_ciudad": colonia_desactivada.ciudad},
+                datos={"colonia_ciudad": colonia.ciudad},
                 receptores=miembros_ids) 
-        await self.publicador.notificar(
+            await self.publicador.notificar(
                 evento=evento
             )
+        
+        colonia_desactivada = await self.repositorio.desactivar_colonia(colonia)
+        
         return ColoniaRespuesta.model_validate(colonia_desactivada, from_attributes=True)
       
     async def obtener_colonias_activas(self) -> list[ColoniaRespuesta]:
