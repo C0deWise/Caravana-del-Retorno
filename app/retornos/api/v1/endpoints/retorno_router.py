@@ -47,6 +47,7 @@ def obtener_registro_retorno_servicio(db: Annotated[AsyncSession, Depends(get_db
     repositorio = RegistroRetornoRepositorio(db)
     retorno_repositorio = RetornoRepository(db)
     
+    
     usuario_servicio = UsuarioServicio(UsuarioRepositorio(db), ParentescoRepositorio(db))
     
     return RegistroRetornoServicio(
@@ -61,8 +62,9 @@ def obtener_registro_retorno_grupo_servicio(db: Annotated[AsyncSession, Depends(
     repositorio_retorno = RetornoRepository(db)
     repositorio_usuario_grupo = RetornoGrupoUsuarioRepositorio(db)
     repositorio_persona = PersonaRepositorio(db) # Instanciar PersonaRepositorio
+    solicitudes_repositorio = SolicitudGrupoRetornoRepositorio(db) # Instanciar el repositorio de solicitudes
     return RegistroRetornoGrupoServicio(
-        repositorio_registro_grupo, repositorio_grupo, repositorio_retorno, repositorio_usuario_grupo, repositorio_persona
+        repositorio_registro_grupo, repositorio_grupo, repositorio_retorno, repositorio_usuario_grupo, repositorio_persona, solicitudes_repositorio
     )
 
 def obtener_grupo_retorno_servicio(db: Annotated[AsyncSession, Depends(get_db)]):
