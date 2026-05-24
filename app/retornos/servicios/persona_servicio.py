@@ -1,6 +1,8 @@
 from fastapi import HTTPException, status
+from app.retornos.excepciones.persona_excepciones import PersonaNoEncontrada
 from app.retornos.repositorios.persona_repositorio import PersonaRepositorio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
+from app.retornos.excepciones.grupo_excepciones import GrupoNoEncontrado
 from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
 from app.retornos.esquemas.persona_esquema import PersonaCrear, PersonaRespuesta
 from typing import List
@@ -15,6 +17,27 @@ class PersonaServicio:
         self.repositorio = repositorio
         self.repo_retorno = repo_retorno
         self.repo_grupo = repo_grupo
+
+    async def _validar_persona_existe(self, pe_codigo: int):
+        persona = await self.repositorio.obtener_por_id(pe_codigo)
+        if not persona:
+            raise PersonaNoEncontrada(pe_codigo)
+        return persona
+    
+    async def _validar_grupo_existe(self, gr_codigo: int):
+        grupo = await self.repo_grupo.obtener_grupo_por_id(gr_codigo)
+        if not grupo:
+            raise GrupoNoEncontrado(gr_codigo)
+        return grupo
+
+    async def _validar_persona_pertenece_a_grupo(self, pe_codigo: int, gr_codigo: int):
+        pertenece = await self.repositorio.persona_esta_en_grupo(pe_codigo, gr_codigo)
+        if not pertenece:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="La persona no pertenece al grupo de retorno especificado."
+            )
+        return True
 
     async def crear_persona(self, datos: PersonaCrear) -> PersonaRespuesta:
         # Restricción: No duplicados por documento
@@ -32,7 +55,7 @@ class PersonaServicio:
         # Validar existencia de la persona
         persona = await self.repositorio.obtener_por_id(pe_codigo)
         if not persona:
-            raise HTTPException(status_code=404, detail="Persona no encontrada.")
+            raise PersonaNoEncontrada(pe_codigo)
 
         # Obtener el retorno vigente para aplicar la restricción de "una vez por retorno"
         ultimo_retorno = await self.repo_retorno.obtener_ultimo_retorno()
@@ -42,10 +65,7 @@ class PersonaServicio:
         # Verificar si el grupo existe
         grupo = await self.repo_grupo.obtener_grupo_por_id(gr_codigo)
         if not grupo:
-            raise HTTPException(
-                status_code=404, 
-                detail=f"El grupo con código {gr_codigo} no existe."
-            )
+            raise GrupoNoEncontrado(gr_codigo)
 
         # Restricción: Una persona solo puede pertenecer a un Grupo_retorno a la vez por cada retorno
         ya_inscrita = await self.repositorio.persona_ya_en_retorno(pe_codigo, ultimo_retorno.codigo)
@@ -68,13 +88,13 @@ class PersonaServicio:
     async def obtener_persona_por_id(self, pe_codigo: int) -> PersonaRespuesta|None:
         persona = await self.repositorio.obtener_por_id(pe_codigo)
         if not persona:
-            raise HTTPException(status_code=404, detail="Persona no encontrada.")
+            raise PersonaNoEncontrada(pe_codigo)
         return PersonaRespuesta.model_validate(persona)
     
     async def obtener_persona_por_documento(self, documento: str) -> PersonaRespuesta|None:
         persona = await self.repositorio.obtener_por_documento(documento)
         if not persona:
-            raise HTTPException(status_code=404, detail="Persona no encontrada.")
+            raise PersonaNoEncontrada(documento)
         return PersonaRespuesta.model_validate(persona)
     
     async def verificar_registro_retorno_persona(self, pe_codigo: int, re_codigo: int) -> bool:
@@ -90,6 +110,16 @@ class PersonaServicio:
         persona_grupo = await self.repositorio.persona_ya_en_retorno(persona.pe_codigo, re_codigo)
         return bool(persona_grupo)
     
+    async def remover_persona_grupo_retorno(self, pe_codigo: int, gr_codigo: int):
+        """Elimina la asociación de una persona con un grupo de retorno específico."""
+
+        await self._validar_persona_existe(pe_codigo)
+
+        await self._validar_grupo_existe(gr_codigo)
+
+        await self._validar_persona_pertenece_a_grupo(pe_codigo, gr_codigo)
+
+        return await self.repositorio.remover_persona_grupo_retorno(pe_codigo, gr_codigo)
     
 
 

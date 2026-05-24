@@ -91,3 +91,22 @@ class PersonaRepositorio:
     async def obtener_persona_por_documento(self, documento: str) -> Optional[Persona]:
         result = await self.db.execute(select(Persona).where(Persona.pe_documento == documento))
         return result.scalars().first()
+    
+    async def persona_esta_en_grupo(self, pe_codigo: int, gr_codigo: int) -> bool:
+        consulta = (
+            select(persona_grupo_retorno)
+            .where(
+                persona_grupo_retorno.pe_codigo == pe_codigo,
+                persona_grupo_retorno.gr_codigo == gr_codigo
+            )
+        )
+        result = await self.db.execute(consulta)
+        return result.scalars().first() is not None
+
+    async def remover_persona_grupo_retorno(self, pe_codigo: int, gr_codigo: int):
+        asociacion = await self.persona_esta_en_grupo(pe_codigo, gr_codigo)
+        if asociacion:
+            await self.db.delete(asociacion)
+            await self.db.commit()
+            return True
+        return False
