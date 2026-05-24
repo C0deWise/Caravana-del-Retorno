@@ -174,6 +174,15 @@ class RegistroRetornoGrupoServicio:
         self._validar_retorno(retorno, registro_existente.retorno, "editar este registro")
         
         registro_actualizado = await self.repositorio_registro_grupo.editar_registro_grupo_retorno(registro_id, datos)
+        mimbros_usuarios = await self.repositorio_usuario_grupo.obtener_miembros_por_grupo(registro_existente.cod_grupo)
+        miembros_ids = [usuario.us_codigo for usuario in mimbros_usuarios]
+        evento = EventoBase(
+                tipo_evento=TipoEvento.ACTUALIZACION_REGISTRO_GRUPO,
+                datos={"retorno_anio": retorno.anio},
+                receptores=miembros_ids) 
+        await self.publicador.notificar(
+                evento=evento
+            )
         return RegistroRetornoGrupoRespuesta.model_validate(registro_actualizado)
     
     async def consultar_registro_por_grupo_y_retorno(self, gr_codigo: int, re_codigo: int) -> RegistroRetornoGrupoRespuesta:

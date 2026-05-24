@@ -162,6 +162,7 @@ class EventoDarseBajaRetorno(EventoBase):
     def construir_mensaje(self) -> str:
         nombre_usuario = self.datos.get("nombre_usuario", "el usuario")
         apellido_usuario = self.datos.get("apellido_usuario", "")
+        documento_usuario = self.datos.get("documento_usuario", "")
         nombre_completo = f"{nombre_usuario} {apellido_usuario}".strip()
         retorno_anio = self.datos.get("retorno_anio", "el retorno")
-        self.mensaje = f"El usuario {nombre_completo} se ha dado de baja del retorno {retorno_anio}."
+        self.mensaje = f"El usuario {nombre_completo} identificado con el documento {documento_usuario} se ha dado de baja del retorno {retorno_anio}."
