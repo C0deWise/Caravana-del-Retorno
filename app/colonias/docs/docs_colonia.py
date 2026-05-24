@@ -20,36 +20,38 @@ toggle_estado_colonia_docs = dict(
     La colonia será marcada como inactiva y no aparecerá en listados públicos.
     """,
     responses={
-        200:{
-            "description": "Colonia desactivada exitosamente.",
+        200: {
+            "description": "Colonia toggled exitosamente.",
             "content": {
                 "application/json": {
-                    "example": {
-                        "codigo": 1,
-                        "pais": "Colombia",
-                        "departamento": "Antioquia",
-                        "ciudad": "Medellín",
-                        "estado": "inactiva",
-                        "lider": None
+                    "examples": {
+                        "desactivada": {
+                            "summary": "Colonia desactivada exitosamente",
+                            "value": {
+                                "codigo": 1,
+                                "pais": "Colombia",
+                                "departamento": "Antioquia",
+                                "ciudad": "Medellín",
+                                "estado": "inactiva",
+                                "lider": None
+                            }
+                        },
+                        "activada": {
+                            "summary": "Colonia activada exitosamente",
+                            "value": {
+                                "codigo": 1,
+                                "pais": "Colombia",
+                                "departamento": "Antioquia",
+                                "ciudad": "Medellín",
+                                "estado": "activa",
+                                "lider": 10
+                            }
+                        }
                     }
                 }
             }
         },
-        200:{
-            "description": "Colonia activada exitosamente.",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "codigo": 1,
-                        "pais": "Colombia",
-                        "departamento": "Antioquia",
-                        "ciudad": "Medellín",
-                        "estado": "activa",
-                        "lider": 10
-                    }
-                }
-            }
-        },
+
         404: {
             "description": "Colonia no encontrada.",
             "content": {
