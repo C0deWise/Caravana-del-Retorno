@@ -124,5 +124,3 @@ class PersonaServicio:
             return persona_eliminada 
         
         return False
-
-
