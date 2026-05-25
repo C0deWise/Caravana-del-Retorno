@@ -12,6 +12,7 @@ from app.retornos.repositorios.registro_retorno_grupo_repositorio import Registr
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.retornos.repositorios.persona_repositorio import PersonaRepositorio
 from app.retornos.repositorios.retorno_grupo_usuario_repositorio import RetornoGrupoUsuarioRepositorio
+from app.retornos.repositorios.solicitud_grupo_retorno_repositorio import SolicitudGrupoRetornoRepositorio
 from app.usuarios.schemas.usuario_esquemas import UsuarioSalida
 from app.retornos.excepciones.registro_retorno_grupo_excepciones import (
     RetornoNoExistente, 
@@ -44,6 +45,13 @@ class RegistroRetornoGrupoServicio:
         if retorno.estado != "activo":
             raise RetornoNoActivo(codigo_retorno, retorno.estado.value, accion)
 
+    async def _expirar_solicitudes_pendientes(self, cod_grupo: int):
+        """Marca como expiradas todas las solicitudes pendientes para un grupo y retorno específicos."""
+        if not self.repositorio_solicitudes:
+            raise RuntimeError("El repositorio de solicitudes no está disponible para expirar solicitudes pendientes. Asegúrate de inyectar el repositorio de solicitudes al crear el servicio.")
+        
+        await self.repositorio_solicitudes.expirar_solicitudes_pendientes_por_grupo_retorno(cod_grupo)
+           
     async def crear_registro_retorno_grupo(self, datos: RegistroRetornoGrupoCrear) -> RegistroRetornoGrupoRespuesta:
         """
         Registra un grupo en un retorno aplicando validaciones de negocio.
@@ -115,6 +123,9 @@ class RegistroRetornoGrupoServicio:
         registro = await self.repositorio_registro_grupo.crear_registro_grupo_retorno(datos)
         #asociar al lider con el grupo de retorno registrado
         await self.repositorio_usuario_grupo.asociar_usuario_a_grupo_retorno(grupo.us_codigo_lider, datos.cod_grupo)
+
+        # Expirar solicitudes pendientes para este grupo y retorno
+        await self._expirar_solicitudes_pendientes(datos.cod_grupo)
         return RegistroRetornoGrupoRespuesta.model_validate(registro)
 
     async def obtener_miembros_por_grupo(self, gr_codigo: int) -> list[UsuarioSalida]:

@@ -106,5 +106,18 @@ class SolicitudGrupoRetornoRepositorio:
             )
             return result.scalars().all()
         
+        async def expirar_solicitudes_pendientes_por_grupo_retorno(self, grupo_retorno_id: int):
+            stmt = (
+                update(SolicitudGrupoRetorno)
+                .where(
+                    SolicitudGrupoRetorno.gr_codigo == grupo_retorno_id,
+                    SolicitudGrupoRetorno.solgr_estado == SolicitudGrupoRetornoEstado.PENDIENTE
+                )
+                .values(solgr_estado=SolicitudGrupoRetornoEstado.EXPIRADO)
+            )
+
+            await self.db.execute(stmt)
+            await self.db.commit()
+        
         
         

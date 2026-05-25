@@ -25,7 +25,6 @@ def repositorio_parentesco():
     repo = MagicMock()
     repo.existe_parentesco = AsyncMock(return_value=False)
     repo.existe_solicitud_parentesco = AsyncMock(return_value=False)
-    repo.solicitar_parentesco = AsyncMock(return_value={"mensaje": "Solicitud creada exitosamente."})
     return repo
 
 
@@ -72,10 +71,17 @@ def configurar_existe_usuario(repositorio, solicitante: bool, destinatario: bool
 async def test_solicitar_parentesco_exitoso(servicio, repositorio, repositorio_parentesco, parentesco_crear):
     """La solicitud se crea correctamente cuando todos los datos son válidos."""
     configurar_existe_usuario(repositorio, solicitante=True, destinatario=True)
+    
+    solicitud_mock = MagicMock()
+    solicitud_mock.estado = "pendiente"
+    solicitud_mock.codigo_solicitante = parentesco_crear.codigo_solicitante
+    solicitud_mock.codigo_destinatario = parentesco_crear.codigo_destinatario
+    solicitud_mock.tipo_parentesco = parentesco_crear.tipo_parentesco
+    repositorio_parentesco.solicitar_parentesco = AsyncMock(return_value=solicitud_mock)
 
     resultado = await servicio.solicitar_parentesco(parentesco_crear)
 
-    assert resultado == {"mensaje": "Solicitud creada exitosamente."}
+    assert resultado == solicitud_mock
     repositorio_parentesco.solicitar_parentesco.assert_awaited_once_with(parentesco_crear)
 
 
@@ -128,3 +134,57 @@ async def test_solicitar_parentesco_ya_existe_solicitud(servicio, repositorio, r
 
     with pytest.raises(ValueError, match="Ya existe una solicitud de parentesco pendiente entre estos usuarios."):
         await servicio.solicitar_parentesco(parentesco_crear)
+
+@pytest.mark.asyncio
+async def test_aceptar_solicitud_parentesco_exitoso(servicio, repositorio_parentesco):
+    """Acepta una solicitud de parentesco pendiente correctamente."""
+    codigo_solicitud = 1
+    solicitud_mock = MagicMock()
+    solicitud_mock.estado = "pendiente"
+    solicitud_mock_aceptada = MagicMock()
+    solicitud_mock_aceptada.estado = "aceptada"
+    repositorio_parentesco.obtener_parentesco_por_id = AsyncMock(return_value=solicitud_mock)
+    repositorio_parentesco.actualizar_estado_parentesco = AsyncMock(return_value=solicitud_mock_aceptada)
+
+    resultado = await servicio.aceptar_solicitud_parentesco(codigo_solicitud)
+
+    assert resultado == solicitud_mock_aceptada
+    repositorio_parentesco.obtener_parentesco_por_id.assert_awaited_once_with(codigo_solicitud)
+    repositorio_parentesco.actualizar_estado_parentesco.assert_awaited_once_with(codigo_solicitud, "aceptada")
+
+@pytest.mark.asyncio
+async def test_rechazar_solicitud_parentesco_exitoso(servicio, repositorio_parentesco):
+    """Rechaza una solicitud de parentesco pendiente correctamente."""
+    codigo_solicitud = 1
+    solicitud_mock = MagicMock()
+    solicitud_mock.estado = "pendiente"
+    solicitud_mock_rechazada = MagicMock()
+    solicitud_mock_rechazada.estado = "rechazada"
+    repositorio_parentesco.obtener_parentesco_por_id = AsyncMock(return_value=solicitud_mock)
+    repositorio_parentesco.actualizar_estado_parentesco = AsyncMock(return_value=solicitud_mock_rechazada)
+
+    resultado = await servicio.rechazar_solicitud_parentesco(codigo_solicitud)
+
+    assert resultado == solicitud_mock_rechazada
+    repositorio_parentesco.obtener_parentesco_por_id.assert_awaited_once_with(codigo_solicitud)
+    repositorio_parentesco.actualizar_estado_parentesco.assert_awaited_once_with(codigo_solicitud, "rechazada")
+
+@pytest.mark.asyncio
+async def test_aceptar_solicitud_parentesco_no_existe(servicio, repositorio_parentesco):
+    """Lanza ValueError al intentar aceptar una solicitud de parentesco que no existe."""
+    codigo_solicitud = 999
+    repositorio_parentesco.obtener_parentesco_por_id = AsyncMock(return_value=None)
+
+    with pytest.raises(ValueError, match="La solicitud de parentesco no existe."):
+        await servicio.aceptar_solicitud_parentesco(codigo_solicitud)
+
+@pytest.mark.asyncio
+async def test_rechazar_solicitud_parentesco_estado_invalido(servicio, repositorio_parentesco):
+    """Lanza ValueError al intentar rechazar una solicitud de parentesco que no está en estado pendiente."""
+    codigo_solicitud = 1
+    solicitud_mock = MagicMock()
+    solicitud_mock.estado = "aceptada"
+    repositorio_parentesco.obtener_parentesco_por_id = AsyncMock(return_value=solicitud_mock)
+
+    with pytest.raises(ValueError, match="Solo se pueden rechazar solicitudes que estén en estado pendiente."):
+        await servicio.rechazar_solicitud_parentesco(codigo_solicitud)

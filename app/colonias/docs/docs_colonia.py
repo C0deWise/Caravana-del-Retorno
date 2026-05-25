@@ -7,11 +7,11 @@ from typing import Annotated
 
 from app.colonias.schemas.colonia_schemas import ColoniaCrear
 
-desactivar_colonia_docs = dict(
+toggle_estado_colonia_docs = dict(
     status_code=status.HTTP_200_OK,
-    summary="Desactivar una colonia",
+    summary="Activar y desactivar una colonia",
     description="""
-    Desactiva una colonia existente por su código.
+    Alterna el estado de una colonia existente por su código.
     
     Si la colonia tiene usuarios asociados:
     - Los usuarios serán desasociados de la colonia
@@ -20,37 +20,44 @@ desactivar_colonia_docs = dict(
     La colonia será marcada como inactiva y no aparecerá en listados públicos.
     """,
     responses={
-        200:{
-            "description": "Colonia desactivada exitosamente.",
+        200: {
+            "description": "Colonia toggled exitosamente.",
             "content": {
                 "application/json": {
-                    "example": {
-                        "codigo": 1,
-                        "pais": "Colombia",
-                        "departamento": "Antioquia",
-                        "ciudad": "Medellín",
-                        "estado": "inactiva",
-                        "lider": None
+                    "examples": {
+                        "desactivada": {
+                            "summary": "Colonia desactivada exitosamente",
+                            "value": {
+                                "codigo": 1,
+                                "pais": "Colombia",
+                                "departamento": "Antioquia",
+                                "ciudad": "Medellín",
+                                "estado": "inactiva",
+                                "lider": None
+                            }
+                        },
+                        "activada": {
+                            "summary": "Colonia activada exitosamente",
+                            "value": {
+                                "codigo": 1,
+                                "pais": "Colombia",
+                                "departamento": "Antioquia",
+                                "ciudad": "Medellín",
+                                "estado": "activa",
+                                "lider": 10
+                            }
+                        }
                     }
                 }
             }
         },
+
         404: {
             "description": "Colonia no encontrada.",
             "content": {
                 "application/json": {
                     "example": {
                         "detail": "Colonia con código 999 no encontrada"
-                    }
-                }
-            }
-        },
-        409: {
-            "description": "La colonia ya está desactivada.",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "La colonia con código 1 ya está desactivada"
                     }
                 }
             }

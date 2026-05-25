@@ -123,25 +123,24 @@ class ColoniaService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Colonia con código {colonia_codigo} no encontrada")
         return ColoniaRespuesta.model_validate(colonia, from_attributes=True)
-    async def desactivar_colonia(self, colonia_codigo: int) -> ColoniaRespuesta:
+    
+    async def toggle_estado_colonia(self, colonia_codigo: int) -> ColoniaRespuesta:
         """
-        Desactiva una colonia existente. Si una colonia tiene miembros, se desasocian los miembros
-        antes de desactivar la colonia, incluye el cambio de rol a usuario l+ider a usuario común.
+        Alterna el estado de una colonia existente. Si una colonia tiene miembros, se desasocian los miembros
+        antes de alterar el estado de la colonia, incluye el cambio de rol a usuario l+ider a usuario común.
         Parámetros:
-            db (Session): Sesión activa de SQLAlchemy.
-            colonia_codigo (int): Código de la colonia a desactivar.
+            colonia_codigo (int): Código de la colonia a desactivar o activar.
         Retorna:
-            ColoniaRespuesta: La colonia desactivada.
+            ColoniaRespuesta: La colonia desactivada o activada.
         Excepciones:
             HTTPException 404: Si la colonia no existe en la base de datos.
-            HTTPException 409: Si la colonia ya está inactiva.
         """
         colonia = await self.repositorio.obtener_colonia_por_id(colonia_codigo)
         if not colonia:
             raise ColoniaNoExistente(colonia_codigo)
         
         if colonia.estado == ColoniaEstado.INACTIVA:
-            raise ColoniaInactiva(colonia_codigo)
+            return await self.repositorio.activar_colonia(colonia.codigo)
          
         tiene_miembros = await self.repositorio.tiene_miembros_colonia(colonia_codigo)
         if tiene_miembros:

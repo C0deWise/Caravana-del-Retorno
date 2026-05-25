@@ -5,13 +5,13 @@ las relaciones de parentesco asociadas a un usuario específico, ya sea como sol
 Se incluyen detalles sobre el acceso, los parámetros requeridos y las posibles respuestas del endpoint.
 """
 
-from app.usuarios.schemas.parentesco_esquemas import ParentescoLista
+from app.usuarios.schemas.parentesco_esquemas import ParentescoRespuestaDetallada
 from fastapi import Body
 from typing import Annotated
 
 listar_parentescos_docs = dict(
     summary="Listar parentescos de un usuario",
-    response_model=list[ParentescoLista],
+    response_model=list[ParentescoRespuestaDetallada],
     description="""
 Obtiene una lista de todas 
 las relaciones de parentesco asociadas a un usuario específico, ya sea como solicitante o destinatario.
@@ -27,17 +27,33 @@ las relaciones de parentesco asociadas a un usuario específico, ya sea como sol
                     "example": [
                         {
                             "codigo": 1,
-                            "codigo_solicitante": 1,
-                            "codigo_destinatario": 2,
                             "tipo_parentesco": "hermano (a)",
-                            "estado": "aceptada"
+                            "estado": "aceptada",
+                            "solicitante": {
+                                "codigo": 1,
+                                "nombre": "Juan",
+                                "apellido": "García"
+                            },
+                            "destinatario": {
+                                "codigo": 2,
+                                "nombre": "María",
+                                "apellido": "García"
+                            }
                         },
                         {
                             "codigo": 2,
-                            "codigo_solicitante": 3,
-                            "codigo_destinatario": 1,
                             "tipo_parentesco": "padre",
-                            "estado": "pendiente"
+                            "estado": "pendiente",
+                            "solicitante": {
+                                "codigo": 3,
+                                "nombre": "Carlos",
+                                "apellido": "López"
+                            },
+                            "destinatario": {
+                                "codigo": 1,
+                                "nombre": "Juan",
+                                "apellido": "García"
+                            }
                         }
                     ]
                 }

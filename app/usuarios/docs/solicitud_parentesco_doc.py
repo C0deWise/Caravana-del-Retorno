@@ -5,11 +5,12 @@
 
 from fastapi import Body
 from typing import Annotated
-from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear
+from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear, ParentescoRespuesta
 
 
 solicitar_parentesco_docs = dict(
     summary="Solicitar parentesco entre usuarios",
+        response_model=ParentescoRespuesta,
     description="""
 Crea una solicitud de parentesco entre dos usuarios del sistema.
 
@@ -26,10 +27,11 @@ Crea una solicitud de parentesco entre dos usuarios del sistema.
             "content": {
                 "application/json": {
                     "example": {
-                        "mensaje": "Solicitud de parentesco enviada exitosamente.",
+                        "codigo": 1,
                         "codigo_solicitante": 1,
                         "codigo_destinatario": 2,
                         "tipo_parentesco": "hermano (a)",
+                        "estado": "pendiente"
                     }
                 }
             },
@@ -71,7 +73,7 @@ solicitar_parentesco_body = Annotated[
                 "value": {
                     "codigo_solicitante": 1,
                     "codigo_destinatario": 2,
-                    "tipo_parentesco": "hermano",
+                    "tipo_parentesco": "hermano (a)",
                 },
             },
             "ejemplo_completo": {
