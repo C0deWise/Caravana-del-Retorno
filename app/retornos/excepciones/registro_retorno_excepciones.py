@@ -21,10 +21,10 @@ class NoHayColonias(HTTPException):
             detail="No se encontraron colonias."
         )
 class RetornoEstadoInvalido(HTTPException):
-    def __init__(self, retorno_id: int, retorno_estado: str):
+    def __init__(self, retorno_id: int, retorno_estado: str, accion: str):
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"No es posible inscribir en el retorno con código {retorno_id} porque su estado es '{retorno_estado}'."
+            detail=f"No es posible {accion} retorno con código {retorno_id} porque su estado es '{retorno_estado}'."
         )
 
 class RetornoEstadoFinalizadoDarseDeBaja(HTTPException):
