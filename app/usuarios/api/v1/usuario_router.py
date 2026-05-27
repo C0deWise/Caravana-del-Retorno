@@ -14,7 +14,7 @@ from app.usuarios.auth_dependencies import get_current_user, require_roles
 from app.usuarios.models.usuario import Usuario
 from app.usuarios.repository.parentesco_repositorio import ParentescoRepositorio
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
-from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear, ParentescoRespuestaDetallada
+from app.usuarios.schemas.parentesco_esquemas import ParentescoRespuesta, ParentescoRespuestaDetallada
 from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.usuarios.docs.registro_doc import registrar_docs, registrar_body
 from app.usuarios.docs.solicitud_parentesco_doc import solicitar_parentesco_docs, solicitar_parentesco_body
@@ -30,6 +30,7 @@ from app.usuarios.schemas.usuario_esquemas import (
     UsuarioDetallado,
     UsuarioSesion,
 )
+
 from app.usuarios.docs.listar_parentescos_doc import listar_parentescos_docs
 from app.usuarios.security import TokenError, decode_token
 
@@ -211,13 +212,47 @@ async def solicitar_parentesco(
     _: Usuario = Depends(require_roles(1, 2)),
 ):
     try:
-        await servicio.solicitar_parentesco(parentesco_crear)
-        return {"mensaje": "Solicitud de parentesco enviada exitosamente."}
+        solicitud = await servicio.solicitar_parentesco(parentesco_crear)
+        return solicitud
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
+    
+@router.patch("/solicitud-parentesco/aceptar/{solicitud_id}",
+               response_model=ParentescoRespuesta,
+               status_code=status.HTTP_200_OK, 
+               summary="Aceptar solicitud de parentesco") 
+async def aceptar_solicitud_parentesco(
+    solicitud_id: int,
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
+):
+    try:
+        solicitud = await servicio.aceptar_solicitud_parentesco(solicitud_id)
+        return solicitud
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )  
+
+@router.patch("/solicitud-parentesco/rechazar/{solicitud_id}", 
+              response_model=ParentescoRespuesta,
+              status_code=status.HTTP_200_OK, 
+              summary="Rechazar solicitud de parentesco")
+async def rechazar_solicitud_parentesco(
+    solicitud_id: int,
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
+):
+    try:
+        solicitud =  await servicio.rechazar_solicitud_parentesco(solicitud_id)
+        return solicitud
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )     
 
 @router.get("/", response_model=list[UsuarioSalida], summary="Listar todos los usuarios (básico)")
 async def listar_usuarios(
@@ -314,8 +349,7 @@ async def buscar_usuario_por_documento(
 @router.get(
     "/{codigo_usuario}/parentescos",
     status_code=status.HTTP_200_OK,
-    **listar_parentescos_docs
-)
+    **listar_parentescos_docs)
 async def listar_parentescos_usuario(
     codigo_usuario: int,
     servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
@@ -330,6 +364,20 @@ async def listar_parentescos_usuario(
             detail=str(e),
         )
 
+@router.get("/parentesco/{parentesco_id}", response_model=ParentescoRespuestaDetallada, summary="Obtener detalles de un parentesco por ID")
+async def obtener_parentesco_por_id(
+    parentesco_id: int,
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
+):
+    try:
+        parentesco = await servicio.obtener_parentesco_por_id(parentesco_id)
+        return parentesco
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+    
 @router.get("/colonia/{colonia}", response_model=list[UsuarioConsultaColonia], summary="Buscar usuarios por colonia")
 async def buscar_usuario_por_colonia(
     colonia: int, 

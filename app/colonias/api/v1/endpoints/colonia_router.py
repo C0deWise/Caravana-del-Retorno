@@ -30,7 +30,7 @@ from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
-from app.colonias.docs.docs_colonia import desactivar_colonia_docs, cambiar_lider_colonia_docs, sacar_miembro_colonia_docs, obtener_colonias_activas_docs,  crear_colonia_body
+from app.colonias.docs.docs_colonia import toggle_estado_colonia_docs, cambiar_lider_colonia_docs, sacar_miembro_colonia_docs, obtener_colonias_activas_docs,  crear_colonia_body
 from json import dumps
 
 from app.colonias.docs.docs_solicitud_colonia import (
@@ -40,7 +40,7 @@ from app.colonias.docs.docs_solicitud_colonia import (
     obtener_solicitudes_recientes_usuario_docs,
 )
 
-def get_solicitud_colonia_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> SolicitudColoniaRepository:
+def get_solicitud_colonia_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> SolicitudColoniaService:
     repositorio = SolicitudColoniaRepository(db)
     return SolicitudColoniaService(repositorio)
 
@@ -284,7 +284,6 @@ async def obtener_solicitudes_recientes_usuario(
 
 @router.patch(
     "/establecer_lider/{colonia_codigo}/",
-    response_model = ColoniaRespuesta,
     status_code = status.HTTP_200_OK,
     summary = "Asignar líder a una colonia",
     description = """
@@ -333,20 +332,18 @@ async def asignar_lider(
     return await servicio.servicio_establecer_lider(colonia_codigo, datos.lider)
 
 @router.patch(
-    "/desactivar/{colonia_codigo}/",
-    response_model=ColoniaRespuesta, **desactivar_colonia_docs
+    "/toggle-estado/{colonia_codigo}/", **toggle_estado_colonia_docs
 )
-async def desactivar_colonia(
+async def toggle_estado_colonia(
     colonia_codigo: int,
     servicio: ColoniaService = Depends(get_colonia_service),
     _: Usuario = Depends(require_roles(3)),
 ) -> ColoniaRespuesta:
     """Endpoint para desactivar una colonia existente"""
-    return await servicio.desactivar_colonia(colonia_codigo)
+    return await servicio.toggle_estado_colonia(colonia_codigo)
 
 @router.get(
-    "/colonias-activas/",
-    response_model=list[ColoniaRespuesta], **obtener_colonias_activas_docs
+    "/colonias-activas/", **obtener_colonias_activas_docs
 )
 async def obtener_colonias_activas(
     servicio: ColoniaService = Depends(get_colonia_service),
@@ -356,7 +353,7 @@ async def obtener_colonias_activas(
     return await servicio.obtener_colonias_activas()
 @router.patch(
     "/cambiar-lider/{colonia_codigo}/",
-    response_model=ColoniaRespuesta, **cambiar_lider_colonia_docs
+    **cambiar_lider_colonia_docs
 )
 async def cambiar_lider_colonia(
     colonia_codigo: int,
@@ -369,7 +366,6 @@ async def cambiar_lider_colonia(
 
 @router.patch(
     "/sacar-miembro/{colonia_codigo}/",
-    response_model=UsuarioRemovidoColoniaRespuesta,
     **sacar_miembro_colonia_docs
 )
 async def sacar_miembro_colonia(

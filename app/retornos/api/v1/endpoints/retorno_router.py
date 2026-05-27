@@ -20,7 +20,7 @@ from app.retornos.servicios.grupo_retorno_servicio import GrupoRetornoServicio
 from app.retornos.servicios.registro_retorno_grupo_servicio import RegistroRetornoGrupoServicio
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
 from app.retornos.esquemas.solicitud_grupo_retorno_esquema import SolicitudGrupoRetornoRespuesta, SolicitudGrupoRetornoEstado
-from app.retornos.esquemas.grupo_retorno_esquema import GrupoRetornoCrear, GrupoRetornoRespuesta
+from app.retornos.esquemas.grupo_retorno_esquema import GrupoRetornoCrear, GrupoRetornoEliminadoRespuesta, GrupoRetornoRespuesta
 from app.retornos.esquemas.registro_retorno_grupo_esquema import RegistroRetornoGrupoCrear, RegistroRetornoGrupoEditar, RegistroRetornoGrupoRespuesta
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.services.usuario_servicio import UsuarioServicio
@@ -49,6 +49,7 @@ def obtener_registro_retorno_servicio(db: Annotated[AsyncSession, Depends(get_db
     repositorio = RegistroRetornoRepositorio(db)
     retorno_repositorio = RetornoRepository(db)
     
+    
     usuario_servicio = UsuarioServicio(UsuarioRepositorio(db), ParentescoRepositorio(db))
     
     return RegistroRetornoServicio(
@@ -63,8 +64,9 @@ def obtener_registro_retorno_grupo_servicio(db: Annotated[AsyncSession, Depends(
     repositorio_retorno = RetornoRepository(db)
     repositorio_usuario_grupo = RetornoGrupoUsuarioRepositorio(db)
     repositorio_persona = PersonaRepositorio(db) # Instanciar PersonaRepositorio
+    solicitudes_repositorio = SolicitudGrupoRetornoRepositorio(db) # Instanciar el repositorio de solicitudes
     return RegistroRetornoGrupoServicio(
-        repositorio_registro_grupo, repositorio_grupo, repositorio_retorno, repositorio_usuario_grupo, repositorio_persona
+        repositorio_registro_grupo, repositorio_grupo, repositorio_retorno, repositorio_usuario_grupo, repositorio_persona, solicitudes_repositorio
     )
 
 def obtener_grupo_retorno_servicio(db: Annotated[AsyncSession, Depends(get_db)]):
@@ -117,6 +119,12 @@ async def crear_retorno(
     return await servicio.crear_retorno(data)
 
 
+@router.get("/ultimo-retorno",
+            response_model=RetornoResponse | None,
+            summary="Obtener el último retorno",
+            description="Retorna el retorno con el año más reciente.")
+async def obtener_ultimo_retorno(servicio: Annotated[RetornoService, Depends(obtener_retorno_servicio)]):
+    return await servicio.obtener_ultimo_retorno()
 @router.put("/editar-registro/{registro_id}",
                response_model=RegistroRetornoRespuesta, 
                summary="Editar un registro de retorno existente",
@@ -521,3 +529,12 @@ async def editar_registro_retorno_grupo(
     _: Usuario = Depends(require_roles(1, 2, 3)),
 ):
     return await servicio.editar_registro_retorno_grupo(registro_id, datos)
+
+
+@grupo_retorno_router.delete("/eliminar-grupo/{gr_codigo}",
+                response_model=GrupoRetornoEliminadoRespuesta,
+                status_code=status.HTTP_200_OK,
+                summary="Eliminar un grupo de retorno",
+                description="Elimina un grupo de retorno específico, siempre que no tenga registros asociados en retornos vigentes.")
+async def eliminar_grupo_retorno(gr_codigo: int, servicio: Annotated[GrupoRetornoServicio, Depends(obtener_grupo_retorno_servicio)]):
+    return await servicio.eliminar_grupo_retorno(gr_codigo)
