@@ -1,8 +1,7 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 from pathlib import Path
 
-from pathlib import Path
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 
@@ -28,7 +27,14 @@ class Settings(BaseSettings):
     # ─────────────────────────────────────────
     #  Security
     # ─────────────────────────────────────────
-    SECRET_KEY: str = "supersecretkey"
+    SECRET_KEY: str
+    JWT_SECRET_KEY: str
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    REFRESH_COOKIE_NAME: str = "refresh_token"
+    REFRESH_COOKIE_SECURE: bool = True
+    REFRESH_COOKIE_SAMESITE: str = "lax"
     ALLOWED_HOSTS: list[str] = ["http://localhost:3000"]
 
     model_config = SettingsConfigDict(

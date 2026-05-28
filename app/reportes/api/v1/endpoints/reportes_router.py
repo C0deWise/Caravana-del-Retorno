@@ -16,6 +16,8 @@ from app.reportes.repositories.grupo_retorno_reporte_repositorio import GrupoRep
 from app.reportes.repositories.persona_reporte_repositorio import PersonaReporteRepositorio
 from app.reportes.repositories.usuario_retorno_reporte_repositorio import UsuarioRetornoReporteRepositorio
 from app.reportes.services.reportes_service import ReportesService
+from app.usuarios.auth_dependencies import require_roles
+from app.usuarios.models.usuario import Usuario
 
 def get_reportes_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> ReportesService:
     repositorio_reportes_colonia = ColoniaReporteRepositorio(db)
@@ -34,7 +36,13 @@ router = APIRouter()
             status_code = status.HTTP_200_OK,
             summary = "Generar el informe de asistencia de una colonia a un retorno",
             )
-async def generar_reporte_asistencia_colonia(request: Request, retorno_id:int, colonia_id:int, servicio: Annotated[ReportesService, Depends(get_reportes_servicio)]):
+async def generar_reporte_asistencia_colonia(
+    request: Request,
+    retorno_id: int,
+    colonia_id: int,
+    servicio: Annotated[ReportesService, Depends(get_reportes_servicio)],
+    _: Usuario = Depends(require_roles(2, 3)),
+):
     reporte_pdf = await servicio.generar_reporte_asistencia_retorno_colonia(request, colonia_id, retorno_id)
     return reporte_pdf
 
@@ -43,6 +51,11 @@ async def generar_reporte_asistencia_colonia(request: Request, retorno_id:int, c
             status_code = status.HTTP_200_OK,
             summary = "Generar el informe de asistencia general de un retorno",
             )
-async def generar_reporte_asistencia_general(request: Request,retorno_id:int, servicio: Annotated[ReportesService, Depends(get_reportes_servicio)]):
+async def generar_reporte_asistencia_general(
+    request: Request,
+    retorno_id: int,
+    servicio: Annotated[ReportesService, Depends(get_reportes_servicio)],
+    _: Usuario = Depends(require_roles(2, 3)),
+):
     reporte_pdf = await servicio.generar_reporte_general_retorno(request, retorno_id)
     return reporte_pdf
