@@ -5,7 +5,7 @@ retorno asociado, autor, reseña, título, fecha de creación y la relación con
 publicación.
 """
 
-from sqlalchemy import Integer, String, DateTime, ForeignKey, Enum
+from sqlalchemy import Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
@@ -26,6 +26,13 @@ class Publicacion (Base):
         "Multimedia", 
         back_populates="publicacion_ref",
         cascade="all, delete-orphan")
+    autor_ref = relationship("Usuario", foreign_keys=[autor])
+
+    @property
+    def nombre_autor(self) -> str | None:
+        if not self.autor_ref:
+            return None
+        return f"{self.autor_ref.us_nombre} {self.autor_ref.us_apellido}".strip()
 
     def __repr__(self) -> str:
         """Representación en cadena del objeto Publicacion."""
