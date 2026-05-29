@@ -54,6 +54,13 @@ class UsuarioNoExistente(HTTPException):
             status_code= status.HTTP_404_NOT_FOUND,
             detail=f"Usuario con ID {usuario_id} no encontrado.")
 
+class UsuarioYaTieneColonia(HTTPException):
+    def __init__(self, usuario_id: int, colonia_actual:int, colonia_nueva:int):
+        self.usuario_id = usuario_id
+        super().__init__(
+            status_code= status.HTTP_409_CONFLICT,
+            detail=f"Usuario con ID {usuario_id} pertenece a la colonia {colonia_actual}, no puede ser asignado como lider de la colonia {colonia_nueva}.")
+
 class UsuarioNoEsMiembroColonia(HTTPException):
     def __init__(self, usuario_id, colonia_id):
         self.usuario_id = usuario_id
