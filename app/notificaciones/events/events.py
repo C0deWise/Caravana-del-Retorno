@@ -152,7 +152,7 @@ class EventoEliminarGrupoRetorno(EventoBase):
         super().__init__(TipoEvento.ELIMINAR_GRUPO_RETORNO, datos, receptores)
 
     def construir_mensaje(self) -> str:
-        lider = self.datos.get("lider", "el grupo de retorno")
+        lider = self.datos.get("nombre_lider", "el grupo de retorno")
         self.mensaje = f"El lider del grupo {lider} ha eliminado el grupo de retorno."
 
 class EventoDarseBajaRetorno(EventoBase):
