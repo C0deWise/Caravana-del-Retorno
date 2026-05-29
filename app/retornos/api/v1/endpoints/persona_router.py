@@ -105,3 +105,14 @@ async def listar_personas(
 ):
     """Lista todas las personas registradas en el sistema."""
     return await servicio.repositorio.obtener_todas_las_personas()
+
+@router.delete(
+    "/remover-persona-grupo/{pe_codigo}/{gr_codigo}",
+    response_model=bool,
+    status_code=status.HTTP_200_OK,
+    summary="Remover persona de grupo de retorno",
+    description="Elimina la asociación de una persona con un grupo de retorno específico."
+)
+async def remover_miembro_de_grupo_retorno(pe_codigo: int, gr_codigo: int, servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
+    """Elimina la asociación de una persona con un grupo de retorno específico."""
+    return await servicio.remover_persona_grupo_retorno(pe_codigo, gr_codigo)
