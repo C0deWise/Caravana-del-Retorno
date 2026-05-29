@@ -23,7 +23,7 @@ class persona_grupo_retorno(Base):
     #  Relaciones
 
     persona: Mapped["Persona"] = relationship("Persona")
-    grupo: Mapped["GrupoRetorno"] = relationship("GrupoRetorno") 
+    grupo: Mapped["GrupoRetorno"] = relationship("GrupoRetorno", back_populates="miembros") 
 
     __table_args__ = (
         UniqueConstraint("pe_codigo", "gr_codigo", name="uk1_uk2_persona_grupo_retorno"),

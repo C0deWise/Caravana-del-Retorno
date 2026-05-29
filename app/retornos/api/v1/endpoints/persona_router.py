@@ -8,6 +8,8 @@ from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepo
 from app.retornos.repositorios.registro_retorno_grupo_repositorio import RegistroRetornoGrupoRepositorio
 from app.retornos.servicios.persona_servicio import PersonaServicio
 from typing import List, Annotated
+from app.usuarios.auth_dependencies import require_roles
+from app.usuarios.models.usuario import Usuario
 
 router = APIRouter(prefix="/personas", tags=["Personas (Asistentes No Usuarios)"])
 
@@ -18,14 +20,19 @@ def get_persona_servicio(db: Annotated[AsyncSession, Depends(get_db)]):
     return PersonaServicio(repo, repo_retorno, repo_grupo) # Pass the correct repository
 
 @router.post("/", response_model=PersonaRespuesta, status_code=status.HTTP_201_CREATED)
-async def crear_persona(datos: PersonaCrear, servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
+async def crear_persona(
+    datos: PersonaCrear,
+    servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)],
+    _: Usuario = Depends(require_roles(1, 2, 3)),
+):
     """Crea una persona que asistirá a un retorno."""
     return await servicio.crear_persona(datos)
 
 @router.post("/asociar-grupo", response_model=PersonaGrupoRespuesta, status_code=status.HTTP_201_CREATED)
 async def asociar_persona_a_grupo(
     datos: PersonaGrupoAsociar, 
-    servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]
+    servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)],
+    _: Usuario = Depends(require_roles(1, 2, 3)),
 ):
     """Relaciona una persona con un grupo de retorno."""
     return await servicio.asociar_persona_a_grupo(datos.pe_codigo, datos.gr_codigo)
@@ -33,7 +40,8 @@ async def asociar_persona_a_grupo(
 @router.get("/grupo/{gr_codigo}", response_model=List[PersonaRespuesta])
 async def obtener_personas_de_grupo(
     gr_codigo: int, 
-    servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]
+    servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)],
+    _: Usuario = Depends(require_roles(1, 2, 3)),
 ):
     """Lista todas las personas que pertenecen a un grupo específico."""
     return await servicio.listar_personas_por_grupo(gr_codigo)
@@ -42,7 +50,11 @@ async def obtener_personas_de_grupo(
             status_code=status.HTTP_200_OK,
             summary="Obtener persona por ID",
             description="Obtiene los detalles de una persona por su código.")
-async def obtener_persona_por_id(pe_codigo:int, servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
+async def obtener_persona_por_id(
+    pe_codigo: int,
+    servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)],
+    _: Usuario = Depends(require_roles(1, 2, 3)),
+):
     """Obtiene los detalles de una persona por su código."""
     persona = await servicio.obtener_persona_por_id(pe_codigo)
     return PersonaRespuesta.model_validate(persona)
@@ -52,7 +64,11 @@ async def obtener_persona_por_id(pe_codigo:int, servicio: Annotated[PersonaServi
             status_code=status.HTTP_200_OK,
              summary="Obtener persona por documento",
              description="Obtiene los detalles de una persona por su número de documento.")
-async def obtener_persona_por_documento(documento:str, servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
+async def obtener_persona_por_documento(
+    documento: str,
+    servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)],
+    _: Usuario = Depends(require_roles(1, 2, 3)),
+):
     persona = await servicio.obtener_persona_por_documento(documento)
     return PersonaRespuesta.model_validate(persona)
 
@@ -60,7 +76,12 @@ async def obtener_persona_por_documento(documento:str, servicio: Annotated[Perso
             status_code=status.HTTP_200_OK,
             summary="Verificar registro de persona para retorno",
             description="Verifica si una persona está registrada para un retorno específico.")
-async def verificar_registro_persona_retorno(pe_documento: str, re_codigo: int, servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
+async def verificar_registro_persona_retorno(
+    pe_documento: str,
+    re_codigo: int,
+    servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)],
+    _: Usuario = Depends(require_roles(1, 2, 3)),
+):
         """Verifica si una persona está registrada para un retorno específico."""
         return await servicio.verificar_registro_retorno_persona_por_documento(pe_documento, re_codigo)
 
@@ -68,12 +89,20 @@ async def verificar_registro_persona_retorno(pe_documento: str, re_codigo: int, 
             status_code=status.HTTP_200_OK,
             summary="Verificar registro de persona para retorno",
             description="Verifica si una persona está registrada para un retorno específico.")
-async def verificar_registro_persona_retorno(pe_codigo: int, re_codigo: int, servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
+async def verificar_registro_persona_retorno(
+    pe_codigo: int,
+    re_codigo: int,
+    servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)],
+    _: Usuario = Depends(require_roles(1, 2, 3)),
+):
         """Verifica si una persona está registrada para un retorno específico."""
         return await servicio.verificar_registro_retorno_persona(pe_codigo, re_codigo)
 
 @router.get("/",response_model=List[PersonaRespuesta])
-async def listar_personas(servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)]):
+async def listar_personas(
+    servicio: Annotated[PersonaServicio, Depends(get_persona_servicio)],
+    _: Usuario = Depends(require_roles(1, 2, 3)),
+):
     """Lista todas las personas registradas en el sistema."""
     return await servicio.repositorio.obtener_todas_las_personas()
 

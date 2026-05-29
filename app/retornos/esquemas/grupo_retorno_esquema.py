@@ -11,3 +11,7 @@ class GrupoRetornoRespuesta(BaseModel):
     gr_codigo: int
     us_codigo_lider: int
     model_config = {"from_attributes": True}
+
+class GrupoRetornoEliminadoRespuesta(BaseModel):
+    gr_codigo: int
+    mensaje: str

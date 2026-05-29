@@ -130,3 +130,49 @@ class UsuarioConsultaColonia(BaseModel):
     role: int 
 
     model_config = {"from_attributes": True, "populate_by_name": True}
+
+
+class LoginRequest(BaseModel):
+    correo: str = Field(..., description="Correo del usuario registrado")
+    contrasenia: str = Field(..., min_length=8, description="Contrasena en texto plano")
+
+    @field_validator("correo")
+    @classmethod
+    def correo_login_valido(cls, v: str) -> str:
+        patron = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+        if not re.match(patron, v):
+            raise ValueError("El correo ingresado no es válido.")
+        return v.strip().lower()
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: Optional[str] = Field(
+        default=None,
+        description="Token de refresco opcional; en produccion se usa cookie HttpOnly.",
+    )
+
+
+class UsuarioSesion(BaseModel):
+    id: int
+    documento: str
+    correo: str
+    nombre: str
+    apellido: str
+    codigo_rol: int
+    role_name: str
+    codigo_colonia: Optional[int]
+
+
+class AuthResponse(BaseModel):
+    access_token: str
+    refresh_token: Optional[str] = Field(
+        default=None,
+        description="Solo en entornos de desarrollo para pruebas manuales.",
+    )
+    token_type: str = "bearer"
+    expires_in: int = Field(..., description="Segundos restantes de vigencia del access token")
+    usuario: UsuarioSesion
+
+
+class MensajeRespuesta(BaseModel):
+    mensaje: str

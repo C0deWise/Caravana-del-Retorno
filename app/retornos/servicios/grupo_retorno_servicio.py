@@ -9,7 +9,7 @@ from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepo
 from app.retornos.repositorios.retorno_grupo_usuario_repositorio import RetornoGrupoUsuarioRepositorio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.retornos.repositorios.solicitud_grupo_retorno_repositorio import SolicitudGrupoRetornoRepositorio
-from app.retornos.esquemas.grupo_retorno_esquema import GrupoRetornoCrear, GrupoRetornoRespuesta
+from app.retornos.esquemas.grupo_retorno_esquema import GrupoRetornoCrear, GrupoRetornoEliminadoRespuesta, GrupoRetornoRespuesta
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno # Import SolicitudGrupoRetorno
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
@@ -262,4 +262,14 @@ class GrupoRetornoServicio:
         await self._validar_si_usuario_es_lider(us_codigo, gr_codigo)
         return await self.repositorio_usuario_grupo.remover_miembro_de_grupo_retorno(us_codigo, gr_codigo)
 
+    
+    async def eliminar_grupo_retorno(self, gr_codigo: int):
+        grupo = await self.repositorio_grupos.obtener_grupo_por_id(gr_codigo)
+        if not grupo:
+            raise GrupoNoEncontrado(gr_codigo)
+        await self.repositorio_grupos.eliminar_grupo_retorno(gr_codigo)
+        return GrupoRetornoEliminadoRespuesta(
+            gr_codigo=gr_codigo,
+            mensaje="Grupo de retorno eliminado exitosamente."
+        )
     
