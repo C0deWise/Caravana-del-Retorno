@@ -99,7 +99,7 @@ class ColoniaService:
         colonia_actualizada = await self.repositorio.establecer_lider_colonia(colonia_codigo, lider_id)
         evento = EventoBase(
                 tipo_evento=TipoEvento.ESTABLER_LIDER_COLONIA,
-                datos={"colonia_ciudad": colonia_actualizada.ciudad},
+                datos={"colonia_ciudad": colonia_actualizada.ciudad, "colonia_pais": colonia_actualizada.pais},
                 receptores=[usuario_lider.us_codigo]) 
         await self.publicador.notificar(
                 evento=evento
@@ -150,7 +150,7 @@ class ColoniaService:
             await self.repositorio.sacar_miembros_colonia(colonia_codigo)
             evento = EventoBase(
                 tipo_evento=TipoEvento.DESACTIVAR_COLONIA,
-                datos={"colonia_ciudad": colonia.ciudad},
+                datos={"colonia_ciudad": colonia.ciudad, "colonia_pais": colonia.pais},
                 receptores=miembros_ids) 
             await self.publicador.notificar(
                 evento=evento
@@ -206,7 +206,7 @@ class ColoniaService:
         
         evento_revocar_rol_lider = EventoBase(
                 tipo_evento=TipoEvento.ELIMINAR_LIDER_COLONIA,
-                datos={"colonia_ciudad": colonia.ciudad},
+                datos={"colonia_ciudad": colonia.ciudad, "colonia_pais": colonia.pais},
                 receptores=[colonia.lider]) 
         
         await self.publicador.notificar(
@@ -216,7 +216,7 @@ class ColoniaService:
         colonia_actualizada = await self.repositorio.cambiar_lider_colonia(colonia_codigo, nuevo_lider_id)
         evento_establecer_lider = EventoBase(
                 tipo_evento=TipoEvento.ESTABLER_LIDER_COLONIA,
-                datos={"colonia_ciudad": colonia_actualizada.ciudad},
+                datos={"colonia_ciudad": colonia_actualizada.ciudad, "colonia_pais": colonia_actualizada.pais},
                 receptores=[usuario_nuevo_lider.us_codigo]) 
         await self.publicador.notificar(
                 evento=evento_establecer_lider
