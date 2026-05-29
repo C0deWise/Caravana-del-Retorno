@@ -64,7 +64,7 @@ RBAC_EXPECTATIONS: dict[tuple[str, str], set[int]] = {
     ("GET", "/api/v1/colonias/solicitudes-recientes/{cod_colonia}"): {2, 3},
     ("GET", "/api/v1/colonias/solicitudes-recientes-usuario/{cod_usuario}"): {1, 2, 3},
     ("PATCH", "/api/v1/colonias/establecer_lider/{colonia_codigo}/"): {3},
-    ("PATCH", "/api/v1/colonias/desactivar/{colonia_codigo}/"): {3},
+    ("PATCH", "/api/v1/colonias/toggle-estado/{colonia_codigo}/"): {3},
     ("GET", "/api/v1/colonias/colonias-activas/"): {1, 2, 3},
     ("PATCH", "/api/v1/colonias/cambiar-lider/{colonia_codigo}/"): {3},
     ("PATCH", "/api/v1/colonias/sacar-miembro/{colonia_codigo}/"): {2, 3},
