@@ -9,6 +9,8 @@
 from fastapi import APIRouter, Depends, status, Response
 from typing import Union
 from app.colonias.models.colonia_model import ColoniaEstado
+from app.notificaciones.events.events import EventoBase, TipoEvento
+from app.notificaciones.events.patron_observer import Publicador
 from app.notificaciones.repositories.notificacion_repositorio import NotificacionRepository
 from app.notificaciones.services.notificacion_crear_service import NotificacionCrearService
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
@@ -55,6 +57,11 @@ def get_colonia_service(db: Annotated[AsyncSession, Depends(get_db)]) -> Colonia
     servicio_registro_retorno = RegistroRetornoServicio(RegistroRetornoRepositorio(db), RetornoRepository(db), servicio_usuario)
     servicio_notificaciones = NotificacionCrearService(repositorio_notificacion)
     return ColoniaService(repositorio, servicio_usuario, servicio_registro_retorno, servicio_notificaciones)
+
+def get_publicador(db: Annotated[AsyncSession, Depends(get_db)]) -> Publicador:
+    repositorio_notificacion = NotificacionRepository(db)
+    servicio_notificaciones = NotificacionCrearService(repositorio_notificacion)
+    return Publicador(servicio_notificaciones)
 
 router = APIRouter()
 
@@ -206,7 +213,8 @@ async def crear_solicitud_colonia(
     datos: SolicitudColoniaCrear,
     servicio_usuario: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
     servicio: Annotated[SolicitudColoniaService, Depends(get_solicitud_colonia_servicio)],
-    servicio_colonia: Annotated[ColoniaService, Depends(get_colonia_service)]
+    servicio_colonia: Annotated[ColoniaService, Depends(get_colonia_service)],
+    publicador: Annotated[Publicador, Depends(get_publicador)]
 ):
     
     if not await servicio_usuario.existe_usuario("us_codigo", datos.codigo_usuario):
@@ -219,7 +227,15 @@ async def crear_solicitud_colonia(
     
         
     resultado = await servicio.crear_solicitud(datos)
-    
+    if colonia.lider is not None: 
+        evento = EventoBase(
+                    tipo_evento=TipoEvento.CREAR_SOLICITUD_INGRESO_COLONIA,
+                    datos={"colonia_ciudad": colonia.ciudad, "nombre_usuario": resultado.nombre_usuario,"apellido_usuario": resultado.apellido_usuario,
+                            },
+                    receptores=[colonia.lider]) 
+        await publicador.notificar(
+                    evento=evento
+                )
     if isinstance(resultado, MiembroRegistradoColoniaRespuesta):
         return Response(
             content=resultado.model_dump_json(),

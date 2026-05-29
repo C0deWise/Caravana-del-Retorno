@@ -10,6 +10,7 @@ class TipoEvento(Enum):
     DESACTIVAR_COLONIA = "desactivar_colonia"
     ESTABLER_LIDER_COLONIA = "establecer_lider_colonia"
     ELIMINAR_LIDER_COLONIA = "eliminar_lider_colonia"
+    CREAR_SOLICITUD_INGRESO_COLONIA = "solicitar ingreso a una colonia"
 
     REGISTRO_GRUPO_RETORNO = "registro_grupo_retorno"
     ACTUALIZACION_REGISTRO_GRUPO = "actualizacion_registro_grupo"
@@ -38,6 +39,7 @@ class MapeoEventosIds:
         TipoEvento.REGISTRO_GRUPO_RETORNO: 8,  # "Registro de grupo a retorno"
         TipoEvento.ACTUALIZACION_REGISTRO_GRUPO: 9,  # "Edición de registro de grupo"
         TipoEvento.DESACTIVAR_COLONIA: 10,  # "Desactivación de colonia"
+        TipoEvento.CREAR_SOLICITUD_INGRESO_COLONIA: 11
     }
     
     @classmethod
@@ -166,3 +168,15 @@ class EventoDarseBajaRetorno(EventoBase):
         nombre_completo = f"{nombre_usuario} {apellido_usuario}".strip()
         retorno_anio = self.datos.get("retorno_anio", "el retorno")
         self.mensaje = f"El usuario {nombre_completo} identificado con el documento {documento_usuario} se ha dado de baja del retorno {retorno_anio}."
+
+
+class EventoSolicitarIngresoColonia(EventoBase):
+    def __init__(self, datos, receptores):
+        super().__init__(TipoEvento.DARSE_BAJA_RETORNO, datos, receptores)
+
+    def construir_mensaje(self) -> str:
+        nombre_usuario = self.datos.get("nombre_usuario", "el usuario")
+        apellido_usuario = self.datos.get("apellido_usuario", "")
+        nombre_completo = f"{nombre_usuario} {apellido_usuario}".strip()
+        colonia_ciudad = self.datos.get("colonia_ciudad", "el retorno")
+        self.mensaje = f"El usuario {nombre_completo} solicita ingresar a la colonia {colonia_ciudad}."

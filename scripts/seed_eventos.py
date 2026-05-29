@@ -58,6 +58,10 @@ EVENTOS = [
         "ev_nombre": "Desactivación de colonia",
         "ev_descripcion": "Se genera cuando se desactiva una colonia"
     },
+    {
+        "ev_nombre": "Solicitud ingreso a colonia",
+        "ev_descripcion": "Se genera cuando un usuario crea una solicitud de ingreso a una colonia"
+    },
 ]
 
 

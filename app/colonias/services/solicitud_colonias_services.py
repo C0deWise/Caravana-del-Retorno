@@ -33,9 +33,12 @@ class SolicitudColoniaService:
             apellido_usuario=usuario.us_apellido,
             codigo_colonia=usuario.co_codigo
         )
+
     async def crear_solicitud(self, data: SolicitudColoniaCrear) -> SolicitudColoniaRespuesta:
         if await self.repositorio.obtener_colonia_tiene_lider(data.codigo_colonia):
+            
             solicitud = await self.repositorio.crear_solicitud_colonia(data)
+            
             return self._mapear_solicitud(solicitud)
         else:
            usuario =  await self.repositorio.actualizar_colonia_usuario(data.codigo_usuario, data.codigo_colonia)

@@ -8,7 +8,8 @@ from typing import Annotated
 from fastapi import Depends
 
 from app.notificaciones.events.events import (
-    EventoBase, 
+    EventoBase,
+    EventoSolicitarIngresoColonia, 
     TipoEvento,
     EventoSolicitudColoniaAceptada,
     EventoSolicitudColoniaRechazada,
@@ -47,6 +48,7 @@ class FabricaEventos:
         TipoEvento.DARSE_BAJA_GRUPO: EventoDarseBajaGrupo,
         TipoEvento.ELIMINAR_GRUPO_RETORNO: EventoEliminarGrupoRetorno,
         TipoEvento.DARSE_BAJA_RETORNO: EventoDarseBajaRetorno,
+        TipoEvento.CREAR_SOLICITUD_INGRESO_COLONIA: EventoSolicitarIngresoColonia
     }
     
     @classmethod
