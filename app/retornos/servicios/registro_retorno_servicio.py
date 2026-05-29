@@ -5,6 +5,9 @@ utilizando el repositorio para interactuar con la base de datos y los esquemas p
 estructurar los datos de entrada y salida.
 """
 
+from app.notificaciones.events.events import EventoBase, TipoEvento
+from app.notificaciones.events.patron_observer import Publicador
+from app.notificaciones.services.notificacion_crear_service import NotificacionCrearService
 from app.retornos.excepciones.retorno_excepciones import RegistroIndividualParqueaderoExcedidoError
 from app.retornos.esquemas.retorno_esquemas import RetornoResponse
 from app.retornos.modelos.retorno_modelo import Retorno
@@ -17,10 +20,11 @@ from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.retornos.excepciones.registro_retorno_excepciones import RetornoEstadoFinalizadoDarseDeBaja, RegistroRetornoNoExistente, RetornoNoExistente, RetornoEstadoInvalido, UsuarioNoExistente, UsuarioNoRegistradoEnRetorno, UsuarioSinColonia, UsuarioYaRegistrado
 
 class RegistroRetornoServicio:
-    def __init__(self, repositorio: RegistroRetornoRepositorio, retorno_repositorio: RetornoRepository = None, usuario_servicio: UsuarioServicio = None) -> None:
+    def __init__(self, repositorio: RegistroRetornoRepositorio, retorno_repositorio: RetornoRepository = None, usuario_servicio: UsuarioServicio = None, notificacion_servicio: NotificacionCrearService = None) -> None:
         self.repositorio = repositorio 
         self.retorno_repositorio = retorno_repositorio
         self.usuario_servicio = usuario_servicio
+        self.publicador = Publicador(notificacion_servicio) if notificacion_servicio else None
 
     def _validar_retorno(self, retorno, codigo_retorno, accion):
         if not retorno:
@@ -124,6 +128,24 @@ class RegistroRetornoServicio:
         usuario_registrado = await self.repositorio.obtener_registro_retorno_por_usuario_y_retorno(datos.usuario, datos.retorno)
         if not usuario_registrado:
             raise UsuarioNoRegistradoEnRetorno(datos.usuario, datos.retorno)
+        
+        retorno = await self.retorno_repositorio.get_by_codigo(datos.retorno)
+        
+        # Notificar al líder de la colonia sobre la baja del usuario
+        if self.publicador and usuario.co_codigo:
+            colonia = usuario.colonia
+            if colonia and colonia.lider:
+                evento = EventoBase(
+                    tipo_evento=TipoEvento.DARSE_BAJA_RETORNO,
+                    datos={
+                        "retorno_anio": retorno.anio, 
+                        "usuario_nombre": usuario.us_nombre, 
+                        "documento_usuario": usuario.us_documento,
+                        "usuario_apellido": usuario.us_apellido
+                    },
+                    receptores=[colonia.lider]
+                )
+                await self.publicador.notificar(evento=evento)
         
         return await self.repositorio.eliminar_registro_retorno(datos)
        

@@ -1,8 +1,8 @@
-"""tablas sprint 1 y 2
+"""tablas sprint 1, 2 y 3
 
-Revision ID: b11fba19fe82
+Revision ID: 68737714ecd4
 Revises: 
-Create Date: 2026-05-14 03:34:56.487819
+Create Date: 2026-05-23 06:41:37.065571
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'b11fba19fe82'
+revision: str = '68737714ecd4'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -29,6 +29,13 @@ def upgrade() -> None:
     sa.Column('co_estado', sa.Enum('ACTIVA', 'INACTIVA', name='coloniaestado'), nullable=False),
     sa.Column('lider_id', sa.Integer(), nullable=True),
     sa.PrimaryKeyConstraint('co_codigo')
+    )
+    op.create_table('evento',
+    sa.Column('ev_codigo', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('ev_nombre', sa.String(), nullable=False),
+    sa.Column('ev_descripcion', sa.String(), nullable=False),
+    sa.PrimaryKeyConstraint('ev_codigo'),
+    sa.UniqueConstraint('ev_nombre')
     )
     op.create_table('persona',
     sa.Column('pe_codigo', sa.Integer(), autoincrement=True, nullable=False),
@@ -87,6 +94,17 @@ def upgrade() -> None:
     sa.Column('us_codigo_lider', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['us_codigo_lider'], ['usuario.us_codigo'], ),
     sa.PrimaryKeyConstraint('gr_codigo')
+    )
+    op.create_table('notificacion',
+    sa.Column('no_codigo', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('no_mensaje', sa.String(), nullable=False),
+    sa.Column('us_codigo_receptor', sa.Integer(), nullable=False),
+    sa.Column('no_time_stamp', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('no_estado', sa.Enum('SIN_LEER', 'LEIDA', name='notificacionestado'), nullable=False),
+    sa.Column('ev_codigo', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['ev_codigo'], ['evento.ev_codigo'], ),
+    sa.ForeignKeyConstraint(['us_codigo_receptor'], ['usuario.us_codigo'], ),
+    sa.PrimaryKeyConstraint('no_codigo')
     )
     op.create_table('parentesco',
     sa.Column('pa_codigo', sa.Integer(), autoincrement=True, nullable=False),
@@ -202,11 +220,13 @@ def downgrade() -> None:
     op.drop_table('registro_retorno')
     op.drop_table('publicacion')
     op.drop_table('parentesco')
+    op.drop_table('notificacion')
     op.drop_table('grupo_retorno')
     op.drop_table('usuario')
     op.drop_table('rol')
     op.drop_index(op.f('ix_retorno_codigo'), table_name='retorno')
     op.drop_table('retorno')
     op.drop_table('persona')
+    op.drop_table('evento')
     op.drop_table('colonia')
     # ### end Alembic commands ###

@@ -2,6 +2,7 @@
 set -e
 
 echo "Ejecutando migraciones..."
+
 /usr/local/bin/alembic upgrade head
 
 echo "Iniciando aplicación..."

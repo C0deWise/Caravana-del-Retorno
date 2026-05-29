@@ -3,6 +3,9 @@
     y la asociación de usuarios a grupos de retorno. 
 """
 
+from app.notificaciones.events.events import EventoBase, TipoEvento
+from app.notificaciones.events.patron_observer import Publicador
+from app.notificaciones.services.notificacion_crear_service import NotificacionCrearService
 from app.retornos.esquemas.solicitud_retorno_grupo_esquema import SolicitudRetornoGrupoLiderRespuesta, SolicitudRetornoGrupoRespuesta, SolicitudRetornoGrupoUsuarioRespuesta
 from app.retornos.excepciones.registro_retorno_excepciones import GrupoNoEncontrado, SolicitudGrupoRetornoEstadoInvalido, SolicitudGrupoRetornoNoExistente, UsuarioNoEstaEnUnGrupo, UsuarioNoPerteneceAlaMismaColonia
 from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
@@ -20,7 +23,7 @@ from fastapi import HTTPException, status
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
 from app.retornos.esquemas.solicitud_grupo_retorno_esquema import SolicitudGrupoRetornoEstado
 class GrupoRetornoServicio:
-    def __init__(self, repositorio_retorno: RetornoRepository = None, repositorio_grupos: GrupoRetornoRepositorio = None, repositorio_solicitudes: SolicitudGrupoRetornoRepositorio = None, repositorio_usuario_grupo: RetornoGrupoUsuarioRepositorio = None, repositorio_usuario: UsuarioRepositorio = None, repositorio_registro_individual: RegistroRetornoRepositorio = None, repositorio_registro_grupo: RegistroRetornoGrupoRepositorio = None): # type: ignore
+    def __init__(self, repositorio_retorno: RetornoRepository = None, repositorio_grupos: GrupoRetornoRepositorio = None, repositorio_solicitudes: SolicitudGrupoRetornoRepositorio = None, repositorio_usuario_grupo: RetornoGrupoUsuarioRepositorio = None, repositorio_usuario: UsuarioRepositorio = None, repositorio_registro_individual: RegistroRetornoRepositorio = None, repositorio_registro_grupo: RegistroRetornoGrupoRepositorio = None,  servicio_notificaciones: NotificacionCrearService = None): # type: ignore
         self.repositorio_retorno = repositorio_retorno
         self.repositorio_grupos = repositorio_grupos
         self.repositorio_solicitudes = repositorio_solicitudes
@@ -28,6 +31,7 @@ class GrupoRetornoServicio:
         self.repositorio_usuario = repositorio_usuario
         self.repositorio_registro_individual = repositorio_registro_individual
         self.repositorio_registro_grupo = repositorio_registro_grupo
+        self.publicador = Publicador(servicio_notificaciones)
 
     async def _validar_grupo_existente(self, gr_codigo: int):
         grupo = await self.repositorio_grupos.obtener_grupo_por_id(gr_codigo)
@@ -265,9 +269,39 @@ class GrupoRetornoServicio:
     
     async def eliminar_grupo_retorno(self, gr_codigo: int):
         grupo = await self.repositorio_grupos.obtener_grupo_por_id(gr_codigo)
+
         if not grupo:
             raise GrupoNoEncontrado(gr_codigo)
+
+        miembros = await self.obtener_usuarios_por_grupo(gr_codigo)
+        solicitudes = await self.obtener_solicitudes_por_grupo_retorno(gr_codigo)
+        lider = await self.obtener_lider_por_grupo_id(gr_codigo)
+
+        ids_usuarios_solicitudes_pendientes = [
+            sol.usuario_id
+            for sol in solicitudes
+            if sol.estado == SolicitudGrupoRetornoEstado.PENDIENTE
+        ]
+
+        ids_miembros = [m.id for m in miembros]
+
         await self.repositorio_grupos.eliminar_grupo_retorno(gr_codigo)
+
+        receptores_ids = (
+            ids_miembros + ids_usuarios_solicitudes_pendientes
+        )
+        #excluir el id del lider para no mandarle la notificacion
+        receptores_ids.remove(lider.id)
+        evento = EventoBase(
+            tipo_evento=TipoEvento.ELIMINAR_GRUPO_RETORNO,
+            datos={
+                "nombre_lider": f"{lider.nombre} {lider.apellido}"
+            },
+            receptores=receptores_ids
+        )
+
+        await self.publicador.notificar(evento=evento)
+
         return GrupoRetornoEliminadoRespuesta(
             gr_codigo=gr_codigo,
             mensaje="Grupo de retorno eliminado exitosamente."

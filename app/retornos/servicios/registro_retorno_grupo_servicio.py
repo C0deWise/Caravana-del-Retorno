@@ -3,6 +3,9 @@
 """
 
 from fastapi import HTTPException, status
+from app.notificaciones.events.events import EventoBase, TipoEvento
+from app.notificaciones.events.patron_observer import Publicador
+from app.notificaciones.services.notificacion_crear_service import NotificacionCrearService
 from app.retornos.esquemas.registro_retorno_grupo_esquema import RegistroRetornoGrupoCrear, RegistroRetornoGrupoRespuesta, RegistroRetornoGrupoEditar
 from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
 from app.retornos.repositorios.registro_retorno_grupo_repositorio import RegistroRetornoGrupoRepositorio
@@ -27,15 +30,14 @@ class RegistroRetornoGrupoServicio:
         repositorio_retorno: RetornoRepository,
         repositorio_usuario_grupo: RetornoGrupoUsuarioRepositorio,
         repositorio_persona: PersonaRepositorio, # Nuevo repositorio para personas
-        repositorio_solicitudes: SolicitudGrupoRetornoRepositorio = None
+        servicio_notificaciones: NotificacionCrearService
     ):
         self.repositorio_registro_grupo = repositorio_registro_grupo
         self.repositorio_grupo = repositorio_grupo
         self.repositorio_retorno = repositorio_retorno
         self.repositorio_usuario_grupo = repositorio_usuario_grupo
         self.repositorio_persona = repositorio_persona # Asignar el nuevo repositorio
-        self.repositorio_solicitudes = repositorio_solicitudes
-
+        self.publicador = Publicador(servicio_notificaciones)
     def _validar_retorno(self, retorno, codigo_retorno, accion):
         if not retorno:
             raise RetornoNoExistente(codigo_retorno)
@@ -109,7 +111,15 @@ class RegistroRetornoGrupoServicio:
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Este grupo ya se encuentra registrado para el retorno actual."
             )
-
+        usuarios_miembros = await self.repositorio_usuario_grupo.obtener_miembros_por_grupo(datos.cod_grupo)
+        miembros_ids = [usuario.us_codigo for usuario in usuarios_miembros]
+        evento = EventoBase(
+                tipo_evento=TipoEvento.REGISTRO_GRUPO_RETORNO,
+                datos={"retorno_anio": ultimo_retorno.anio},
+                receptores=miembros_ids) 
+        await self.publicador.notificar(
+                evento=evento
+            )
         registro = await self.repositorio_registro_grupo.crear_registro_grupo_retorno(datos)
         #asociar al lider con el grupo de retorno registrado
         await self.repositorio_usuario_grupo.asociar_usuario_a_grupo_retorno(grupo.us_codigo_lider, datos.cod_grupo)
@@ -175,6 +185,15 @@ class RegistroRetornoGrupoServicio:
         self._validar_retorno(retorno, registro_existente.retorno, "editar este registro")
         
         registro_actualizado = await self.repositorio_registro_grupo.editar_registro_grupo_retorno(registro_id, datos)
+        mimbros_usuarios = await self.repositorio_usuario_grupo.obtener_miembros_por_grupo(registro_existente.cod_grupo)
+        miembros_ids = [usuario.us_codigo for usuario in mimbros_usuarios]
+        evento = EventoBase(
+                tipo_evento=TipoEvento.ACTUALIZACION_REGISTRO_GRUPO,
+                datos={"retorno_anio": retorno.anio},
+                receptores=miembros_ids) 
+        await self.publicador.notificar(
+                evento=evento
+            )
         return RegistroRetornoGrupoRespuesta.model_validate(registro_actualizado)
     
     async def consultar_registro_por_grupo_y_retorno(self, gr_codigo: int, re_codigo: int) -> RegistroRetornoGrupoRespuesta:

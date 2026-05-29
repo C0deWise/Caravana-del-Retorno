@@ -7,6 +7,8 @@ con documentación Swagger integrada.
 
 from typing import Annotated
 
+from app.notificaciones.repositories.notificacion_repositorio import NotificacionRepository
+from app.notificaciones.services.notificacion_crear_service import NotificacionCrearService
 from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoEditar, RegistroRetornoDarseDeBaja, RegistroRetornoDarseDeBajaRespuesta, RegistroRetornoRespuesta
 from app.retornos.esquemas.solicitud_retorno_grupo_esquema import SolicitudRetornoGrupoLiderRespuesta, SolicitudRetornoGrupoRespuesta, SolicitudRetornoGrupoUsuarioRespuesta
 from app.retornos.repositorios.grupo_retorno_repositorio import GrupoRetornoRepositorio
@@ -51,11 +53,13 @@ def obtener_registro_retorno_servicio(db: Annotated[AsyncSession, Depends(get_db
     
     
     usuario_servicio = UsuarioServicio(UsuarioRepositorio(db), ParentescoRepositorio(db))
-    
+    repositorio_notificacion = NotificacionRepository(db)
+    servicio_notificaciones = NotificacionCrearService(repositorio_notificacion)
     return RegistroRetornoServicio(
         repositorio,
         retorno_repositorio,
-        usuario_servicio
+        usuario_servicio,
+        servicio_notificaciones
     )
 
 def obtener_registro_retorno_grupo_servicio(db: Annotated[AsyncSession, Depends(get_db)]):
@@ -64,9 +68,10 @@ def obtener_registro_retorno_grupo_servicio(db: Annotated[AsyncSession, Depends(
     repositorio_retorno = RetornoRepository(db)
     repositorio_usuario_grupo = RetornoGrupoUsuarioRepositorio(db)
     repositorio_persona = PersonaRepositorio(db) # Instanciar PersonaRepositorio
-    solicitudes_repositorio = SolicitudGrupoRetornoRepositorio(db) # Instanciar el repositorio de solicitudes
+    repositorio_notificacion = NotificacionRepository(db)
+    servicio_notificaciones = NotificacionCrearService(repositorio_notificacion)
     return RegistroRetornoGrupoServicio(
-        repositorio_registro_grupo, repositorio_grupo, repositorio_retorno, repositorio_usuario_grupo, repositorio_persona, solicitudes_repositorio
+        repositorio_registro_grupo, repositorio_grupo, repositorio_retorno, repositorio_usuario_grupo, repositorio_persona, servicio_notificaciones
     )
 
 def obtener_grupo_retorno_servicio(db: Annotated[AsyncSession, Depends(get_db)]):
@@ -77,6 +82,8 @@ def obtener_grupo_retorno_servicio(db: Annotated[AsyncSession, Depends(get_db)])
     repositorio_usuario = UsuarioRepositorio(db)
     repositorio_registro_individual = RegistroRetornoRepositorio(db)
     repositorio_registro_grupo = RegistroRetornoGrupoRepositorio(db)
+    repositorio_notificacion = NotificacionRepository(db)
+    servicio_notificaciones = NotificacionCrearService(repositorio_notificacion)
     return GrupoRetornoServicio(
         repositorio_retorno,
         repositorio_grupos,
@@ -84,7 +91,8 @@ def obtener_grupo_retorno_servicio(db: Annotated[AsyncSession, Depends(get_db)])
         repositorio_usuario_grupo,
         repositorio_usuario,
         repositorio_registro_individual,
-        repositorio_registro_grupo
+        repositorio_registro_grupo,
+        servicio_notificaciones
     )
 
 def obtener_retorno_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> RetornoService:

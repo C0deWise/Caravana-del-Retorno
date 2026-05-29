@@ -203,6 +203,10 @@ class ColoniaRepository:
         await self.db.refresh(colonia)
         return colonia
     
+    async def obtener_miembros_colonia(self, colonia_codigo:int) -> list[Usuario]:
+        sentencia = select(Usuario).filter(Usuario.co_codigo == colonia_codigo)
+        resultado = await self.db.execute(sentencia)
+        return  resultado.scalars().all()
     async def remover_miembro_colonia(self, usuario: Usuario) -> Usuario:
         """
         Desasocia un usuario de su colonia actual, definiendo su colonia como None.

@@ -19,6 +19,9 @@ UsuarioInscritoRetornoActivo)
 from app.colonias.models.colonia_model import ColoniaEstado
 from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta, UsuarioRemovidoColonia, UsuarioRemovidoColoniaRespuesta
 from app.colonias.repositories.colonia_repository import ColoniaRepository
+from app.notificaciones.events.events import EventoBase, TipoEvento
+from app.notificaciones.events.patron_observer import Publicador
+from app.notificaciones.services.notificacion_crear_service import NotificacionCrearService
 from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
 
@@ -26,10 +29,11 @@ from fastapi import HTTPException, status
 
 class ColoniaService:
 
-    def __init__(self, repositorio: ColoniaRepository, usuario_servicio: UsuarioServicio = None, registro_retorno_servicio: RegistroRetornoServicio = None):
+    def __init__(self, repositorio: ColoniaRepository, usuario_servicio: UsuarioServicio = None, registro_retorno_servicio: RegistroRetornoServicio = None, servicio_notificaciones: NotificacionCrearService = None):
         self.repositorio = repositorio
         self.usuario_servicio = usuario_servicio
         self.registro_retorno_servicio = registro_retorno_servicio
+        self.publicador = Publicador(servicio_notificaciones) if servicio_notificaciones else None
 
     async def servicio_crear_colonia(self, datos: ColoniaCrear) -> ColoniaRespuesta:
         """
@@ -93,6 +97,13 @@ class ColoniaService:
                             detail=f"La colonia con código {colonia_codigo} ya tiene un líder asignado")
 
         colonia_actualizada = await self.repositorio.establecer_lider_colonia(colonia_codigo, lider_id)
+        evento = EventoBase(
+                tipo_evento=TipoEvento.ESTABLER_LIDER_COLONIA,
+                datos={"colonia_ciudad": colonia_actualizada.ciudad},
+                receptores=[usuario_lider.us_codigo]) 
+        await self.publicador.notificar(
+                evento=evento
+            )
         return ColoniaRespuesta.model_validate(colonia_actualizada, from_attributes=True)
     
     async def obtener_colonias(self) -> list[ColoniaRespuesta]:
@@ -133,10 +144,20 @@ class ColoniaService:
          
         tiene_miembros = await self.repositorio.tiene_miembros_colonia(colonia_codigo)
         if tiene_miembros:
+            miembros = await self.repositorio.obtener_miembros_colonia(colonia_codigo)
+            miembros_ids = [miembro.us_codigo for miembro in miembros]
             #Desasociar miembros de la colonia antes de desactivarla, incluye el cambio de rol de líder a usuario común
             await self.repositorio.sacar_miembros_colonia(colonia_codigo)
+            evento = EventoBase(
+                tipo_evento=TipoEvento.DESACTIVAR_COLONIA,
+                datos={"colonia_ciudad": colonia.ciudad},
+                receptores=miembros_ids) 
+            await self.publicador.notificar(
+                evento=evento
+            )
         
         colonia_desactivada = await self.repositorio.desactivar_colonia(colonia)
+        
         return ColoniaRespuesta.model_validate(colonia_desactivada, from_attributes=True)
       
     async def obtener_colonias_activas(self) -> list[ColoniaRespuesta]:
@@ -182,8 +203,24 @@ class ColoniaService:
         
         if colonia.lider == nuevo_lider_id:
             raise UsuarioYaEsLider(nuevo_lider_id, colonia_codigo)
-
+        
+        evento_revocar_rol_lider = EventoBase(
+                tipo_evento=TipoEvento.ELIMINAR_LIDER_COLONIA,
+                datos={"colonia_ciudad": colonia.ciudad},
+                receptores=[colonia.lider]) 
+        
+        await self.publicador.notificar(
+                evento=evento_revocar_rol_lider
+            )
+        
         colonia_actualizada = await self.repositorio.cambiar_lider_colonia(colonia_codigo, nuevo_lider_id)
+        evento_establecer_lider = EventoBase(
+                tipo_evento=TipoEvento.ESTABLER_LIDER_COLONIA,
+                datos={"colonia_ciudad": colonia_actualizada.ciudad},
+                receptores=[usuario_nuevo_lider.us_codigo]) 
+        await self.publicador.notificar(
+                evento=evento_establecer_lider
+            )
         return ColoniaRespuesta.model_validate(colonia_actualizada, from_attributes=True)
 
     async def remover_miembro_colonia(self, colonia_id: int, usuario_id: int) -> UsuarioRemovidoColoniaRespuesta:

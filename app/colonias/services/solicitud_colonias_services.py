@@ -5,11 +5,15 @@ from app.colonias.excepciones.excepciones import SolicitudEstadoInvalido, Solici
 from app.colonias.models.solicitud_colonia import SolicitudColonia
 from app.colonias.repositories.solicitud_colonia_repository import SolicitudColoniaRepository 
 from app.colonias.schemas.colonia_solicitud_schemas import MiembroRegistradoColoniaRespuesta, SolicitudColoniaCrear, SolicitudColoniaRespuesta
+from app.notificaciones.events.events import EventoBase, TipoEvento
+from app.notificaciones.events.patron_observer import Publicador
+from app.notificaciones.services.notificacion_crear_service import NotificacionCrearService
 
 class SolicitudColoniaService:
 
-    def __init__(self, repositorio: SolicitudColoniaRepository):
+    def __init__(self, repositorio: SolicitudColoniaRepository, servicio_notificaciones: NotificacionCrearService):
         self.repositorio = repositorio
+        self.publicador = Publicador(servicio_notificaciones)
 
     def _mapear_solicitud(self, solicitud: SolicitudColonia) -> SolicitudColoniaRespuesta:
         return SolicitudColoniaRespuesta(
@@ -29,9 +33,12 @@ class SolicitudColoniaService:
             apellido_usuario=usuario.us_apellido,
             codigo_colonia=usuario.co_codigo
         )
+
     async def crear_solicitud(self, data: SolicitudColoniaCrear) -> SolicitudColoniaRespuesta:
         if await self.repositorio.obtener_colonia_tiene_lider(data.codigo_colonia):
+            
             solicitud = await self.repositorio.crear_solicitud_colonia(data)
+            
             return self._mapear_solicitud(solicitud)
         else:
            usuario =  await self.repositorio.actualizar_colonia_usuario(data.codigo_usuario, data.codigo_colonia)
@@ -61,6 +68,13 @@ class SolicitudColoniaService:
         try:
             solicitud = await self.repositorio.aceptar_solicitud_colonia(codigo)
             await self._rechazar_solicitudes_colonia_pendientes_por_usuario(solicitud.us_codigo)
+            evento = EventoBase(
+                tipo_evento=TipoEvento.SOLICITUD_COLONIA_ACEPTADA,
+                datos={"colonia_ciudad": solicitud.colonia.ciudad},
+                receptores=[solicitud.us_codigo]) 
+            await self.publicador.notificar(
+                evento=evento
+            )
             return self._mapear_solicitud(solicitud)
         except SolicitudNoEncontrada as e:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -72,6 +86,13 @@ class SolicitudColoniaService:
         """Rechaza una solicitud pendiente, cambiando su estado a 'rechazada'."""
         try:
             solicitud = await self.repositorio.rechazar_solicitud_colonia(codigo)
+            evento = EventoBase(
+                tipo_evento=TipoEvento.SOLICITUD_COLONIA_RECHAZADA,
+                datos={"colonia_ciudad": solicitud.colonia.ciudad},
+                receptores=[solicitud.us_codigo]) 
+            await self.publicador.notificar(
+                evento=evento
+            )
             return self._mapear_solicitud(solicitud)
         except SolicitudNoEncontrada as e:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

@@ -9,6 +9,10 @@
 from fastapi import APIRouter, Depends, status, Response
 from typing import Union
 from app.colonias.models.colonia_model import ColoniaEstado
+from app.notificaciones.events.events import EventoBase, TipoEvento
+from app.notificaciones.events.patron_observer import Publicador
+from app.notificaciones.repositories.notificacion_repositorio import NotificacionRepository
+from app.notificaciones.services.notificacion_crear_service import NotificacionCrearService
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.auth_dependencies import require_roles
 from app.usuarios.models.usuario import Usuario
@@ -42,15 +46,24 @@ from app.colonias.docs.docs_solicitud_colonia import (
 
 def get_solicitud_colonia_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> SolicitudColoniaService:
     repositorio = SolicitudColoniaRepository(db)
-    return SolicitudColoniaService(repositorio)
+    repositorio_notificacion = NotificacionRepository(db)
+    servicio_notificaciones = NotificacionCrearService(repositorio_notificacion)
+    return SolicitudColoniaService(repositorio, servicio_notificaciones)
 
 
 def get_colonia_service(db: Annotated[AsyncSession, Depends(get_db)]) -> ColoniaService:
     """Dependencia para obtener una instancia de ColoniaService con el repositorio inyectado."""
     repositorio = ColoniaRepository(db)
+    repositorio_notificacion = NotificacionRepository(db)
     servicio_usuario = UsuarioServicio(UsuarioRepositorio(db))
     servicio_registro_retorno = RegistroRetornoServicio(RegistroRetornoRepositorio(db), RetornoRepository(db), servicio_usuario)
-    return ColoniaService(repositorio, servicio_usuario, servicio_registro_retorno)
+    servicio_notificaciones = NotificacionCrearService(repositorio_notificacion)
+    return ColoniaService(repositorio, servicio_usuario, servicio_registro_retorno, servicio_notificaciones)
+
+def get_publicador(db: Annotated[AsyncSession, Depends(get_db)]) -> Publicador:
+    repositorio_notificacion = NotificacionRepository(db)
+    servicio_notificaciones = NotificacionCrearService(repositorio_notificacion)
+    return Publicador(servicio_notificaciones)
 
 router = APIRouter()
 
@@ -219,9 +232,10 @@ async def obtener_colonia(
 )
 async def crear_solicitud_colonia(
     datos: SolicitudColoniaCrear,
-    servicio_usuario: UsuarioServicio = Depends(get_usuario_servicio),
-    servicio: SolicitudColoniaService = Depends(get_solicitud_colonia_servicio),
-    servicio_colonia: ColoniaService = Depends(get_colonia_service),
+    servicio_usuario: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
+    servicio: Annotated[SolicitudColoniaService, Depends(get_solicitud_colonia_servicio)],
+    servicio_colonia: Annotated[ColoniaService, Depends(get_colonia_service)],
+    publicador: Annotated[Publicador, Depends(get_publicador)],
     _: Usuario = Depends(require_roles(1)),
 ):
     
@@ -235,7 +249,15 @@ async def crear_solicitud_colonia(
     
         
     resultado = await servicio.crear_solicitud(datos)
-    
+    if colonia.lider is not None: 
+        evento = EventoBase(
+                    tipo_evento=TipoEvento.CREAR_SOLICITUD_INGRESO_COLONIA,
+                    datos={"colonia_ciudad": colonia.ciudad, "nombre_usuario": resultado.nombre_usuario,"apellido_usuario": resultado.apellido_usuario,
+                            },
+                    receptores=[colonia.lider]) 
+        await publicador.notificar(
+                    evento=evento
+                )
     if isinstance(resultado, MiembroRegistradoColoniaRespuesta):
         return Response(
             content=resultado.model_dump_json(),

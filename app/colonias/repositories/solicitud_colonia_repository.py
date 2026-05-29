@@ -47,7 +47,9 @@ class SolicitudColoniaRepository:
       
     async def obtener_solicitud_por_id(self, codigo: int) -> Optional[SolicitudColonia]:
         resultado = await self.db.execute(
-            select(SolicitudColonia).where(SolicitudColonia.so_codigo == codigo).options(joinedload(SolicitudColonia.usuario))
+            select(SolicitudColonia).where(SolicitudColonia.so_codigo == codigo)
+            .options(joinedload(SolicitudColonia.usuario),
+            joinedload(SolicitudColonia.colonia))
         )
         return resultado.scalar_one_or_none()
 

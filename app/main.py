@@ -24,6 +24,7 @@ from app.retornos.modelos.retorno_grupo_usuario_modelo import RetornoGrupoUsuari
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
 from app.publicacion.modelos.publicacion_modelo import Publicacion
 from app.retornos.modelos.persona_grupo_retorno_modelo import persona_grupo_retorno
+from scripts.seed_eventos import seed_eventos
 from scripts.seed_roles import seed_roles
 from scripts.seed_data import seed_data
 import app.core.scheduler as scheduler
@@ -54,6 +55,8 @@ async def lifespan(app: FastAPI):
     logger.info("Verificando e insertando roles iniciales...")
     await seed_roles()
     
+    logger.info("Creacion de eventos")
+    await seed_eventos()
     # Ejecutar seed de datos de prueba
     logger.info("Cargando datos de prueba...")
     await seed_data()
@@ -103,6 +106,7 @@ from app.usuarios.api.v1.usuario_router import router as usuario_router
 from app.multimedia.api.v1.endpoints.multimedia_router import router as multimedia_router
 from app.publicacion.api.v1.endpoints.publicacion_router import router as publicacion_router
 from app.reportes.api.v1.router import router as reportes_router
+from app.notificaciones.api.v1.router import router as notificaciones_router
 prefix = "/api/v1"
 app.include_router(colonia_router, prefix=prefix)
 app.include_router(usuario_router, prefix=prefix)
@@ -110,6 +114,8 @@ app.include_router(retornos_module_router, prefix=prefix)
 app.include_router(multimedia_router, prefix=prefix)
 app.include_router(publicacion_router, prefix=prefix)
 app.include_router(reportes_router, prefix=prefix)
+app.include_router(notificaciones_router, prefix=prefix)
+
 
 
 # ─────────────────────────────────────────

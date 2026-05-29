@@ -7,6 +7,7 @@ específicas para los usuarios, interactuando directamente con el modelo SQLAlch
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 
 from app.usuarios.models.usuario import Usuario
 from app.usuarios.schemas.usuario_esquemas import UsuarioCrear
@@ -119,7 +120,7 @@ class UsuarioRepositorio:
     async def obtener_usuario_por_id(self, us_id: int) -> Usuario | None:
         """Obtiene un usuario por su ID."""
         resultado = await self.db.execute(
-            select(Usuario).where(Usuario.us_codigo == us_id)
+            select(Usuario).where(Usuario.us_codigo == us_id).options(joinedload(Usuario.colonia))
         )
         return resultado.scalar_one_or_none()
 
