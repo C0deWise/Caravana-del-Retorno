@@ -13,7 +13,19 @@ class RetornoNoExistente(HTTPException):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"El retorno con código {retorno_id} no existe."
         )
+class NoHayRegistrosColoniaRetorno(HTTPException):
+    def __init__(self, retorno_id: int, colonia_id):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"La colonia {colonia_id} no tiene registos en el retorno {retorno_id}."
+        )
 
+class NoHayRegistrosRetorno(HTTPException):
+    def __init__(self, retorno_id: int):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No hay registos en el retorno {retorno_id}."
+        )        
 class NoHayColonias(HTTPException):
     def __init__(self):
         super().__init__(

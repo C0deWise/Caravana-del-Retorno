@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.retornos.esquemas.registro_retorno_esquema import RegistroRetornoCrear, RegistroRetornoEditar, RegistroRetornoDarseDeBaja, RegistroRetornoRespuesta
 from app.retornos.modelos.registro_retorno_modelo import RegistroRetorno
+from app.usuarios.models.usuario import Usuario
 
 class RegistroRetornoRepositorio:
     def __init__(self, db: AsyncSession):
@@ -82,3 +83,32 @@ class RegistroRetornoRepositorio:
         )
         resultado = await self.db.execute(query)
         return resultado.scalars().all()
+    
+    async def hay_registros_retorno_colonia(self, cod_retorno:int, cod_colonia:int) -> bool:
+        """
+         Consulta si hay registros en cod_retorno de la colonia cod_colonia
+         retorna:
+            True: Hay registros 
+            False: No hay registros
+        """
+        stmt = select(RegistroRetorno).join(Usuario,
+                   Usuario.us_codigo == RegistroRetorno.usuario).where(
+                Usuario.co_codigo == cod_colonia,
+                RegistroRetorno.retorno == cod_retorno
+            )
+        resultado = (await self.db.execute(stmt)).first()
+        return resultado is not None
+
+    async def hay_registros_retorno(self, cod_retorno:int)-> bool:
+        """
+         Consulta si hay registros en cod_retorno
+         retorna:
+            True: Hay registros 
+            False: No hay registros
+        """
+        stmt = select(RegistroRetorno).where(
+                RegistroRetorno.retorno == cod_retorno
+            )
+        resultado = (await self.db.execute(stmt)).first()
+        return resultado is not None
+

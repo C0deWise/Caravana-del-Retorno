@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.retornos.modelos.grupo_retorno_modelo import GrupoRetorno
 from app.retornos.modelos.registro_retorno_grupo_modelo import RegistroRetornoGrupo
 from app.retornos.esquemas.registro_retorno_grupo_esquema import RegistroRetornoGrupoCrear
+from app.usuarios.models.usuario import Usuario
 
 
 class RegistroRetornoGrupoRepositorio:
@@ -77,3 +78,33 @@ class RegistroRetornoGrupoRepositorio:
         await self.db.commit()
         await self.db.refresh(registro)
         return registro
+    
+    async def hay_registros_retorno_colonia(self, cod_retorno:int, cod_colonia:int) -> bool:
+        """
+         Consulta si hay registros grupales en cod_retorno de la colonia cod_colonia
+         retorna:
+            True: Hay registros 
+            False: No hay registros
+        """
+        stmt = select(RegistroRetornoGrupo).join(
+                GrupoRetorno,
+                GrupoRetorno.gr_codigo == RegistroRetornoGrupo.cod_grupo
+            ).join(Usuario,
+                   Usuario.us_codigo == GrupoRetorno.us_codigo_lider).where(
+                Usuario.co_codigo == cod_colonia,
+                RegistroRetornoGrupo.retorno == cod_retorno
+            )
+        resultado = (await self.db.execute(stmt)).first()
+        return resultado is not None
+    async def hay_registros_retorno(self, cod_retorno:int)-> bool:
+        """
+         Consulta si hay registros grupales  en cod_retorno
+         retorna:
+            True: Hay registros 
+            False: No hay registros
+        """
+        stmt = select(RegistroRetornoGrupo).where(
+                RegistroRetornoGrupo.retorno == cod_retorno
+            )
+        resultado = (await self.db.execute(stmt)).first()
+        return resultado is not None
