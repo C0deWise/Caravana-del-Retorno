@@ -4,6 +4,7 @@ from datetime import datetime, date
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import func, select
+from passlib.context import CryptContext
 
 import sys
 import os
@@ -29,6 +30,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 settings = get_settings()
+
+# Contexto para encriptar contraseñas con bcrypt
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+CONTRASENA_ENCRIPTADA = pwd_context.hash("usuario123")
 
 
 async def seed_data() -> None:
@@ -99,16 +104,31 @@ async def seed_data() -> None:
             # 2. CREAR USUARIOS (2 por colonia)
             # ═════════════════════════════════════════
             logger.info("Creando usuarios...")
-            
             usuarios = []
             usuarios_data = [
+                #admin
+                {
+                    "us_tipo_doc": TipoDoc.CC,
+                    "us_documento": "11111",
+                    "us_celular": "3007777777",
+                    "us_correo": "admin@email.com",
+                    "us_contrasenia": CONTRASENA_ENCRIPTADA,
+                    "us_nombre": "admin",
+                    "us_apellido": "admin",
+                    "us_genero": Genero.M,
+                    "us_fecha_nacimiento": date(1990, 5, 15),
+                    "us_pais": "Colombia",
+                    "us_departamento": "Antioquia",
+                    "us_ciudad": "Medellín",
+                    "ro_codigo": 3,  # admin
+                },
                 # Colonia 1
                 {
                     "us_tipo_doc": TipoDoc.CC,
                     "us_documento": "1001234567",
                     "us_celular": "3001111111",
                     "us_correo": "juan.perez@email.com",
-                    "us_contrasenia": "hashed_password_1",
+                    "us_contrasenia": CONTRASENA_ENCRIPTADA,
                     "us_nombre": "Juan",
                     "us_apellido": "Pérez",
                     "us_genero": Genero.M,
@@ -124,7 +144,7 @@ async def seed_data() -> None:
                     "us_documento": "1002345678",
                     "us_celular": "3002222222",
                     "us_correo": "maria.garcia@email.com",
-                    "us_contrasenia": "hashed_password_2",
+                    "us_contrasenia": CONTRASENA_ENCRIPTADA,
                     "us_nombre": "María",
                     "us_apellido": "García",
                     "us_genero": Genero.OTRO,
@@ -141,7 +161,7 @@ async def seed_data() -> None:
                     "us_documento": "1003456789",
                     "us_celular": "3003333333",
                     "us_correo": "carlos.lopez@email.com",
-                    "us_contrasenia": "hashed_password_3",
+                    "us_contrasenia": CONTRASENA_ENCRIPTADA,
                     "us_nombre": "Carlos",
                     "us_apellido": "López",
                     "us_genero": Genero.M,
@@ -157,7 +177,7 @@ async def seed_data() -> None:
                     "us_documento": "1004567890",
                     "us_celular": "3004444444",
                     "us_correo": "ana.martinez@email.com",
-                    "us_contrasenia": "hashed_password_4",
+                    "us_contrasenia": CONTRASENA_ENCRIPTADA,
                     "us_nombre": "Ana",
                     "us_apellido": "Martínez",
                     "us_genero": Genero.F,
@@ -174,7 +194,7 @@ async def seed_data() -> None:
                     "us_documento": "1005678901",
                     "us_celular": "3005555555",
                     "us_correo": "luis.torres@email.com",
-                    "us_contrasenia": "hashed_password_5",
+                    "us_contrasenia": CONTRASENA_ENCRIPTADA,
                     "us_nombre": "Luis",
                     "us_apellido": "Torres",
                     "us_genero": Genero.M,
@@ -190,7 +210,7 @@ async def seed_data() -> None:
                     "us_documento": "1006789012",
                     "us_celular": "3006666666",
                     "us_correo": "diana.cruz@email.com",
-                    "us_contrasenia": "hashed_password_6",
+                    "us_contrasenia": CONTRASENA_ENCRIPTADA,
                     "us_nombre": "Diana",
                     "us_apellido": "Cruz",
                     "us_genero": Genero.F,
@@ -210,6 +230,23 @@ async def seed_data() -> None:
             
             await db.flush()
             logger.info(f"✓ {len(usuarios)} usuarios creados")
+
+            # ═════════════════════════════════════════
+            # 2.5 ESTABLECER LÍDERES DE COLONIAS
+            # ═════════════════════════════════════════
+            logger.info("Estableciendo líderes de colonias...")
+            
+            # Colonia 1: Líder María 
+            colonias[0].lider = usuarios[2].us_codigo
+            
+            # Colonia 2: Líder Ana 
+            colonias[1].lider = usuarios[3].us_codigo
+            
+            # Colonia 3: Líder Diana 
+            colonias[2].lider = usuarios[6].us_codigo
+            
+            await db.flush()
+            logger.info("✓ Líderes de colonias establecidos")
 
             # ═════════════════════════════════════════
             # 3. CREAR RETORNO
@@ -312,7 +349,7 @@ async def seed_data() -> None:
             logger.info("✓ Usuarios asociados a grupos de retorno")
 
             # ═════════════════════════════════════════
-            # 6. ASOCIAR PERSONAS A GRUPOS
+            # 7. ASOCIAR PERSONAS A GRUPOS
             # ═════════════════════════════════════════
             logger.info("Asociando personas a grupos de retorno...")
             
@@ -334,7 +371,7 @@ async def seed_data() -> None:
             logger.info("✓ Personas asociadas a grupos de retorno")
 
             # ═════════════════════════════════════════
-            # 7. CREAR INSCRIPCIONES INDIVIDUALES
+            # 8. CREAR INSCRIPCIONES INDIVIDUALES
             # ═════════════════════════════════════════
             logger.info("Creando inscripciones individuales...")
             
@@ -392,7 +429,7 @@ async def seed_data() -> None:
             logger.info(f"✓ {len(inscripciones)} inscripciones individuales creadas")
 
             # ═════════════════════════════════════════
-            # 8. CREAR INSCRIPCIONES GRUPALES
+            # 9. CREAR INSCRIPCIONES GRUPALES
             # ═════════════════════════════════════════
             logger.info("Creando inscripciones grupales...")
             
