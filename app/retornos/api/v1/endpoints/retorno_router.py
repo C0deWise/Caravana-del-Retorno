@@ -123,7 +123,10 @@ async def crear_retorno(
             response_model=RetornoResponse | None,
             summary="Obtener el último retorno",
             description="Retorna el retorno con el año más reciente.")
-async def obtener_ultimo_retorno(servicio: Annotated[RetornoService, Depends(obtener_retorno_servicio)]):
+async def obtener_ultimo_retorno(
+    servicio: Annotated[RetornoService, Depends(obtener_retorno_servicio)],
+    _: Usuario = Depends(require_roles(1, 2, 3)),
+):
     return await servicio.obtener_ultimo_retorno()
 @router.put("/editar-registro/{registro_id}",
                response_model=RegistroRetornoRespuesta, 
@@ -541,5 +544,9 @@ async def editar_registro_retorno_grupo(
                 status_code=status.HTTP_200_OK,
                 summary="Eliminar un grupo de retorno",
                 description="Elimina un grupo de retorno específico, siempre que no tenga registros asociados en retornos vigentes.")
-async def eliminar_grupo_retorno(gr_codigo: int, servicio: Annotated[GrupoRetornoServicio, Depends(obtener_grupo_retorno_servicio)]):
+async def eliminar_grupo_retorno(
+    gr_codigo: int,
+    servicio: Annotated[GrupoRetornoServicio, Depends(obtener_grupo_retorno_servicio)],
+    _: Usuario = Depends(require_roles(1, 2)),
+):
     return await servicio.eliminar_grupo_retorno(gr_codigo)

@@ -227,6 +227,7 @@ async def solicitar_parentesco(
 async def aceptar_solicitud_parentesco(
     solicitud_id: int,
     servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
+    _: Usuario = Depends(require_roles(1, 2)),
 ):
     try:
         solicitud = await servicio.aceptar_solicitud_parentesco(solicitud_id)
@@ -244,6 +245,7 @@ async def aceptar_solicitud_parentesco(
 async def rechazar_solicitud_parentesco(
     solicitud_id: int,
     servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
+    _: Usuario = Depends(require_roles(1, 2)),
 ):
     try:
         solicitud =  await servicio.rechazar_solicitud_parentesco(solicitud_id)
