@@ -70,7 +70,7 @@ class SolicitudColoniaService:
             await self._rechazar_solicitudes_colonia_pendientes_por_usuario(solicitud.us_codigo)
             evento = EventoBase(
                 tipo_evento=TipoEvento.SOLICITUD_COLONIA_ACEPTADA,
-                datos={"colonia_ciudad": solicitud.colonia.co_ciudad},
+                datos={"colonia_ciudad": solicitud.colonia.ciudad},
                 receptores=[solicitud.us_codigo]) 
             await self.publicador.notificar(
                 evento=evento
@@ -88,7 +88,7 @@ class SolicitudColoniaService:
             solicitud = await self.repositorio.rechazar_solicitud_colonia(codigo)
             evento = EventoBase(
                 tipo_evento=TipoEvento.SOLICITUD_COLONIA_RECHAZADA,
-                datos={"colonia_ciudad": solicitud.colonia.co_ciudad},
+                datos={"colonia_ciudad": solicitud.colonia.ciudad},
                 receptores=[solicitud.us_codigo]) 
             await self.publicador.notificar(
                 evento=evento
