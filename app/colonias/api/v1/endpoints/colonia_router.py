@@ -252,7 +252,7 @@ async def crear_solicitud_colonia(
     if colonia.lider is not None: 
         evento = EventoBase(
                     tipo_evento=TipoEvento.CREAR_SOLICITUD_INGRESO_COLONIA,
-                    datos={"colonia_ciudad": colonia.ciudad, "nombre_usuario": resultado.nombre_usuario,"apellido_usuario": resultado.apellido_usuario,
+                    datos={"colonia_ciudad": colonia.ciudad, "colonia_pais": colonia.pais, "nombre_usuario": resultado.nombre_usuario,"apellido_usuario": resultado.apellido_usuario,
                             },
                     receptores=[colonia.lider]) 
         await publicador.notificar(

@@ -87,24 +87,24 @@ class EventoSolicitudColoniaAceptada(EventoBase):
         super().__init__(TipoEvento.SOLICITUD_COLONIA_ACEPTADA, datos, receptores)
 
     def construir_mensaje(self) -> str:
-        ciudad_colonia = self.datos.get("colonia_ciudad", "la colonia")
-        self.mensaje = f"Tu solicitud para unirte a la colonia {ciudad_colonia} ha sido aceptada."
+        ubicacion = self.datos.get("colonia_ciudad") or self.datos.get("colonia_pais") or "la colonia"
+        self.mensaje = f"Tu solicitud para unirte a la colonia {ubicacion} ha sido aceptada."
 
 class EventoSolicitudColoniaRechazada(EventoBase):
     def __init__(self, datos, receptores):
         super().__init__(TipoEvento.SOLICITUD_COLONIA_RECHAZADA, datos, receptores)
 
     def construir_mensaje(self) -> str:
-        ciudad_colonia = self.datos.get("colonia_ciudad", "la colonia")
-        self.mensaje = f"Tu solicitud para unirte a la colonia {ciudad_colonia} ha sido rechazada."
+        ubicacion = self.datos.get("colonia_ciudad") or self.datos.get("colonia_pais") or "la colonia"
+        self.mensaje = f"Tu solicitud para unirte a la colonia {ubicacion} ha sido rechazada."
 
 class EventoDesactivarColonia(EventoBase):
     def __init__(self, datos, receptores):
         super().__init__(TipoEvento.DESACTIVAR_COLONIA, datos, receptores)
 
     def construir_mensaje(self) -> str:
-        ciudad_colonia = self.datos.get("colonia_ciudad", "la colonia")
-        self.mensaje = f"La colonia {ciudad_colonia} ha sido desactivada."
+        ubicacion = self.datos.get("colonia_ciudad") or self.datos.get("colonia_pais") or "la colonia"
+        self.mensaje = f"La colonia {ubicacion} ha sido desactivada."
 
 
 class EventoEstablecerLiderColonia(EventoBase):
@@ -112,16 +112,16 @@ class EventoEstablecerLiderColonia(EventoBase):
         super().__init__(TipoEvento.ESTABLER_LIDER_COLONIA, datos, receptores)
 
     def construir_mensaje(self) -> str:
-        ciudad_colonia = self.datos.get("colonia_ciudad", "la colonia")
-        self.mensaje = f"Has sido designado como líder de la colonia {ciudad_colonia}."
+        ubicacion = self.datos.get("colonia_ciudad") or self.datos.get("colonia_pais") or "la colonia"
+        self.mensaje = f"Has sido designado como líder de la colonia {ubicacion}."
 
 class EventoEliminarLiderColonia(EventoBase):
     def __init__(self, datos, receptores):
         super().__init__(TipoEvento.ELIMINAR_LIDER_COLONIA, datos, receptores)
 
     def construir_mensaje(self) -> str:
-        ciudad_colonia = self.datos.get("colonia_ciudad", "la colonia")
-        self.mensaje = f"Tu rol de líder en la colonia {ciudad_colonia} ha sido revocado."
+        ubicacion = self.datos.get("colonia_ciudad") or self.datos.get("colonia_pais") or "la colonia"
+        self.mensaje = f"Tu rol de líder en la colonia {ubicacion} ha sido revocado."
 
 class EventoRegistroGrupoRetorno(EventoBase):
     def __init__(self, datos, receptores):
@@ -172,11 +172,11 @@ class EventoDarseBajaRetorno(EventoBase):
 
 class EventoSolicitarIngresoColonia(EventoBase):
     def __init__(self, datos, receptores):
-        super().__init__(TipoEvento.DARSE_BAJA_RETORNO, datos, receptores)
+        super().__init__(TipoEvento.CREAR_SOLICITUD_INGRESO_COLONIA, datos, receptores)
 
     def construir_mensaje(self) -> str:
         nombre_usuario = self.datos.get("nombre_usuario", "el usuario")
         apellido_usuario = self.datos.get("apellido_usuario", "")
         nombre_completo = f"{nombre_usuario} {apellido_usuario}".strip()
-        colonia_ciudad = self.datos.get("colonia_ciudad", "el retorno")
-        self.mensaje = f"El usuario {nombre_completo} solicita ingresar a la colonia {colonia_ciudad}."
+        ubicacion = self.datos.get("colonia_ciudad") or self.datos.get("colonia_pais") or "la colonia"
+        self.mensaje = f"El usuario {nombre_completo} solicita ingresar a la colonia {ubicacion}."
