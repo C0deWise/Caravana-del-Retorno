@@ -16,6 +16,8 @@ from app.reportes.repositories.grupo_retorno_reporte_repositorio import GrupoRep
 from app.reportes.repositories.persona_reporte_repositorio import PersonaReporteRepositorio
 from app.reportes.repositories.usuario_retorno_reporte_repositorio import UsuarioRetornoReporteRepositorio
 from app.reportes.services.reportes_service import ReportesService
+from app.retornos.repositorios.registro_retorno_grupo_repositorio import RegistroRetornoGrupoRepositorio
+from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
 from app.usuarios.auth_dependencies import require_roles
 from app.usuarios.models.usuario import Usuario
 
@@ -24,9 +26,13 @@ def get_reportes_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> Repor
     repositorio_reportes_persona = PersonaReporteRepositorio(db)
     repositorio_reportes_usuario = UsuarioRetornoReporteRepositorio(db)
     repositorio_reportes_grupo =  GrupoReportoReporteRepositorio(db)
+    repositorio_registro_retorno = RegistroRetornoRepositorio(db)
+    repositorio_registro_retorno_grupo = RegistroRetornoGrupoRepositorio(db)
+
     return ReportesService(repositorio_colonia =  repositorio_reportes_colonia, 
                            repositorio_usuario = repositorio_reportes_usuario, repositorio_grupo = repositorio_reportes_grupo, 
-                           repositorio_persona = repositorio_reportes_persona)
+                           repositorio_persona = repositorio_reportes_persona, repositorio_registro_retorno=repositorio_registro_retorno,
+                           repositorio_registro_retorno_grupo = repositorio_registro_retorno_grupo)
 
 
 router = APIRouter()

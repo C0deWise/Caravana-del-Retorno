@@ -21,8 +21,10 @@ from app.reportes.repositories.grupo_retorno_reporte_repositorio import GrupoRep
 from app.reportes.repositories.persona_reporte_repositorio import PersonaReporteRepositorio
 from app.reportes.repositories.usuario_retorno_reporte_repositorio import UsuarioRetornoReporteRepositorio
 from app.reportes.utils.pdf_utils import render_to_pdf
-from app.retornos.excepciones.registro_retorno_excepciones import NoHayColonias, RetornoNoExistente
+from app.retornos.excepciones.registro_retorno_excepciones import NoHayColonias, NoHayRegistrosColoniaRetorno, NoHayRegistrosRetorno, RetornoNoExistente
 from app.retornos.modelos.retorno_grupo_usuario_modelo import Edades
+from app.retornos.repositorios.registro_retorno_grupo_repositorio import RegistroRetornoGrupoRepositorio
+from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
 from app.usuarios.models.usuario import Genero
 
 logging.basicConfig(
@@ -34,11 +36,13 @@ logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="app/reportes/templates")
 
 class ReportesService:
-    def __init__(self, repositorio_colonia: ColoniaReporteRepositorio, repositorio_usuario: UsuarioRetornoReporteRepositorio, repositorio_grupo: GrupoReportoReporteRepositorio, repositorio_persona: PersonaReporteRepositorio):
+    def __init__(self, repositorio_colonia: ColoniaReporteRepositorio, repositorio_usuario: UsuarioRetornoReporteRepositorio, repositorio_grupo: GrupoReportoReporteRepositorio, repositorio_persona: PersonaReporteRepositorio, repositorio_registro_retorno: RegistroRetornoRepositorio, repositorio_registro_retorno_grupo: RegistroRetornoGrupoRepositorio):
         self.repositorio_colonia = repositorio_colonia
         self.repositorio_usuario = repositorio_usuario
         self.repositorio_grupo = repositorio_grupo
         self.repositorio_persona = repositorio_persona
+        self.repositorio_registro_retorno = repositorio_registro_retorno
+        self.repositorio_registro_retorno_grupo = repositorio_registro_retorno_grupo
 
     async def generar_reporte_asistencia_retorno_colonia(self, request: Request, cod_colonia:int, cod_retorno:int):
        
@@ -48,6 +52,17 @@ class ReportesService:
         colonia = await self.repositorio_colonia.obtener_colonia(cod_colonia)
         if colonia is None:
             raise ColoniaNoExistente(cod_colonia)
+        
+        flag_registros_individuales = await self.repositorio_registro_retorno.hay_registros_retorno_colonia(cod_retorno,cod_colonia)
+        flag_rgistros_grupales = await self.repositorio_registro_retorno_grupo.hay_registros_retorno_colonia(cod_retorno,cod_colonia)
+
+        logger.info(f"Hay registros grupales: {flag_rgistros_grupales}")
+        logger.info(f"Hay registos individuales : {flag_registros_individuales}")
+
+        if not flag_registros_individuales and not flag_rgistros_grupales:
+            raise NoHayRegistrosColoniaRetorno(cod_retorno,cod_colonia)
+        
+
         lider_colonia = await self.repositorio_colonia.obtener_lider_colonia(cod_colonia)
         colonia = await self.repositorio_colonia.obtener_colonia(cod_colonia)
         retorno = await self.repositorio_colonia.obtener_retorno(cod_retorno)
@@ -135,6 +150,15 @@ class ReportesService:
         colonias = list(await self.repositorio_colonia.obtener_colonias())
         if colonias is None or len(colonias) == 0:
             raise NoHayColonias()
+        
+        flag_registros_individuales = await self.repositorio_registro_retorno.hay_registros_retorno(cod_retorno)
+        flag_rgistros_grupales = await self.repositorio_registro_retorno_grupo.hay_registros_retorno(cod_retorno)
+
+        logger.info(f"Hay registros grupales: {flag_rgistros_grupales}")
+        logger.info(f"Hay registos individuales : {flag_registros_individuales}")
+
+        if not flag_registros_individuales and not flag_rgistros_grupales:
+            raise NoHayRegistrosRetorno(cod_retorno)
         
         asistencia_colonia = []
         for colonia in colonias:
