@@ -187,7 +187,6 @@ class ColoniaRepository:
         Cambia el líder de una colonia existente, actualizando el campo lider de la colonia 
         y el rol de los usuarios involucrados.
         Parámetros:
-            db (AsyncSession): Sesión activa de SQLAlchemy.
             colonia_codigo (int): Código de la colonia a actualizar.
             nuevo_lider_id (int): ID del nuevo líder a asignar.
         Retorna:
@@ -198,6 +197,7 @@ class ColoniaRepository:
         usuario_antiguo.ro_codigo = 1
         usuario_nuevo = await self.db.get(Usuario, nuevo_lider_id)
         usuario_nuevo.ro_codigo = 2
+        usuario_nuevo.co_codigo = colonia_codigo
         colonia.lider = nuevo_lider_id
         await self.db.commit()
         await self.db.refresh(colonia)

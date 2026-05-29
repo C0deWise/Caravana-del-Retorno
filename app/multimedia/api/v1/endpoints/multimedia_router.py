@@ -9,6 +9,8 @@ from app.multimedia.esquemas.multimedia_esquemas import MultimediaRespuesta
 from app.multimedia.repositorios.multimedia_repositorio import MultimediaRepositorio
 from app.multimedia.servicios.multimedia_servicio import MultimediaServicio
 from app.multimedia.docs.docs_multimedia import cargar_contenido_multimedia_docs
+from app.usuarios.auth_dependencies import require_roles
+from app.usuarios.models.usuario import Usuario
 
 router = APIRouter()
 
@@ -25,5 +27,7 @@ def get_multimedia_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> Mul
 async def cargar_contenido_multimedia(
     retorno_codigo: int, 
     archivos: Annotated[list[UploadFile], File(...)], 
-    servicio: Annotated[MultimediaServicio, Depends(get_multimedia_servicio)]):
+    servicio: Annotated[MultimediaServicio, Depends(get_multimedia_servicio)],
+    _: Usuario = Depends(require_roles(2, 3)),
+):
     return await servicio.cargar_archivos_multimedia(retorno_codigo, archivos)

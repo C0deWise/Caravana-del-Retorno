@@ -101,6 +101,21 @@ class UsuarioRepositorio:
             select(Usuario).where(Usuario.us_documento == documento)
         )
         return result.scalar_one_or_none()
+
+    async def buscar_por_correo(self, correo: str) -> Usuario | None:
+        """
+        Busca un usuario por su correo exacto.
+
+        Args:
+            correo (str): Correo a buscar.
+
+        Returns:
+            Usuario | None: El usuario encontrado o None si no existe.
+        """
+        result = await self.db.execute(
+            select(Usuario).where(Usuario.us_correo == correo)
+        )
+        return result.scalar_one_or_none()
       
     async def obtener_usuario_por_id(self, us_id: int) -> Usuario | None:
         """Obtiene un usuario por su ID."""

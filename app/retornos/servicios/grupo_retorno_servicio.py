@@ -21,7 +21,7 @@ from app.usuarios.schemas.usuario_esquemas import UsuarioSalida # Para el esquem
 from app.usuarios.models.usuario import Usuario # Para el tipo de retorno del líder
 from fastapi import HTTPException, status
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
-from app.retornos.esquemas.solicitud_grupo_retorno_esquema import SolicitudGrupoRetornoEstado 
+from app.retornos.esquemas.solicitud_grupo_retorno_esquema import SolicitudGrupoRetornoEstado
 class GrupoRetornoServicio:
     def __init__(self, repositorio_retorno: RetornoRepository = None, repositorio_grupos: GrupoRetornoRepositorio = None, repositorio_solicitudes: SolicitudGrupoRetornoRepositorio = None, repositorio_usuario_grupo: RetornoGrupoUsuarioRepositorio = None, repositorio_usuario: UsuarioRepositorio = None, repositorio_registro_individual: RegistroRetornoRepositorio = None, repositorio_registro_grupo: RegistroRetornoGrupoRepositorio = None,  servicio_notificaciones: NotificacionCrearService = None): # type: ignore
         self.repositorio_retorno = repositorio_retorno
@@ -32,6 +32,35 @@ class GrupoRetornoServicio:
         self.repositorio_registro_individual = repositorio_registro_individual
         self.repositorio_registro_grupo = repositorio_registro_grupo
         self.publicador = Publicador(servicio_notificaciones)
+
+    async def _validar_grupo_existente(self, gr_codigo: int):
+        grupo = await self.repositorio_grupos.obtener_grupo_por_id(gr_codigo)
+        if not grupo:
+            raise GrupoNoEncontrado(gr_codigo)
+        return grupo
+
+    async def _validar_usuario_existente(self, us_codigo: int):
+        usuario = await self.repositorio_usuario.obtener_usuario_por_id(us_codigo)
+        if not usuario:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, 
+                detail=f"Usuario con ID {us_codigo} no encontrado."
+            )
+        return usuario
+    
+    async def _validar_si_usuario_es_miembro(self, us_codigo: int, gr_codigo: int):
+        miembro_en_grupo = await self.repositorio_usuario_grupo.existe_usuario_en_grupo_para_retorno(us_codigo, gr_codigo)
+        if not miembro_en_grupo:
+            raise UsuarioNoEstaEnUnGrupo(us_codigo, gr_codigo)
+        
+    async def _validar_si_usuario_es_lider(self, us_codigo: int, gr_codigo: int):
+        grupo = await self._validar_grupo_existente(gr_codigo)
+        print(grupo)
+        if grupo.us_codigo_lider == us_codigo:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail="El líder del grupo no puede ser removido. Para eliminar el grupo, por favor elimine el grupo completo."
+            )
 
     async def crear_grupo_retorno(self, datos):
         """
@@ -221,6 +250,22 @@ class GrupoRetornoServicio:
             raise GrupoNoEncontrado(gr_codigo)
         usuarios = await self.repositorio_usuario_grupo.obtener_miembros_por_grupo(gr_codigo)
         return [UsuarioSalida.model_validate(usuario) for usuario in usuarios]
+
+    async def remover_miembro_de_grupo_retorno(self, us_codigo: int, gr_codigo: int):
+        """Permite eliminar un miembro de una grupo de retorno específico, siempre y cuando no
+        sea el líder del grupo.
+        Parametros:
+            - us_codigo (int): ID del usuario a eliminar del grupo.
+            - gr_codigo (int): ID del grupo de retorno del cual se desea eliminar al usuario.
+        Retorna:
+            - bool: True si el usuario fue eliminado exitosamente, False si el usuario no era miembro del grupo o si se intentó eliminar al líder.
+        """
+        await self._validar_grupo_existente(gr_codigo)
+        await self._validar_usuario_existente(us_codigo)
+        await self._validar_si_usuario_es_miembro(us_codigo, gr_codigo)
+        await self._validar_si_usuario_es_lider(us_codigo, gr_codigo)
+        return await self.repositorio_usuario_grupo.remover_miembro_de_grupo_retorno(us_codigo, gr_codigo)
+
     
     async def eliminar_grupo_retorno(self, gr_codigo: int):
         grupo = await self.repositorio_grupos.obtener_grupo_por_id(gr_codigo)

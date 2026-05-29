@@ -7,7 +7,7 @@ from sqlalchemy import Integer, String, Date, ForeignKey, Enum, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.colonias.models.colonia_model import Colonia
 from app.core.database import Base
-from app.usuarios.models.usuario import Rol, Usuario
+from app.usuarios.models.usuario import Usuario
 
 
 class EstadoSolicitudParentesco(str, enum.Enum):
