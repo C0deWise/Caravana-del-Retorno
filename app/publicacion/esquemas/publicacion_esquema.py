@@ -26,6 +26,7 @@ class PublicacionRespuesta(BaseModel):
     codigo: int
     retorno: int
     autor: int
+    nombre_autor: str | None = None
     titulo: str
     resena: str
     fecha_creacion: datetime

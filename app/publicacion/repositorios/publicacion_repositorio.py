@@ -7,9 +7,8 @@ operaciones CRUD relacionadas con las publicaciones.
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import selectinload
 
-from app.multimedia.modelos.multimedia_modelo import Multimedia
 from app.publicacion.modelos.publicacion_modelo import Publicacion
 from app.publicacion.esquemas.publicacion_esquema import PublicacionCrear
 
@@ -36,6 +35,7 @@ class PublicacionRepositorio:
             select(Publicacion)
             .where(Publicacion.codigo == codigo)
             .options(selectinload(Publicacion.multimedia_lista))
+            .options(selectinload(Publicacion.autor_ref))
         )
         resultado = await self.db.execute(query)
         return resultado.scalars().first()
@@ -46,6 +46,7 @@ class PublicacionRepositorio:
             select(Publicacion)
             .where(Publicacion.retorno == retorno_id)
             .options(selectinload(Publicacion.multimedia_lista))
+            .options(selectinload(Publicacion.autor_ref))
             .order_by(Publicacion.codigo)
         )
         resultado = await self.db.execute(query)

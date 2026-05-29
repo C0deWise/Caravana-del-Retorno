@@ -43,6 +43,7 @@ crear_publicacion_docs = {
     
     **Respuesta exitosa (201):**
     - Publicación creada con código único
+    - Nombre completo del autor en `nombre_autor`
     - Timestamp de creación automático
     - Lista de multimedia asociado
     """,
@@ -57,6 +58,7 @@ crear_publicacion_docs = {
                         "codigo": 1,
                         "retorno": 1,
                         "autor": 1,
+                        "nombre_autor": "Juan Perez",
                         "titulo": "Mi experiencia en la Caravana",
                         "resena": "Una experiencia transformadora",
                         "fecha_creacion": "2026-05-11T05:53:28.658880",
@@ -125,7 +127,7 @@ obtener_publicaciones_retorno_docs = {
     **Respuesta:**
     - Lista de publicaciones del retorno (vacía si no hay publicaciones)
     - Cada publicación incluye:
-      - Información básica (código, título, reseña)
+            - Información básica (código, título, reseña, autor y nombre del autor)
       - Fecha de creación
       - Lista de archivos multimedia asociados
     
@@ -150,6 +152,7 @@ obtener_publicaciones_retorno_docs = {
                             "codigo": 1,
                             "retorno": 1,
                             "autor": 1,
+                            "nombre_autor": "Juan Perez",
                             "titulo": "Mi experiencia en la Caravana",
                             "resena": "Una experiencia transformadora",
                             "fecha_creacion": "2026-05-11T05:53:28.658880",
@@ -168,6 +171,7 @@ obtener_publicaciones_retorno_docs = {
                             "codigo": 2,
                             "retorno": 1,
                             "autor": 2,
+                            "nombre_autor": "Maria Gomez",
                             "titulo": "Otra publicación",
                             "resena": "Más experiencias",
                             "fecha_creacion": "2026-05-11T06:00:00.000000",
