@@ -6,13 +6,16 @@ serializar la salida y generar la documentación automática de los endpoints.
 
 
 
-from pydantic import BaseModel, field_validator, Field
+from pydantic import BaseModel, field_validator, Field, model_validator
 from datetime import date, datetime
 from typing import Optional
 
 from app.usuarios.models.usuario import TipoDoc, Genero
 
 import re
+
+EMAIL_REGEX = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+INVALID_EMAIL_MESSAGE = "El correo ingresado no es válido."
 
 class UsuarioCrear(BaseModel):
     tipo_doc: TipoDoc
@@ -66,9 +69,8 @@ class UsuarioCrear(BaseModel):
     @field_validator("correo")
     @classmethod
     def correo_valido(cls, v: str) -> str:
-        patron = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
-        if not re.match(patron, v):
-            raise ValueError("El correo ingresado no es válido.")
+        if not re.match(EMAIL_REGEX, v):
+            raise ValueError(INVALID_EMAIL_MESSAGE)
         return v.strip().lower()
 
 class UsuarioSalida(BaseModel):
@@ -139,9 +141,8 @@ class LoginRequest(BaseModel):
     @field_validator("correo")
     @classmethod
     def correo_login_valido(cls, v: str) -> str:
-        patron = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
-        if not re.match(patron, v):
-            raise ValueError("El correo ingresado no es válido.")
+        if not re.match(EMAIL_REGEX, v):
+            raise ValueError(INVALID_EMAIL_MESSAGE)
         return v.strip().lower()
 
 
@@ -152,6 +153,61 @@ class RefreshRequest(BaseModel):
     )
 
 
+def _normalizar_correo(v: str) -> str:
+    if not re.match(EMAIL_REGEX, v):
+        raise ValueError(INVALID_EMAIL_MESSAGE)
+    return v.strip().lower()
+
+
+def _validar_contrasenia_segura(v: str) -> str:
+    contrasenia = v.strip()
+    if len(contrasenia) < 8:
+        raise ValueError("La contraseña debe tener al menos 8 caracteres.")
+    if not re.search(r"[A-Z]", contrasenia):
+        raise ValueError("La contraseña debe incluir al menos una letra mayúscula.")
+    if not re.search(r"[a-z]", contrasenia):
+        raise ValueError("La contraseña debe incluir al menos una letra minúscula.")
+    if not re.search(r"\d", contrasenia):
+        raise ValueError("La contraseña debe incluir al menos un número.")
+    if not re.search(r"[^A-Za-z0-9]", contrasenia):
+        raise ValueError("La contraseña debe incluir al menos un carácter especial.")
+    return contrasenia
+
+
+class PasswordRecoveryRequest(BaseModel):
+    correo: str = Field(..., description="Correo del usuario que solicita la recuperación")
+
+    @field_validator("correo")
+    @classmethod
+    def validar_correo(cls, v: str) -> str:
+        return _normalizar_correo(v)
+
+
+class PasswordResetRequest(BaseModel):
+    token: str = Field(..., description="Token de recuperación enviado por correo")
+    nueva_contrasenia: str = Field(..., description="Nueva contraseña del usuario")
+    confirmar_contrasenia: str = Field(..., description="Confirmación de la nueva contraseña")
+
+    @field_validator("token")
+    @classmethod
+    def token_no_vacio(cls, v: str) -> str:
+        token = v.strip()
+        if not token:
+            raise ValueError("El token de recuperación es obligatorio.")
+        return token
+
+    @field_validator("nueva_contrasenia", "confirmar_contrasenia")
+    @classmethod
+    def validar_contrasenia(cls, v: str) -> str:
+        return _validar_contrasenia_segura(v)
+
+    @model_validator(mode="after")
+    def validar_confirmacion(self):
+        if self.nueva_contrasenia != self.confirmar_contrasenia:
+            raise ValueError("La confirmación de la contraseña no coincide.")
+        return self
+
+
 class UsuarioSesion(BaseModel):
     id: int
     documento: str
@@ -160,7 +216,7 @@ class UsuarioSesion(BaseModel):
     apellido: str
     codigo_rol: int
     role_name: str
-    codigo_colonia: Optional[int]
+    codigo_colonia: Optional[int] = None
 
 
 class AuthResponse(BaseModel):

@@ -18,12 +18,14 @@ from app.core.database import Base
 
 # Importación de modelos para que Alembic los detecte
 from app.usuarios.models.usuario import Rol
+from app.usuarios.models.password_recovery_token import PasswordRecoveryToken
 from app.usuarios.models.parentesco import Parentesco
 from app.colonias.models.colonia_model import Colonia
 from app.colonias.models.solicitud_colonia import SolicitudColonia
 from app.retornos.modelos.retorno_modelo import Retorno
 from app.retornos.modelos.registro_retorno_modelo import RegistroRetorno
 from app.usuarios.models.usuario import Usuario, Rol
+from app.usuarios.models.password_recovery_token import PasswordRecoveryToken
 from app.usuarios.models.parentesco import Parentesco
 from app.multimedia.modelos.multimedia_modelo import Multimedia
 from app.retornos.modelos.grupo_retorno_modelo import GrupoRetorno

@@ -22,6 +22,8 @@ from app.usuarios.schemas.usuario_esquemas import (
     AuthResponse,
     LoginRequest,
     MensajeRespuesta,
+    PasswordRecoveryRequest,
+    PasswordResetRequest,
     RefreshRequest,
     UsuarioConsultaColonia,
     UsuarioCrear,
@@ -146,6 +148,50 @@ async def refresh_token_usuario(
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         usuario=servicio.construir_sesion_usuario(usuario),
     )
+
+
+@router.post(
+    "/forgot-password",
+    status_code=status.HTTP_200_OK,
+    response_model=MensajeRespuesta,
+    summary="Solicitar recuperación de contraseña",
+    description="Genera un token de recuperación de un solo uso y envía el enlace por correo si el usuario existe.",
+)
+async def solicitar_recuperacion_contrasenia(
+    schema: PasswordRecoveryRequest,
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
+):
+    await servicio.solicitar_recuperacion_contrasenia(schema.correo)
+    return MensajeRespuesta(
+        mensaje="Si el correo existe en el sistema, recibirás un enlace para restablecer tu contraseña.",
+    )
+
+
+@router.post(
+    "/reset-password",
+    status_code=status.HTTP_200_OK,
+    response_model=MensajeRespuesta,
+    summary="Restablecer contraseña",
+    description="Valida el token de recuperación y actualiza la contraseña del usuario.",
+)
+async def restablecer_contrasenia(
+    schema: PasswordResetRequest,
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
+):
+    try:
+        await servicio.restablecer_contrasenia(schema.token, schema.nueva_contrasenia)
+    except TokenError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),
+        ) from exc
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+
+    return MensajeRespuesta(mensaje="Contraseña actualizada exitosamente.")
 
 
 @router.get(

@@ -4,20 +4,31 @@ Se encarga de orquestar las operaciones, validaciones y transformaciones
 de datos requeridas antes de interactuar con la capa de repositorio.
 """
 
+from hashlib import sha256
+from typing import TYPE_CHECKING
+
 from passlib.context import CryptContext
 from sqlalchemy import select
 
+from app.core.config import get_settings
 from app.usuarios.models.parentesco import EstadoSolicitudParentesco
 from app.usuarios.models.usuario import Usuario
 from app.usuarios.repository.parentesco_repositorio import ParentescoRepositorio
 from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
 from app.usuarios.schemas.usuario_esquemas import UsuarioConsultaColonia, UsuarioCrear, UsuarioSesion, UsuarioResumen
-from app.usuarios.security import create_access_token, create_refresh_token, role_name_from_code
+from app.usuarios.security import TokenError, create_access_token, create_password_recovery_token, create_refresh_token, decode_token, role_name_from_code
 from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear, ParentescoRespuesta, ParentescoRespuestaDetallada
+
+if TYPE_CHECKING:
+    from app.correos.services.email_service import EmailService
 
 # Contexto para el cifrado y verificación de contraseñas utilizando el algoritmo bcrypt.
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 ERROR_PARENTESCO_REPO_NO_INICIALIZADO = "Repositorio de parentesco no inicializado."
+
+
+def _hash_recovery_jti(jti: str) -> str:
+    return sha256(jti.encode("utf-8")).hexdigest()
 
 def mapear_usuario_a_resumen(usuario: Usuario) -> UsuarioResumen:
     """Función auxiliar para mapear un objeto Usuario a UsuarioResumen."""
@@ -41,7 +52,12 @@ class UsuarioServicio:
     Servicio para gestionar la lógica de negocio de los usuarios.
     """
 
-    def __init__(self, repositorio: UsuarioRepositorio, repositorio_parentesco: ParentescoRepositorio | None = None) -> None:
+    def __init__(
+        self,
+        repositorio: UsuarioRepositorio,
+        repositorio_parentesco: ParentescoRepositorio | None = None,
+        email_service: "EmailService | None" = None,
+    ) -> None:
         """
         Inicializa el servicio con un repositorio de usuarios.
 
@@ -51,6 +67,14 @@ class UsuarioServicio:
         """
         self.repositorio = repositorio
         self.repositorio_parentesco = repositorio_parentesco
+        self.email_service = email_service
+
+    def _obtener_email_service(self) -> "EmailService":
+        if self.email_service is None:
+            from app.correos.services.email_service import EmailService
+
+            self.email_service = EmailService()
+        return self.email_service
 
     async def registrar(self, schema: UsuarioCrear) -> Usuario:
         """
@@ -137,6 +161,60 @@ class UsuarioServicio:
         )
         refresh_token = create_refresh_token(user_id=usuario.us_codigo, role_code=usuario.ro_codigo)
         return access_token, refresh_token
+
+    async def solicitar_recuperacion_contrasenia(self, correo: str) -> None:
+        correo_normalizado = correo.strip().lower()
+        usuario = await self.repositorio.buscar_por_correo(correo_normalizado)
+        if not usuario:
+            return
+
+        await self.repositorio.revocar_tokens_recuperacion_activos(usuario.us_codigo)
+
+        token, jti, expires_at = create_password_recovery_token(
+            user_id=usuario.us_codigo,
+            correo=usuario.us_correo,
+        )
+        await self.repositorio.crear_token_recuperacion(
+            usuario.us_codigo,
+            _hash_recovery_jti(jti),
+            expires_at,
+        )
+
+        settings = get_settings()
+        reset_url = (
+            f"{settings.FRONTEND_URL.rstrip('/')}/auth/restablecer-contrasena?token={token}"
+        )
+        await self._obtener_email_service().send_password_recovery_email(
+            email=usuario.us_correo,
+            reset_url=reset_url,
+            username=usuario.us_nombre,
+            expires_in_minutes=settings.PASSWORD_RECOVERY_TOKEN_EXPIRE_MINUTES,
+            recovery_token=token,
+        )
+
+    async def restablecer_contrasenia(self, token: str, nueva_contrasenia: str) -> None:
+        payload = decode_token(token, expected_type="recovery")
+        jti = payload.get("jti")
+        if not jti:
+            raise TokenError("El token de recuperación no es válido")
+
+        usuario = await self.repositorio.obtener_usuario_por_id(int(payload["sub"]))
+        if not usuario or usuario.us_correo != payload.get("correo"):
+            raise ValueError("El enlace de recuperación no es válido o ya expiró.")
+
+        token_recuperacion = await self.repositorio.obtener_token_recuperacion_activo(
+            usuario.us_codigo,
+            _hash_recovery_jti(jti),
+        )
+        if not token_recuperacion:
+            raise ValueError("El enlace de recuperación no es válido o ya expiró.")
+
+        nueva_contrasenia_hash = pwd_context.hash(nueva_contrasenia)
+        await self.repositorio.actualizar_contrasenia_con_token(
+            usuario,
+            nueva_contrasenia_hash,
+            token_recuperacion,
+        )
 
     async def obtener_todos(self) -> list[Usuario]:
         """

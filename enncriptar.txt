@@ -1,8 +1,8 @@
 --ENCRIPTAR
 -- CONFIGURACIÓN PREVIA
 # Define la ruta a tu llave privada de age (necesaria para validar el acceso)
-# En PowerShell: $env:SOPS_AGE_KEY_FILE="C:\path\to\keys.txt"
-# En CMD: set SOPS_AGE_KEY_FILE=C:\.config\sops\age\keys.txt
+# En PowerShell: $env:SOPS_AGE_KEY_FILE="C:\.config\sops\age\key.txt"
+# En CMD: set SOPS_AGE_KEY_FILE=C:\.config\sops\age\key.txt
 
 -- ENCRIPTAR
 # Este comando usa las 3 llaves definidas en .sops.yaml automáticamente

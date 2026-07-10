@@ -107,6 +107,7 @@ from app.multimedia.api.v1.endpoints.multimedia_router import router as multimed
 from app.publicacion.api.v1.endpoints.publicacion_router import router as publicacion_router
 from app.reportes.api.v1.router import router as reportes_router
 from app.notificaciones.api.v1.router import router as notificaciones_router
+from app.correos.api.v1.router import router as correos_router
 prefix = "/api/v1"
 app.include_router(colonia_router, prefix=prefix)
 app.include_router(usuario_router, prefix=prefix)
@@ -115,6 +116,7 @@ app.include_router(multimedia_router, prefix=prefix)
 app.include_router(publicacion_router, prefix=prefix)
 app.include_router(reportes_router, prefix=prefix)
 app.include_router(notificaciones_router, prefix=prefix)
+app.include_router(correos_router, prefix=prefix)
 
 
 

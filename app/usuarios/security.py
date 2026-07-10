@@ -4,6 +4,7 @@ Utilidades de autenticacion JWT para usuarios.
 
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from uuid import uuid4
 
 from jose import JWTError, jwt
 
@@ -70,6 +71,20 @@ def create_refresh_token(*, user_id: int, role_code: int) -> str:
     return _encode_token(payload, expires_delta)
 
 
+def create_password_recovery_token(*, user_id: int, correo: str) -> tuple[str, str, datetime]:
+    settings = get_settings()
+    expires_delta = timedelta(minutes=settings.PASSWORD_RECOVERY_TOKEN_EXPIRE_MINUTES)
+    expires_at = datetime.now(timezone.utc) + expires_delta
+    jti = uuid4().hex
+    payload = {
+        "sub": str(user_id),
+        "correo": correo,
+        "token_type": "recovery",
+        "jti": jti,
+    }
+    return _encode_token(payload, expires_delta), jti, expires_at
+
+
 def decode_token(token: str, *, expected_type: str) -> dict[str, Any]:
     settings = get_settings()
     try:
@@ -83,5 +98,8 @@ def decode_token(token: str, *, expected_type: str) -> dict[str, Any]:
 
     if not payload.get("sub"):
         raise TokenError("El token no contiene identificador de usuario")
+
+    if expected_type == "recovery" and not payload.get("jti"):
+        raise TokenError("El token de recuperacion no contiene identificador de seguridad")
 
     return payload

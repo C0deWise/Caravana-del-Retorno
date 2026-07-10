@@ -4,11 +4,14 @@ Se encarga de las operaciones de base de datos (CRUD) y otras consultas
 específicas para los usuarios, interactuando directamente con el modelo SQLAlchemy.
 """
 
+from datetime import datetime, timezone
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
+from app.usuarios.models.password_recovery_token import PasswordRecoveryToken
 from app.usuarios.models.usuario import Usuario
 from app.usuarios.schemas.usuario_esquemas import UsuarioCrear
 
@@ -155,3 +158,62 @@ class UsuarioRepositorio:
             select(Usuario).where(Usuario.co_codigo == colonia)
         )
         return list(result.scalars().all())
+
+    async def revocar_tokens_recuperacion_activos(self, us_codigo: int) -> None:
+        result = await self.db.execute(
+            select(PasswordRecoveryToken).where(
+                PasswordRecoveryToken.us_codigo == us_codigo,
+                PasswordRecoveryToken.prt_revocado.is_(False),
+                PasswordRecoveryToken.prt_used_at.is_(None),
+            )
+        )
+        ahora = datetime.now(timezone.utc)
+        for token in result.scalars().all():
+            token.prt_revocado = True
+            if token.prt_expires_at <= ahora:
+                token.prt_used_at = ahora
+        await self.db.commit()
+
+    async def crear_token_recuperacion(
+        self,
+        us_codigo: int,
+        jti_hash: str,
+        expires_at: datetime,
+    ) -> PasswordRecoveryToken:
+        token = PasswordRecoveryToken(
+            us_codigo=us_codigo,
+            prt_jti_hash=jti_hash,
+            prt_expires_at=expires_at,
+        )
+        self.db.add(token)
+        await self.db.commit()
+        await self.db.refresh(token)
+        return token
+
+    async def obtener_token_recuperacion_activo(
+        self,
+        us_codigo: int,
+        jti_hash: str,
+    ) -> PasswordRecoveryToken | None:
+        ahora = datetime.now(timezone.utc)
+        result = await self.db.execute(
+            select(PasswordRecoveryToken).where(
+                PasswordRecoveryToken.us_codigo == us_codigo,
+                PasswordRecoveryToken.prt_jti_hash == jti_hash,
+                PasswordRecoveryToken.prt_revocado.is_(False),
+                PasswordRecoveryToken.prt_used_at.is_(None),
+                PasswordRecoveryToken.prt_expires_at >= ahora,
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def actualizar_contrasenia_con_token(
+        self,
+        usuario: Usuario,
+        nueva_contrasenia_hash: str,
+        token_recuperacion: PasswordRecoveryToken,
+    ) -> None:
+        usuario.us_contrasenia = nueva_contrasenia_hash
+        token_recuperacion.prt_used_at = datetime.now(timezone.utc)
+        token_recuperacion.prt_revocado = True
+        await self.db.commit()
