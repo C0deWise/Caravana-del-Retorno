@@ -35,6 +35,7 @@ from app.usuarios.schemas.usuario_esquemas import (
 
 from app.usuarios.docs.listar_parentescos_doc import listar_parentescos_docs
 from app.usuarios.security import TokenError, decode_token
+from app.correos.excepciones.email_exceptions import EmailSendException
 
 router = APIRouter(prefix="/usuario", tags=["Usuario"])
 settings = get_settings()
@@ -161,7 +162,14 @@ async def solicitar_recuperacion_contrasenia(
     schema: PasswordRecoveryRequest,
     servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
 ):
-    await servicio.solicitar_recuperacion_contrasenia(schema.correo)
+    try:
+        await servicio.solicitar_recuperacion_contrasenia(schema.correo)
+    except EmailSendException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="No fue posible enviar el correo de recuperación. Intenta nuevamente más tarde.",
+        ) from exc
+
     return MensajeRespuesta(
         mensaje="Si el correo existe en el sistema, recibirás un enlace para restablecer tu contraseña.",
     )
