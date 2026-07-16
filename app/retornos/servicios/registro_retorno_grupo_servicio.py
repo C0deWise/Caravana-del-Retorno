@@ -29,14 +29,16 @@ class RegistroRetornoGrupoServicio:
         repositorio_grupo: GrupoRetornoRepositorio,
         repositorio_retorno: RetornoRepository,
         repositorio_usuario_grupo: RetornoGrupoUsuarioRepositorio,
-        repositorio_persona: PersonaRepositorio, # Nuevo repositorio para personas
-        servicio_notificaciones: NotificacionCrearService
+        repositorio_persona: PersonaRepositorio, 
+        servicio_notificaciones: NotificacionCrearService,
+        repositorio_solicitudes: SolicitudGrupoRetornoRepositorio = None
     ):
         self.repositorio_registro_grupo = repositorio_registro_grupo
         self.repositorio_grupo = repositorio_grupo
         self.repositorio_retorno = repositorio_retorno
         self.repositorio_usuario_grupo = repositorio_usuario_grupo
-        self.repositorio_persona = repositorio_persona # Asignar el nuevo repositorio
+        self.repositorio_persona = repositorio_persona 
+        self.repositorio_solicitudes = repositorio_solicitudes
         self.publicador = Publicador(servicio_notificaciones)
     def _validar_retorno(self, retorno, codigo_retorno, accion):
         if not retorno:
