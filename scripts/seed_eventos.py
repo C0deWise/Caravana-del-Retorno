@@ -74,6 +74,10 @@ EVENTOS = [
         "ev_nombre": "Rechazo de parentesco",
         "ev_descripcion": "Se genera cuando un usuario rechaza una solicitud de parentesco"
     },
+    {
+        "ev_nombre": "Eliminación de miembro de grupo de retorno",
+        "ev_descripcion": "Se genera cuando un usuario es eliminado de un grupo de retorno por el líder del grupo."
+    }
 ]
 
 

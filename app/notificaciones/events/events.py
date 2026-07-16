@@ -21,6 +21,7 @@ class TipoEvento(Enum):
     SOLICITAR_PARENTESCO = "solicitar_parentesco"
     ACEPTAR_PARENTESCO = "aceptar_parentesco"
     RECHAZAR_PARENTESCO = "rechazar_parentesco"
+    ELIMINAR_MIEMBRO_GRUPO_RETORNO = "eliminar_miembro_grupo_retorno"
 
 
 class MapeoEventosIds:
@@ -45,7 +46,8 @@ class MapeoEventosIds:
         TipoEvento.CREAR_SOLICITUD_INGRESO_COLONIA: 11,
         TipoEvento.SOLICITAR_PARENTESCO: 12,
         TipoEvento.ACEPTAR_PARENTESCO: 13,
-        TipoEvento.RECHAZAR_PARENTESCO: 14
+        TipoEvento.RECHAZAR_PARENTESCO: 14,
+        TipoEvento.ELIMINAR_MIEMBRO_GRUPO_RETORNO: 15
     }
     
     @classmethod
@@ -220,3 +222,10 @@ class EventoRechazarParentesco(EventoBase):
         nombre_completo = f"{nombre_usuario} {apellido_usuario}".strip()
         parentesco = self.datos.get("parentesco", "")
         self.mensaje = f"El usuario {nombre_completo} ha rechazado establecer parentesco {parentesco} contigo."
+
+class EventoEliminarMiembroGrupoRetorno(EventoBase):
+    def __init__(self, datos, receptores):
+        super().__init__(TipoEvento.ELIMINAR_MIEMBRO_GRUPO_RETORNO, datos, receptores)
+
+    def construir_mensaje(self) -> str:
+        self.mensaje = f"Haz sido eliminado de tu grupo de retorno."
