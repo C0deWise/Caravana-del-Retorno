@@ -10,6 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.database import get_db
+from app.notificaciones.repositories.notificacion_repositorio import NotificacionRepository
+from app.notificaciones.services.notificacion_crear_service import NotificacionCrearService
 from app.usuarios.auth_dependencies import get_current_user, require_roles
 from app.usuarios.models.usuario import Usuario
 from app.usuarios.repository.parentesco_repositorio import ParentescoRepositorio
@@ -63,7 +65,9 @@ def get_usuario_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> Usuari
     """
     repositorio = UsuarioRepositorio(db)
     repositorio_parentesco = ParentescoRepositorio(db)
-    return UsuarioServicio(repositorio, repositorio_parentesco)
+    repositorio_notificacion = NotificacionRepository(db)
+    servicio_notificaciones = NotificacionCrearService(repositorio_notificacion)
+    return UsuarioServicio(repositorio, repositorio_parentesco, servicio_notificaciones)
 
 
 @router.post(

@@ -8,6 +8,7 @@ Cubre los siguientes escenarios:
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch, call
+from app.retornos.servicios.grupo_retorno_servicio import GrupoRetornoServicio
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
 from app.retornos.servicios.registro_retorno_grupo_servicio import RegistroRetornoGrupoServicio
 from app.notificaciones.events.events import TipoEvento, EventoBase
@@ -52,8 +53,16 @@ def mock_repositorio_usuario_grupo():
     repositorio.contar_miembros_adicionales = AsyncMock()
     repositorio.obtener_miembros_por_grupo = AsyncMock()
     repositorio.asociar_usuario_a_grupo_retorno = AsyncMock()
+    repositorio.existe_usuario_en_grupo_para_retorno = AsyncMock()
+    repositorio.remover_miembro_de_grupo_retorno = AsyncMock()
     return repositorio
 
+@pytest.fixture
+def mock_repositorio_usuario():
+    """Mock para el repositorio de usuarios."""
+    repositorio = MagicMock()
+    repositorio.obtener_usuario_por_id = AsyncMock()
+    return repositorio
 
 @pytest.fixture
 def mock_repositorio_persona():
@@ -73,6 +82,12 @@ def mock_repositorio_registro_grupo():
     repositorio.editar_registro_grupo_retorno = AsyncMock()
     return repositorio
 
+@pytest.fixture 
+def mock_repositorio_solicitudes():
+    """Mock para el repositorio de solicitudes a un grupo de retorno."""
+    repositorio = MagicMock()
+    repositorio.expirar_solicitudes_pendientes_por_grupo_retorno = AsyncMock()
+    return repositorio
 
 @pytest.fixture
 def mock_usuario_servicio():
@@ -109,7 +124,7 @@ def servicio_registro_retorno(mock_repositorio_registro_retorno, mock_repositori
 @pytest.fixture
 def servicio_registro_grupo(mock_repositorio_registro_grupo, mock_repositorio_grupo_retorno,
                             mock_repositorio_retorno, mock_repositorio_usuario_grupo,
-                            mock_repositorio_persona, mock_servicio_notificaciones):
+                            mock_repositorio_persona, mock_servicio_notificaciones, mock_repositorio_solicitudes):
     """Crea una instancia del servicio de registro de grupo de retorno con mocks."""
     servicio = RegistroRetornoGrupoServicio(
         mock_repositorio_registro_grupo,
@@ -117,9 +132,25 @@ def servicio_registro_grupo(mock_repositorio_registro_grupo, mock_repositorio_gr
         mock_repositorio_retorno,
         mock_repositorio_usuario_grupo,
         mock_repositorio_persona,
-        mock_servicio_notificaciones
+        mock_servicio_notificaciones,
+        mock_repositorio_solicitudes
+
     )
-    # El publicador se crea automáticamente en el __init__
+    
+    servicio.publicador = MagicMock(spec=Publicador)
+    servicio.publicador.notificar = AsyncMock()
+    return servicio
+
+@pytest.fixture
+def grupo_retorno_servicio(mock_repositorio_grupo_retorno, mock_repositorio_usuario_grupo, mock_servicio_notificaciones, mock_repositorio_usuario):
+    """Crea una instancia del servicio de grupo de retorno con mocks."""
+    servicio = GrupoRetornoServicio(
+    repositorio_grupos=mock_repositorio_grupo_retorno,
+    repositorio_usuario_grupo=mock_repositorio_usuario_grupo,
+    servicio_notificaciones=mock_servicio_notificaciones,
+    repositorio_usuario=mock_repositorio_usuario
+    )
+
     servicio.publicador = MagicMock(spec=Publicador)
     servicio.publicador.notificar = AsyncMock()
     return servicio
@@ -152,26 +183,13 @@ def colonia_mock():
 def usuario_mock():
     """Mock de un usuario."""
     usuario = MagicMock()
-    usuario.us_codigo = 10
+    usuario.us_codigo = 11
     usuario.us_nombre = "Juan"
     usuario.us_apellido = "Pérez"
     usuario.co_codigo = 1
     usuario.us_documento = "12345678"
     usuario.colonia = MagicMock()
     return usuario
-
-@pytest.fixture
-def usuario_mock():
-    """Mock de un usuario."""
-    usuario = MagicMock()
-    usuario.us_codigo = 10
-    usuario.us_nombre = "Juan"
-    usuario.us_apellido = "Pérez"
-    usuario.co_codigo = 1
-    usuario.us_documento = "12345678"
-    usuario.colonia = MagicMock()
-    return usuario
-
 
 @pytest.fixture
 def retorno_mock():
@@ -226,7 +244,7 @@ def registro_grupo_retorno_mock(grupo_retorno_mock, retorno_mock):
 def usuarios_grupo():
     """Mock de usuarios en un grupo."""
     usuario1 = MagicMock()
-    usuario1.us_codigo = 10
+    usuario1.us_codigo = 11
     usuario2 = MagicMock()
     usuario2.us_codigo = 15
     return [usuario1, usuario2]
@@ -394,5 +412,48 @@ async def test_notificacion_actualizacion_registro_grupo(
     
     # Validar receptores (deben ser todos los miembros del grupo)
     assert evento.receptores == [usuario.us_codigo for usuario in usuarios_grupo]
+
+# ==================== PRUEBAS: ELIMINACIÓN DE MIEMBRO DE GRUPO DE RETORNO ====================
+
+@pytest.mark.asyncio
+async def test_notificacion_eliminacion_miembro_grupo_retorno(
+    grupo_retorno_servicio, mock_repositorio_usuario_grupo, mock_repositorio_grupo_retorno,
+    grupo_retorno_mock, usuario_mock, mock_repositorio_usuario
+):
+    """
+    Test: Cuando un miembro es eliminado de un grupo de retorno,
+    se genera una notificación para el miembro eliminado.
+    
+    Caso de uso: El miembro eliminado recibe notificación de "Has sido eliminado de tu grupo de retorno"
+    """
+    # Arrange
+    us_codigo = usuario_mock.us_codigo
+    gr_codigo = grupo_retorno_mock.gr_codigo
+
+    mock_repositorio_usuario_grupo.remover_miembro_de_grupo_retorno.return_value = True
+    mock_repositorio_grupo_retorno.obtener_grupo_por_id.return_value = grupo_retorno_mock
+    mock_repositorio_usuario_grupo.existe_usuario_en_grupo_para_retorno.return_value = True
+    mock_repositorio_usuario_grupo.remover_miembro_de_grupo_retorno.return_value = True
+    mock_repositorio_usuario.obtener_usuario_por_id.return_value = usuario_mock
+    
+    # Inyectar publicador
+    grupo_retorno_servicio.publicador = MagicMock(spec=Publicador)
+    grupo_retorno_servicio.publicador.notificar = AsyncMock()
+
+    # Act
+    resultado = await grupo_retorno_servicio.remover_miembro_de_grupo_retorno(us_codigo, gr_codigo)
+
+    # Assert - Verificar que se llamó al publicador
+    grupo_retorno_servicio.publicador.notificar.assert_called_once()
+    evento = grupo_retorno_servicio.publicador.notificar.call_args[1]["evento"]
+    
+    # Validar tipo de evento
+    assert evento.tipo_evento == TipoEvento.ELIMINAR_MIEMBRO_GRUPO_RETORNO
+    
+    # Validar datos del evento (puede ser None si no hay datos específicos)
+    assert evento.datos is None
+    
+    # Validar receptores (debe ser solo el miembro eliminado)
+    assert evento.receptores == [us_codigo]
 
 

@@ -20,7 +20,11 @@ from app.notificaciones.events.events import (
     EventoActualizacionRegistroGrupo,
     EventoDarseBajaGrupo,
     EventoEliminarGrupoRetorno,
-    EventoDarseBajaRetorno
+    EventoDarseBajaRetorno,
+    EventoSolicitarParentesco,
+    EventoAceptarParentesco,
+    EventoRechazarParentesco,
+    EventoEliminarMiembroGrupoRetorno
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
@@ -48,7 +52,11 @@ class FabricaEventos:
         TipoEvento.DARSE_BAJA_GRUPO: EventoDarseBajaGrupo,
         TipoEvento.ELIMINAR_GRUPO_RETORNO: EventoEliminarGrupoRetorno,
         TipoEvento.DARSE_BAJA_RETORNO: EventoDarseBajaRetorno,
-        TipoEvento.CREAR_SOLICITUD_INGRESO_COLONIA: EventoSolicitarIngresoColonia
+        TipoEvento.CREAR_SOLICITUD_INGRESO_COLONIA: EventoSolicitarIngresoColonia,
+        TipoEvento.SOLICITAR_PARENTESCO: EventoSolicitarParentesco,
+        TipoEvento.ACEPTAR_PARENTESCO: EventoAceptarParentesco,
+        TipoEvento.RECHAZAR_PARENTESCO: EventoRechazarParentesco,
+        TipoEvento.ELIMINAR_MIEMBRO_GRUPO_RETORNO: EventoEliminarMiembroGrupoRetorno,
     }
     
     @classmethod

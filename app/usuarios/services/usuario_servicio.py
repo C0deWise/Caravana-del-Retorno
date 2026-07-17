@@ -7,6 +7,9 @@ de datos requeridas antes de interactuar con la capa de repositorio.
 from passlib.context import CryptContext
 from sqlalchemy import select
 
+from app.notificaciones.events.events import EventoBase, TipoEvento
+from app.notificaciones.events.patron_observer import Publicador
+from app.notificaciones.services.notificacion_crear_service import NotificacionCrearService
 from app.usuarios.models.parentesco import EstadoSolicitudParentesco
 from app.usuarios.models.usuario import Usuario
 from app.usuarios.repository.parentesco_repositorio import ParentescoRepositorio
@@ -41,7 +44,7 @@ class UsuarioServicio:
     Servicio para gestionar la lógica de negocio de los usuarios.
     """
 
-    def __init__(self, repositorio: UsuarioRepositorio, repositorio_parentesco: ParentescoRepositorio | None = None) -> None:
+    def __init__(self, repositorio: UsuarioRepositorio, repositorio_parentesco: ParentescoRepositorio | None = None, servicio_notificaciones: NotificacionCrearService | None = None) -> None:
         """
         Inicializa el servicio con un repositorio de usuarios.
 
@@ -51,6 +54,7 @@ class UsuarioServicio:
         """
         self.repositorio = repositorio
         self.repositorio_parentesco = repositorio_parentesco
+        self.publicador = Publicador(servicio_notificaciones)
 
     async def registrar(self, schema: UsuarioCrear) -> Usuario:
         """
@@ -214,6 +218,14 @@ class UsuarioServicio:
         if solicitud.estado != EstadoSolicitudParentesco.pendiente:
             raise ValueError("Solo se pueden aceptar solicitudes que estén en estado pendiente.")
         parentesco = await self.repositorio_parentesco.actualizar_estado_parentesco(codigo_solicitud, EstadoSolicitudParentesco.aceptada)
+        
+        solicitud_detallada = await self.repositorio_parentesco.obtener_parentesco_por_id_detallado(codigo_solicitud)
+        evento = EventoBase(
+            tipo_evento=TipoEvento.ACEPTAR_PARENTESCO,
+            datos={"parentesco": solicitud_detallada.tipo_parentesco.value, "nombre_usuario": solicitud_detallada.destinatario.us_nombre, "apellido_usuario": solicitud_detallada.destinatario.us_apellido},
+            receptores=[solicitud_detallada.codigo_solicitante])
+        await self.publicador.notificar(
+            evento=evento)
         return ParentescoRespuesta(
             codigo=parentesco.codigo,
             codigo_solicitante=parentesco.codigo_solicitante,
@@ -231,6 +243,14 @@ class UsuarioServicio:
         if solicitud.estado != EstadoSolicitudParentesco.pendiente:
             raise ValueError("Solo se pueden rechazar solicitudes que estén en estado pendiente.")
         parentesco = await self.repositorio_parentesco.actualizar_estado_parentesco(codigo_solicitud, EstadoSolicitudParentesco.rechazada)
+        
+        solicitud_detallada = await self.repositorio_parentesco.obtener_parentesco_por_id_detallado(codigo_solicitud)
+        evento = EventoBase(
+            tipo_evento=TipoEvento.RECHAZAR_PARENTESCO,
+            datos={"parentesco": solicitud_detallada.tipo_parentesco.value, "nombre_usuario": solicitud_detallada.destinatario.us_nombre, "apellido_usuario": solicitud_detallada.destinatario.us_apellido},
+            receptores=[solicitud_detallada.codigo_solicitante])
+        await self.publicador.notificar(
+            evento=evento)
         return ParentescoRespuesta(
             codigo=parentesco.codigo,
             codigo_solicitante=parentesco.codigo_solicitante,
@@ -267,6 +287,13 @@ class UsuarioServicio:
             raise ValueError("Ya existe una solicitud de parentesco pendiente entre estos usuarios.")
 
         solicitud_parentesco =  await self.repositorio_parentesco.solicitar_parentesco(parentesco_crear)
+        solicitud_detallada = await self.repositorio_parentesco.obtener_parentesco_por_id_detallado(solicitud_parentesco.codigo)
+        evento = EventoBase(
+            tipo_evento=TipoEvento.SOLICITAR_PARENTESCO,
+            datos={"parentesco": solicitud_detallada.tipo_parentesco.value, "nombre_usuario": solicitud_detallada.solicitante.us_nombre, "apellido_usuario": solicitud_detallada.solicitante.us_apellido},
+            receptores=[solicitud_detallada.codigo_destinatario])
+        await self.publicador.notificar(
+            evento=evento)
         return ParentescoRespuesta(
             codigo=solicitud_parentesco.codigo,
             codigo_solicitante=solicitud_parentesco.codigo_solicitante,

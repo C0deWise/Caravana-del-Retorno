@@ -269,7 +269,7 @@ async def seed_data() -> None:
             
             grupos = []
             # Grupo 1 liderado por María (usuario 2)
-            grupo1 = GrupoRetorno(us_codigo_lider=usuarios[1].us_codigo)
+            grupo1 = GrupoRetorno(us_codigo_lider=usuarios[2].us_codigo)
             db.add(grupo1)
             grupos.append(grupo1)
             
@@ -342,9 +342,17 @@ async def seed_data() -> None:
             rgu1 = RetornoGrupoUsuario(us_codigo=usuarios[1].us_codigo, gr_codigo=grupos[0].gr_codigo)
             db.add(rgu1)
 
+            # asociar a María (lider) al grupo 1
+            rgu1_lider = RetornoGrupoUsuario(us_codigo=usuarios[2].us_codigo, gr_codigo=grupos[0].gr_codigo)
+            db.add(rgu1_lider)
+
             # Grupo 2: Ana (lider)
             rgu2 = RetornoGrupoUsuario(us_codigo=usuarios[3].us_codigo, gr_codigo=grupos[1].gr_codigo)
             db.add(rgu2)
+
+            # asociar a Ana (lider) al grupo 2
+            rgu2_lider = RetornoGrupoUsuario(us_codigo=usuarios[4].us_codigo, gr_codigo=grupos[1].gr_codigo)
+            db.add(rgu2_lider)
             await db.flush()
             logger.info("✓ Usuarios asociados a grupos de retorno")
 

@@ -22,6 +22,7 @@ from app.usuarios.models.usuario import Usuario # Para el tipo de retorno del l√
 from fastapi import HTTPException, status
 from app.retornos.modelos.solicitud_grupo_retorno_modelo import SolicitudGrupoRetorno
 from app.retornos.esquemas.solicitud_grupo_retorno_esquema import SolicitudGrupoRetornoEstado
+
 class GrupoRetornoServicio:
     def __init__(self, repositorio_retorno: RetornoRepository = None, repositorio_grupos: GrupoRetornoRepositorio = None, repositorio_solicitudes: SolicitudGrupoRetornoRepositorio = None, repositorio_usuario_grupo: RetornoGrupoUsuarioRepositorio = None, repositorio_usuario: UsuarioRepositorio = None, repositorio_registro_individual: RegistroRetornoRepositorio = None, repositorio_registro_grupo: RegistroRetornoGrupoRepositorio = None,  servicio_notificaciones: NotificacionCrearService = None): # type: ignore
         self.repositorio_retorno = repositorio_retorno
@@ -264,6 +265,12 @@ class GrupoRetornoServicio:
         await self._validar_usuario_existente(us_codigo)
         await self._validar_si_usuario_es_miembro(us_codigo, gr_codigo)
         await self._validar_si_usuario_es_lider(us_codigo, gr_codigo)
+        evento = EventoBase(
+            tipo_evento=TipoEvento.ELIMINAR_MIEMBRO_GRUPO_RETORNO,
+            receptores=[us_codigo],
+            datos=None
+        )
+        await self.publicador.notificar(evento=evento)
         return await self.repositorio_usuario_grupo.remover_miembro_de_grupo_retorno(us_codigo, gr_codigo)
 
     

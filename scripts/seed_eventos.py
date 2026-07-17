@@ -62,6 +62,22 @@ EVENTOS = [
         "ev_nombre": "Solicitud ingreso a colonia",
         "ev_descripcion": "Se genera cuando un usuario crea una solicitud de ingreso a una colonia"
     },
+    {
+        "ev_nombre": "Solicitud de parentesco",
+        "ev_descripcion": "Se genera cuando un usuario crea una solicitud de parentesco"
+    },
+    {
+        "ev_nombre": "Aceptación de parentesco",
+        "ev_descripcion": "Se genera cuando un usuario acepta una solicitud de parentesco"
+    },
+    {
+        "ev_nombre": "Rechazo de parentesco",
+        "ev_descripcion": "Se genera cuando un usuario rechaza una solicitud de parentesco"
+    },
+    {
+        "ev_nombre": "Eliminación de miembro de grupo de retorno",
+        "ev_descripcion": "Se genera cuando un usuario es eliminado de un grupo de retorno por el líder del grupo."
+    }
 ]
 
 
