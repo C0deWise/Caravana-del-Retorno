@@ -232,3 +232,25 @@ class AuthResponse(BaseModel):
 
 class MensajeRespuesta(BaseModel):
     mensaje: str
+
+
+class GoogleLinkRequest(BaseModel):
+    google_token: str = Field(..., description="ID token de Google Identity Services")
+
+    @field_validator("google_token")
+    @classmethod
+    def token_no_vacio(cls, v: str) -> str:
+        token = v.strip()
+        if not token:
+            raise ValueError("El token de Google es obligatorio.")
+        return token
+
+
+class GoogleUnlinkRequest(BaseModel):
+    password: str = Field(..., min_length=8, description="Contraseña del usuario para confirmar desvinculación")
+
+
+class GoogleStatusResponse(BaseModel):
+    is_linked: bool
+    google_email: str | None = None
+    linked_at: datetime | None = None

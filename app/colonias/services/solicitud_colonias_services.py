@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from app.colonias.excepciones.excepciones import SolicitudEstadoInvalido, SolicitudNoEncontrada
@@ -65,39 +65,29 @@ class SolicitudColoniaService:
     
     async def aceptar_solicitud (self, codigo: int) -> SolicitudColoniaRespuesta:
         """Acepta una solicitud pendiente, cambiando su estado a 'aceptada'."""
-        try:
-            solicitud = await self.repositorio.aceptar_solicitud_colonia(codigo)
-            await self._rechazar_solicitudes_colonia_pendientes_por_usuario(solicitud.us_codigo)
-            evento = EventoBase(
-                tipo_evento=TipoEvento.SOLICITUD_COLONIA_ACEPTADA,
-                datos={"colonia_ciudad": solicitud.colonia.ciudad, "colonia_pais": solicitud.colonia.pais},
-                receptores=[solicitud.us_codigo]) 
-            await self.publicador.notificar(
-                evento=evento
-            )
-            return self._mapear_solicitud(solicitud)
-        except SolicitudNoEncontrada as e:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-        except SolicitudEstadoInvalido as e:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+        solicitud = await self.repositorio.aceptar_solicitud_colonia(codigo)
+        await self._rechazar_solicitudes_colonia_pendientes_por_usuario(solicitud.us_codigo)
+        evento = EventoBase(
+            tipo_evento=TipoEvento.SOLICITUD_COLONIA_ACEPTADA,
+            datos={"colonia_ciudad": solicitud.colonia.ciudad, "colonia_pais": solicitud.colonia.pais},
+            receptores=[solicitud.us_codigo]) 
+        await self.publicador.notificar(
+            evento=evento
+        )
+        return self._mapear_solicitud(solicitud)
         
     
     async def rechazar_solicitud (self, codigo: int) -> SolicitudColoniaRespuesta:
         """Rechaza una solicitud pendiente, cambiando su estado a 'rechazada'."""
-        try:
-            solicitud = await self.repositorio.rechazar_solicitud_colonia(codigo)
-            evento = EventoBase(
-                tipo_evento=TipoEvento.SOLICITUD_COLONIA_RECHAZADA,
-                datos={"colonia_ciudad": solicitud.colonia.ciudad, "colonia_pais": solicitud.colonia.pais},
-                receptores=[solicitud.us_codigo]) 
-            await self.publicador.notificar(
-                evento=evento
-            )
-            return self._mapear_solicitud(solicitud)
-        except SolicitudNoEncontrada as e:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-        except SolicitudEstadoInvalido as e:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+        solicitud = await self.repositorio.rechazar_solicitud_colonia(codigo)
+        evento = EventoBase(
+            tipo_evento=TipoEvento.SOLICITUD_COLONIA_RECHAZADA,
+            datos={"colonia_ciudad": solicitud.colonia.ciudad, "colonia_pais": solicitud.colonia.pais},
+            receptores=[solicitud.us_codigo]) 
+        await self.publicador.notificar(
+            evento=evento
+        )
+        return self._mapear_solicitud(solicitud)
     
     async def obtener_solicitud(self,codigo: int) -> SolicitudColoniaRespuesta:
         solicitud = await self.repositorio.obtener_solicitud_por_id(codigo)

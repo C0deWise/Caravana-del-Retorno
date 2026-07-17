@@ -31,6 +31,9 @@ from app.usuarios.schemas.usuario_esquemas import (
     UsuarioNombre,
     UsuarioDetallado,
     UsuarioSesion,
+    GoogleLinkRequest,
+    GoogleUnlinkRequest,
+    GoogleStatusResponse,
 )
 
 from app.usuarios.docs.listar_parentescos_doc import listar_parentescos_docs
@@ -442,3 +445,78 @@ async def buscar_usuario_por_colonia(
 ):
     """Busca y devuelve una lista de usuarios miembros  en una colonia específica."""
     return await servicio.buscar_por_colonia(colonia)
+
+
+# ─────────────────────────────────────────
+#  Endpoints de Vinculación con Google
+# ─────────────────────────────────────────
+
+@router.get(
+    "/google/status",
+    status_code=status.HTTP_200_OK,
+    response_model=GoogleStatusResponse,
+    summary="Estado de vinculación con Google",
+    description="Retorna si el usuario tiene una cuenta de Google vinculada.",
+)
+async def google_status(
+    usuario_actual: Usuario = Depends(get_current_user),
+):
+    return GoogleStatusResponse(
+        is_linked=usuario_actual.us_google_id is not None,
+        google_email=usuario_actual.us_google_email,
+        linked_at=usuario_actual.us_google_linked_at,
+    )
+
+
+@router.post(
+    "/google/link",
+    status_code=status.HTTP_200_OK,
+    response_model=MensajeRespuesta,
+    summary="Vincular cuenta de Google",
+    description="Vincula la cuenta de Google del usuario actual. Valida que el email no esté vinculado a otra cuenta.",
+)
+async def google_link(
+    schema: GoogleLinkRequest,
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
+    usuario_actual: Usuario = Depends(get_current_user),
+):
+    from app.usuarios.services.google_service import GoogleService, GoogleServiceError
+
+    google_service = GoogleService(servicio.repositorio.db)
+
+    try:
+        google_data = await google_service.verificar_google_token(schema.google_token)
+        await google_service.vincular(usuario_actual, google_data)
+    except GoogleServiceError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        )
+
+    return MensajeRespuesta(mensaje="Cuenta de Google vinculada exitosamente.")
+
+
+@router.post(
+    "/google/unlink",
+    status_code=status.HTTP_200_OK,
+    response_model=MensajeRespuesta,
+    summary="Desvincular cuenta de Google",
+    description="Desvincula la cuenta de Google del usuario actual. Requiere contraseña para confirmar.",
+)
+async def google_unlink(
+    schema: GoogleUnlinkRequest,
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
+    usuario_actual: Usuario = Depends(get_current_user),
+):
+    from app.usuarios.services.google_service import GoogleService
+
+    if not servicio.verificar_contrasenia(schema.password, usuario_actual.us_contrasenia):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="La contraseña es incorrecta.",
+        )
+
+    google_service = GoogleService(servicio.repositorio.db)
+    await google_service.desvincular(usuario_actual)
+
+    return MensajeRespuesta(mensaje="Cuenta de Google desvinculada exitosamente.")

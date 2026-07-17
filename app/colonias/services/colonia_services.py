@@ -4,18 +4,18 @@ Coordina la validación de reglas de negocio y la interacción con el
 repositorio de colonias, garantizando la integridad de los datos antes 
 de su persistencia en la base de datos.
 """
-from app.colonias.excepciones.excepciones import ColoniaInactiva, ColoniaNoExistente, UsuarioYaTieneColonia
-from app.colonias.models.colonia_model import ColoniaEstado
-from sqlalchemy.ext.asyncio import AsyncSession
 from app.colonias.excepciones.excepciones import (
-AutoRemocionUsuarioColonia,
-ColoniaInactiva, 
-ColoniaNoExistente,
-ColoniaSinLiderAsignado,
-UsuarioNoExistente, 
-UsuarioYaEsLider,
-UsuarioNoEsMiembroColonia,
-UsuarioInscritoRetornoActivo)
+    AutoRemocionUsuarioColonia,
+    ColoniaInactiva,
+    ColoniaNoExistente,
+    ColoniaSinLiderAsignado,
+    ColoniaUbicacionDuplicada,
+    UsuarioNoExistente,
+    UsuarioYaEsLider,
+    UsuarioYaTieneColonia,
+    UsuarioInscritoRetornoActivo,
+    UsuarioNoEsMiembroColonia
+)
 from app.colonias.models.colonia_model import ColoniaEstado
 from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta, UsuarioRemovidoColonia, UsuarioRemovidoColoniaRespuesta
 from app.colonias.repositories.colonia_repository import ColoniaRepository
@@ -24,8 +24,6 @@ from app.notificaciones.events.patron_observer import Publicador
 from app.notificaciones.services.notificacion_crear_service import NotificacionCrearService
 from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
-
-from fastapi import HTTPException, status
 
 class ColoniaService:
 
@@ -54,15 +52,9 @@ class ColoniaService:
         )
 
         if colonia_existente and (not datos.departamento or not datos.ciudad): 
-            raise HTTPException (
-                status_code = status.HTTP_409_CONFLICT,
-                detail=f"Ya existe una colonia en {datos.pais}.",
-                )
+            raise ColoniaUbicacionDuplicada(f"Ya existe una colonia en {datos.pais}.")
         elif colonia_existente:
-            raise HTTPException (
-                status_code = status.HTTP_409_CONFLICT,
-                detail=f"Ya existe una colonia en {datos.ciudad}, {datos.departamento}, {datos.pais}.",
-                )
+            raise ColoniaUbicacionDuplicada(f"Ya existe una colonia en {datos.ciudad}, {datos.departamento}, {datos.pais}.")
 
         #Crear la colonia sino existe duplicado
         nueva_colonia = await self.repositorio.crear_colonia(datos)
@@ -77,24 +69,19 @@ class ColoniaService:
                 lider_id (int): ID del líder a asignar.
             Retorna:
                 ColoniaRespuesta: La colonia actualizada con el nuevo líder.
-            Excepciones:
-                HTTPException 404: Si la colonia no existe en la base de datos.
+
         """
         colonia = await self.repositorio.obtener_colonia_por_id(colonia_codigo)
         if not colonia:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Colonia con código {colonia_codigo} no encontrada")
+            raise ColoniaNoExistente(colonia_codigo)
         if colonia.estado == ColoniaEstado.INACTIVA:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
-                            detail=f"La colonia con código {colonia_codigo} está inactiva")
+            raise ColoniaInactiva(colonia_codigo)
         usuario_lider = await self.usuario_servicio.obtener_usuario_por_id(lider_id)
         if not usuario_lider:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Usuario con ID {lider_id} no encontrado")
+            raise UsuarioNoExistente(lider_id)
         
         if colonia.lider is not None:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT,
-                            detail=f"La colonia con código {colonia_codigo} ya tiene un líder asignado")
+            raise ColoniaSinLiderAsignado(colonia_codigo)
 
         colonia_actualizada = await self.repositorio.establecer_lider_colonia(colonia_codigo, lider_id)
         evento = EventoBase(
@@ -120,8 +107,7 @@ class ColoniaService:
     async def obtener_colonia(self, colonia_codigo: int) -> ColoniaRespuesta:
         colonia = await self.repositorio.obtener_colonia_por_id(colonia_codigo)
         if not colonia:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Colonia con código {colonia_codigo} no encontrada")
+            raise ColoniaNoExistente(colonia_codigo)
         return ColoniaRespuesta.model_validate(colonia, from_attributes=True)
     
     async def toggle_estado_colonia(self, colonia_codigo: int) -> ColoniaRespuesta:

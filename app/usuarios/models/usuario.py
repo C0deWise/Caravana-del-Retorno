@@ -74,6 +74,13 @@ class Usuario(Base):
     us_ciudad: Mapped[str | None] = mapped_column(String, nullable=True)
 
     # ─────────────────────────────────────────
+    #  Vinculación con Google
+    # ─────────────────────────────────────────
+    us_google_id: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
+    us_google_email: Mapped[str | None] = mapped_column(String, nullable=True)
+    us_google_linked_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    # ─────────────────────────────────────────
     #  Relaciones
     # ─────────────────────────────────────────
     colonia: Mapped["Colonia"] = relationship(Colonia)
