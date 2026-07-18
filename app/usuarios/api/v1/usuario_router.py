@@ -34,6 +34,7 @@ from app.usuarios.schemas.usuario_esquemas import (
     GoogleLinkRequest,
     GoogleUnlinkRequest,
     GoogleStatusResponse,
+    GoogleLoginRequest,
 )
 
 from app.usuarios.docs.listar_parentescos_doc import listar_parentescos_docs
@@ -520,3 +521,54 @@ async def google_unlink(
     await google_service.desvincular(usuario_actual)
 
     return MensajeRespuesta(mensaje="Cuenta de Google desvinculada exitosamente.")
+
+
+@router.post(
+    "/google/login",
+    status_code=status.HTTP_200_OK,
+    response_model=AuthResponse,
+    summary="Iniciar sesión con Google",
+    description="Autentica un usuario usando su cuenta de Google vinculada. El usuario debe tener previamente vinculada su cuenta de Google.",
+)
+async def google_login(
+    schema: GoogleLoginRequest,
+    response: Response,
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
+):
+    from app.usuarios.services.google_service import GoogleService, GoogleServiceError
+
+    import logging
+    logger = logging.getLogger(__name__)
+
+    google_service = GoogleService(servicio.repositorio.db)
+
+    try:
+        google_data = await google_service.verificar_google_token(schema.google_token)
+    except GoogleServiceError as exc:
+        logger.error("Google token verification failed: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),
+        )
+
+    logger.info("Google login attempt - google_id=%s, email=%s", google_data["google_id"], google_data["email"])
+    usuario = await servicio.repositorio.buscar_por_google_id(google_data["google_id"])
+
+    if not usuario:
+        logger.warning("No user found for google_id=%s", google_data["google_id"])
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No se encontró una cuenta vinculada a este correo de Google. Vincula tu cuenta de Google desde tu perfil primero.",
+        )
+
+    logger.info("Google login success - user_id=%s, nombre=%s", usuario.us_codigo, usuario.us_nombre)
+
+    access_token, refresh_token = servicio.generar_tokens(usuario)
+    _set_refresh_cookie(response, refresh_token)
+
+    return AuthResponse(
+        access_token=access_token,
+        refresh_token=refresh_token if settings.DEBUG else None,
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        usuario=servicio.construir_sesion_usuario(usuario),
+    )

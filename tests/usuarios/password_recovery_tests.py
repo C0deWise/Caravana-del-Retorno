@@ -3,12 +3,13 @@
     relacionados con la recuperación y restablecimiento de contraseña:
       - POST /api/v1/usuario/forgot-password
       - POST /api/v1/usuario/reset-password
-    Cubre: validaciones de esquema Pydantic, lógica de negocio del servicio
-    y respuestas HTTP (usando TestClient con dependencias mockeadas).
+    Cubre: validaciones de esquema Pydantic, lógica de negocio del servicio,
+    utilidades de seguridad (tokens JWT) y respuestas HTTP
+    (usando TestClient con dependencias mockeadas).
 """
 
 import pytest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from fastapi import FastAPI
@@ -21,7 +22,14 @@ from app.usuarios.schemas.usuario_esquemas import (
     PasswordRecoveryRequest,
     PasswordResetRequest,
 )
-from app.usuarios.security import TokenError
+from app.usuarios.security import (
+    TokenError,
+    create_access_token,
+    create_password_recovery_token,
+    create_refresh_token,
+    decode_token,
+    role_name_from_code,
+)
 from app.usuarios.services.usuario_servicio import UsuarioServicio
 
 
@@ -140,7 +148,7 @@ class TestPasswordResetRequestSchema:
             PasswordResetRequest(**self._datos_validos(token="   "))
 
     @pytest.mark.parametrize("contrasenia, error_esperado", [
-        ("corta1A!", "8 caracteres"),
+        ("Ab1!", "8 caracteres"),
         ("sinmayuscula@1", "mayúscula"),
         ("SINMINUSCULA@1", "minúscula"),
         ("SinNumero@xx", "número"),
@@ -499,3 +507,430 @@ class TestResetPasswordEndpoint:
         mock_servicio.restablecer_contrasenia.assert_awaited_once_with(
             TOKEN_VALIDO, CONTRASENIA_SEGURA
         )
+
+
+# ─── 6. Security: creación y decodificación de tokens JWT ─────────────────────
+
+class TestPasswordRecoveryTokenCreation:
+    """Pruebas de creación y decodificación de tokens de recuperación de contraseña."""
+
+    def test_crear_token_recuperacion_retorna_token_jti_y_expires(self):
+        """create_password_recovery_token retorna una tupla (token, jti, expires_at)."""
+        token, jti, expires_at = create_password_recovery_token(
+            user_id=1, correo="test@example.com"
+        )
+        assert isinstance(token, str)
+        assert len(jti) == 32  # uuid4().hex es de 32 caracteres
+        assert isinstance(expires_at, datetime)
+        assert expires_at > datetime.now(timezone.utc)
+
+    def test_token_recuperacion_es_decodificable(self):
+        """El token generado se puede decodificar con expected_type='recovery'."""
+        token, jti, _ = create_password_recovery_token(
+            user_id=5, correo="user@test.com"
+        )
+        payload = decode_token(token, expected_type="recovery")
+        assert payload["sub"] == "5"
+        assert payload["correo"] == "user@test.com"
+        assert payload["token_type"] == "recovery"
+        assert payload["jti"] == jti
+
+    def test_token_recuperacion_no_es_access_token(self):
+        """Un token de recuperación no se puede decodificar como access."""
+        token, _, _ = create_password_recovery_token(
+            user_id=1, correo="test@example.com"
+        )
+        with pytest.raises(TokenError, match="Tipo de token"):
+            decode_token(token, expected_type="access")
+
+    def test_token_recuperacion_no_es_refresh_token(self):
+        """Un token de recuperación no se puede decodificar como refresh."""
+        token, _, _ = create_password_recovery_token(
+            user_id=1, correo="test@example.com"
+        )
+        with pytest.raises(TokenError, match="Tipo de token"):
+            decode_token(token, expected_type="refresh")
+
+    def test_token_invalido_lanza_token_error(self):
+        """Un token JWT inválido produce TokenError."""
+        with pytest.raises(TokenError, match="invalido"):
+            decode_token("token.completamente.invalido", expected_type="recovery")
+
+    def test_token_vacio_lanza_token_error(self):
+        """Un string vacío produce TokenError."""
+        with pytest.raises(TokenError):
+            decode_token("", expected_type="recovery")
+
+    def test_jti_es_unico_por_llamada(self):
+        """Cada llamada a create_password_recovery_token genera un jti diferente."""
+        _, jti1, _ = create_password_recovery_token(user_id=1, correo="a@test.com")
+        _, jti2, _ = create_password_recovery_token(user_id=1, correo="a@test.com")
+        assert jti1 != jti2
+
+
+class TestAccessTokenCreation:
+    """Pruebas de creación de tokens de acceso (relevantes para el flujo completo)."""
+
+    def test_crear_access_token_retorna_string(self):
+        token = create_access_token(
+            user_id=1,
+            documento="12345",
+            correo="test@test.com",
+            role_code=1,
+            colonia_id=None,
+        )
+        assert isinstance(token, str)
+        assert len(token) > 20
+
+    def test_access_token_se_decodifica_correctamente(self):
+        token = create_access_token(
+            user_id=10,
+            documento="99999",
+            correo="admin@test.com",
+            role_code=3,
+            colonia_id=1,
+        )
+        payload = decode_token(token, expected_type="access")
+        assert payload["sub"] == "10"
+        assert payload["correo"] == "admin@test.com"
+        assert payload["role_code"] == 3
+        assert payload["colonia_id"] == 1
+        assert payload["token_type"] == "access"
+
+    def test_access_token_no_es_refresh(self):
+        token = create_access_token(
+            user_id=1, documento="1", correo="t@t.com", role_code=1, colonia_id=None
+        )
+        with pytest.raises(TokenError, match="Tipo de token"):
+            decode_token(token, expected_type="refresh")
+
+
+class TestRefreshTokenCreation:
+    """Pruebas de creación de tokens de refresco."""
+
+    def test_crear_refresh_token_retorna_string(self):
+        token = create_refresh_token(user_id=1, role_code=1)
+        assert isinstance(token, str)
+
+    def test_refresh_token_se_decodifica(self):
+        token = create_refresh_token(user_id=7, role_code=2)
+        payload = decode_token(token, expected_type="refresh")
+        assert payload["sub"] == "7"
+        assert payload["role_code"] == 2
+        assert payload["token_type"] == "refresh"
+
+
+class TestRoleNameFromCode:
+    """Pruebas de la función role_name_from_code."""
+
+    @pytest.mark.parametrize("code, expected", [
+        (1, "retornante"),
+        (2, "lider"),
+        (3, "administrativo"),
+        (4, "visitante"),
+    ])
+    def test_codigos_conocidos(self, code, expected):
+        assert role_name_from_code(code) == expected
+
+    def test_codigo_desconocido_retorna_retornante(self):
+        assert role_name_from_code(99) == "retornante"
+
+
+class TestDecodeTokenEdgeCases:
+    """Edge cases de decodificación de tokens."""
+
+    def test_token_con_sub_falso_lanza_error(self):
+        """Un token sin 'sub' válido produce error."""
+        from app.core.config import get_settings
+        settings = get_settings()
+        from jose import jwt as jose_jwt
+
+        payload = {
+            "sub": "",
+            "correo": "test@test.com",
+            "token_type": "recovery",
+            "jti": "abc123",
+            "iat": int(datetime.now(timezone.utc).timestamp()),
+            "exp": int((datetime.now(timezone.utc) + timedelta(hours=1)).timestamp()),
+        }
+        token = jose_jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+        with pytest.raises(TokenError, match="identificador"):
+            decode_token(token, expected_type="recovery")
+
+    def test_token_recovery_sin_jti_lanza_error(self):
+        """Un token de recovery sin 'jti' produce error."""
+        from app.core.config import get_settings
+        settings = get_settings()
+        from jose import jwt as jose_jwt
+
+        payload = {
+            "sub": "1",
+            "correo": "test@test.com",
+            "token_type": "recovery",
+            "iat": int(datetime.now(timezone.utc).timestamp()),
+            "exp": int((datetime.now(timezone.utc) + timedelta(hours=1)).timestamp()),
+        }
+        token = jose_jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+        with pytest.raises(TokenError, match="identificador de seguridad"):
+            decode_token(token, expected_type="recovery")
+
+    def test_token_firmado_con_otra_key_lanza_error(self):
+        """Un token firmado con otra clave produce error."""
+        from jose import jwt as jose_jwt
+
+        payload = {
+            "sub": "1",
+            "correo": "test@test.com",
+            "token_type": "recovery",
+            "jti": "abc",
+            "iat": int(datetime.now(timezone.utc).timestamp()),
+            "exp": int((datetime.now(timezone.utc) + timedelta(hours=1)).timestamp()),
+        }
+        token = jose_jwt.encode(payload, "wrong-secret-key", algorithm="HS256")
+        with pytest.raises(TokenError):
+            decode_token(token, expected_type="recovery")
+
+
+# ─── 7. Servicio: edge cases adicionales ──────────────────────────────────────
+
+class TestSolicitarRecuperacionEdgeCases:
+    """Edge cases adicionales para solicitar_recuperacion_contrasenia."""
+
+    @pytest.mark.asyncio
+    async def test_correo_con_espacios_se_normaliza(self, servicio, repositorio):
+        """El correo con espacios extra se normaliza correctamente."""
+        repositorio.buscar_por_correo = AsyncMock(return_value=None)
+        await servicio.solicitar_recuperacion_contrasenia("  spaces@test.com  ")
+        repositorio.buscar_por_correo.assert_awaited_once_with("spaces@test.com")
+
+    @pytest.mark.asyncio
+    async def test_varias_llamadas_secuenciales_funcionan(self, servicio, repositorio, email_service):
+        """Múltiples llamadas secuenciales funcionan correctamente."""
+        usuario = MagicMock()
+        usuario.us_codigo = 1
+        usuario.us_correo = "test@example.com"
+        usuario.us_nombre = "Test"
+        repositorio.buscar_por_correo = AsyncMock(return_value=usuario)
+
+        expires_at = datetime.now(timezone.utc)
+        with patch("app.usuarios.services.usuario_servicio.create_password_recovery_token") as mock_cpt, \
+             patch("app.usuarios.services.usuario_servicio.get_settings") as mock_settings:
+            mock_cpt.return_value = ("tok.abc", "jti_abc", expires_at)
+            mock_settings.return_value = MagicMock(
+                FRONTEND_URL="https://frontend.test",
+                PASSWORD_RECOVERY_TOKEN_EXPIRE_MINUTES=30,
+            )
+            await servicio.solicitar_recuperacion_contrasenia("test@example.com")
+            await servicio.solicitar_recuperacion_contrasenia("test@example.com")
+
+        assert repositorio.revocar_tokens_recuperacion_activos.await_count == 2
+        assert repositorio.crear_token_recuperacion.await_count == 2
+        assert email_service.send_password_recovery_email.await_count == 2
+
+
+class TestRestablecerContraseniaEdgeCases:
+    """Edge cases adicionales para restablecer_contrasenia."""
+
+    @pytest.mark.asyncio
+    async def test_token_con_payload_incompleto_lanza_error(self, servicio):
+        """Un token con payload incompleto (sin correo) produce error."""
+        with patch("app.usuarios.services.usuario_servicio.decode_token") as mock_decode:
+            mock_decode.return_value = {"sub": "1"}
+            with pytest.raises((TokenError, ValueError)):
+                await servicio.restablecer_contrasenia(TOKEN_VALIDO, CONTRASENIA_SEGURA)
+
+    @pytest.mark.asyncio
+    async def test_contrasenia_hash_empieza_con_bcrypt(self, servicio, repositorio):
+        """La nueva contraseña se hashea con bcrypt correctamente."""
+        usuario_mock = MagicMock()
+        usuario_mock.us_codigo = 1
+        usuario_mock.us_correo = "user@test.com"
+        token_mock = MagicMock()
+        repositorio.obtener_usuario_por_id = AsyncMock(return_value=usuario_mock)
+        repositorio.obtener_token_recuperacion_activo = AsyncMock(return_value=token_mock)
+
+        with patch("app.usuarios.services.usuario_servicio.decode_token") as mock_decode:
+            mock_decode.return_value = {"sub": "1", "correo": "user@test.com", "jti": "jti123"}
+            await servicio.restablecer_contrasenia(TOKEN_VALIDO, CONTRASENIA_SEGURA)
+
+        args = repositorio.actualizar_contrasenia_con_token.call_args[0]
+        hash_guardado = args[1]
+        assert hash_guardado.startswith("$2b$")
+        assert hash_guardado != CONTRASENIA_SEGURA
+
+    @pytest.mark.asyncio
+    async def test_verificar_contrasenia_funciona_con_hash_real(self, servicio):
+        """verificar_contrasenia funciona con un hash real de bcrypt."""
+        from app.usuarios.services.usuario_servicio import pwd_context
+        hash_real = pwd_context.hash(CONTRASENIA_SEGURA)
+        assert servicio.verificar_contrasenia(CONTRASENIA_SEGURA, hash_real) is True
+        assert servicio.verificar_contrasenia("Wrong@123", hash_real) is False
+
+
+# ─── 8. Repositorio: operaciones con tokens de recuperación ───────────────────
+
+class TestRepositorioPasswordRecovery:
+    """Pruebas de las operaciones del repositorio para tokens de recuperación."""
+
+    @pytest.fixture
+    def db_session(self):
+        session = AsyncMock()
+        return session
+
+    @pytest.fixture
+    def repo(self, db_session):
+        from app.usuarios.repository.usuario_repositorio import UsuarioRepositorio
+        return UsuarioRepositorio(db_session)
+
+    @pytest.mark.asyncio
+    async def test_crear_token_recuperacion(self, repo):
+        """crear_token_recuperacion crea un token y lo retorna."""
+        from app.usuarios.models.password_recovery_token import PasswordRecoveryToken
+
+        mock_token = MagicMock(spec=PasswordRecoveryToken)
+        repo.db.execute = AsyncMock()
+        repo.db.add = MagicMock()
+        repo.db.commit = AsyncMock()
+        repo.db.refresh = AsyncMock(side_effect=lambda t: setattr(t, 'prt_codigo', 1) or t)
+
+        result = await repo.crear_token_recuperacion(
+            us_codigo=1,
+            jti_hash="abc123hash",
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
+        )
+        repo.db.add.assert_called_once()
+        repo.db.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_revocar_tokens_recuperacion_activos(self, repo):
+        """revocar_tokens_recuperacion_activos marca tokens como revocados."""
+        token_mock = MagicMock()
+        token_mock.prt_revocado = False
+        token_mock.prt_used_at = None
+        token_mock.prt_expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+
+        result_mock = MagicMock()
+        result_mock.scalars.return_value.all.return_value = [token_mock]
+        repo.db.execute = AsyncMock(return_value=result_mock)
+        repo.db.commit = AsyncMock()
+
+        await repo.revocar_tokens_recuperacion_activos(us_codigo=1)
+
+        assert token_mock.prt_revocado is True
+        repo.db.commit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_revocar_tokens_marca_used_si_expirado(self, repo):
+        """Si un token está expirado, se marca como usado además de revocado."""
+        token_mock = MagicMock()
+        token_mock.prt_revocado = False
+        token_mock.prt_used_at = None
+        token_mock.prt_expires_at = datetime.now(timezone.utc) - timedelta(hours=1)
+
+        result_mock = MagicMock()
+        result_mock.scalars.return_value.all.return_value = [token_mock]
+        repo.db.execute = AsyncMock(return_value=result_mock)
+        repo.db.commit = AsyncMock()
+
+        await repo.revocar_tokens_recuperacion_activos(us_codigo=1)
+
+        assert token_mock.prt_revocado is True
+        assert token_mock.prt_used_at is not None
+
+    @pytest.mark.asyncio
+    async def test_obtener_token_recuperacion_activo(self, repo):
+        """obtener_token_recuperacion_activo retorna el token si existe y está activo."""
+        token_mock = MagicMock()
+        result_mock = MagicMock()
+        result_mock.scalar_one_or_none.return_value = token_mock
+        repo.db.execute = AsyncMock(return_value=result_mock)
+
+        result = await repo.obtener_token_recuperacion_activo(
+            us_codigo=1, jti_hash="hash123"
+        )
+        assert result == token_mock
+
+    @pytest.mark.asyncio
+    async def test_obtener_token_recuperacion_activo_no_existe(self, repo):
+        """obtener_token_recuperacion_activo retorna None si no existe."""
+        result_mock = MagicMock()
+        result_mock.scalar_one_or_none.return_value = None
+        repo.db.execute = AsyncMock(return_value=result_mock)
+
+        result = await repo.obtener_token_recuperacion_activo(
+            us_codigo=1, jti_hash="hash_inexistente"
+        )
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_actualizar_contrasenia_con_token(self, repo):
+        """actualizar_contrasenia_con_token actualiza la contraseña y marca el token."""
+        usuario_mock = MagicMock()
+        usuario_mock.us_contrasenia = "old_hash"
+        token_mock = MagicMock()
+        token_mock.prt_used_at = None
+        token_mock.prt_revocado = False
+
+        repo.db.commit = AsyncMock()
+
+        await repo.actualizar_contrasenia_con_token(
+            usuario=usuario_mock,
+            nueva_contrasenia_hash="new_hash_abc",
+            token_recuperacion=token_mock,
+        )
+
+        assert usuario_mock.us_contrasenia == "new_hash_abc"
+        assert token_mock.prt_used_at is not None
+        assert token_mock.prt_revocado is True
+        repo.db.commit.assert_awaited_once()
+
+
+# ─── 9. Esquema: validaciones adicionales ─────────────────────────────────────
+
+class TestPasswordResetRequestEdgeCases:
+    """Edge cases adicionales para el esquema PasswordResetRequest."""
+
+    def test_token_con_espacios_se_almacena_trimmed(self):
+        """El token con espacios se trimea."""
+        schema = PasswordResetRequest(
+            token="  token con espacios  ",
+            nueva_contrasenia=CONTRASENIA_SEGURA,
+            confirmar_contrasenia=CONTRASENIA_SEGURA,
+        )
+        assert schema.token == "token con espacios"
+
+    @pytest.mark.parametrize("contrasenia", [
+        "Abcd1234!",           # 9 chars, todos los requisitos
+        "MyP@ssw0rd",          # 10 chars
+        "Str0ng!Pass",         # 11 chars
+        "X1y!2z@3w",           # 9 chars
+    ])
+    def test_contrasenias_validas_variadas(self, contrasenia):
+        """Variadas contraseñas que cumplen todos los requisitos."""
+        schema = PasswordResetRequest(
+            token="token",
+            nueva_contrasenia=contrasenia,
+            confirmar_contrasenia=contrasenia,
+        )
+        assert schema.nueva_contrasenia == contrasenia
+
+
+class TestPasswordRecoveryRequestEdgeCases:
+    """Edge cases adicionales para el esquema PasswordRecoveryRequest."""
+
+    @pytest.mark.parametrize("correo", [
+        "test@test.co",
+        "a@b.co",
+        "user.name@domain.com",
+    ])
+    def test_correos_cortos_validos(self, correo):
+        schema = PasswordRecoveryRequest(correo=correo)
+        assert schema.correo == correo.strip().lower()
+
+    def test_correo_normalizado_a_minusculas(self):
+        schema = PasswordRecoveryRequest(correo="USER@TEST.COM")
+        assert schema.correo == "user@test.com"
+
+    def test_correo_dominio_complexo(self):
+        schema = PasswordRecoveryRequest(correo="user@sub.domain.co")
+        assert schema.correo == "user@sub.domain.co"

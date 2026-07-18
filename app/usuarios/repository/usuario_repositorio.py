@@ -217,3 +217,18 @@ class UsuarioRepositorio:
         token_recuperacion.prt_used_at = datetime.now(timezone.utc)
         token_recuperacion.prt_revocado = True
         await self.db.commit()
+
+    async def buscar_por_google_id(self, google_id: str) -> Usuario | None:
+        """
+        Busca un usuario por su Google ID.
+
+        Args:
+            google_id: El ID único de Google del usuario.
+
+        Returns:
+            Usuario | None: El usuario encontrado o None si no existe.
+        """
+        result = await self.db.execute(
+            select(Usuario).where(Usuario.us_google_id == google_id)
+        )
+        return result.scalar_one_or_none()

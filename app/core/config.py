@@ -42,10 +42,8 @@ class Settings(BaseSettings):
     # ─────────────────────────────────────────
     #  Google OAuth
     # ─────────────────────────────────────────
-    # TODO: Reemplaza con tu Google Client ID desde Google Cloud Console
-    # https://console.cloud.google.com/apis/credentials
+
     GOOGLE_CLIENT_ID: str = ""
-    # TODO: Reemplaza con tu Google Client Secret
     GOOGLE_CLIENT_SECRET: str = ""
 
     model_config = SettingsConfigDict(
