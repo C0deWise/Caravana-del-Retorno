@@ -1,0 +1,115 @@
+"""
+Modulo que define las excepciones personalizadas para el proceso de registro a un retorno.
+Contiene las clases de excepciones que se lanzan en el servicio de registro a un retorno 
+para manejar errores específicos como retornos no existentes, usuarios no existentes, 
+usuarios sin colonia, y usuarios ya registrados. 
+"""
+
+from fastapi import HTTPException, status
+
+class RetornoNoExistente(HTTPException):
+    def __init__(self, retorno_id: int):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"El retorno con código {retorno_id} no existe."
+        )
+class NoHayRegistrosColoniaRetorno(HTTPException):
+    def __init__(self, retorno_id: int, colonia_id):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"La colonia {colonia_id} no tiene registos en el retorno {retorno_id}."
+        )
+
+class NoHayRegistrosRetorno(HTTPException):
+    def __init__(self, retorno_id: int):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No hay registos en el retorno {retorno_id}."
+        )        
+class NoHayColonias(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No se encontraron colonias."
+        )
+class RetornoEstadoInvalido(HTTPException):
+    def __init__(self, retorno_id: int, retorno_estado: str, accion: str):
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"No es posible {accion} retorno con código {retorno_id} porque su estado es '{retorno_estado}'."
+        )
+
+class RetornoEstadoFinalizadoDarseDeBaja(HTTPException):
+    def __init__(self, retorno_id: int):
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"No es posible darse de baja en el retorno con código {retorno_id} porque ya ha finalizado."
+        )
+class UsuarioNoExistente(HTTPException):
+    def __init__(self, usuario_id: int):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"El usuario con código {usuario_id} no existe."
+        )
+
+class UsuarioNoRegistradoEnRetorno(HTTPException):
+    def __init__(self, usuario_id: int, retorno_id: int):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"El usuario con código {usuario_id} no está registrado en el retorno con código {retorno_id}."
+        )
+
+class UsuarioSinColonia(HTTPException):
+    def __init__(self, usuario_id: int):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"El usuario con código {usuario_id} no pertenece a ninguna colonia."
+        )
+
+class UsuarioYaRegistrado(HTTPException):
+    def __init__(self, usuario_id: int, retorno_id: int):
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"El usuario con código {usuario_id} ya está registrado en el retorno con código {retorno_id}."
+        )
+
+class RegistroRetornoNoExistente(HTTPException):
+    def __init__(self, registro_id: int):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"El registro de retorno con código {registro_id} no existe."
+        )    
+class SolicitudGrupoRetornoNoExistente(HTTPException):
+    def __init__(self, solicitud_id: int):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"La solicitud de grupo de retorno con código {solicitud_id} no existe."
+        )
+
+class SolicitudGrupoRetornoEstadoInvalido(HTTPException):
+    def __init__(self, solicitud_id: int, estado: str):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"La solicitud de grupo de retorno con código {solicitud_id} no está en estado: {estado}."
+        )
+
+class UsuarioNoPerteneceAlaMismaColonia(HTTPException):
+    def __init__(self, usuario_id: int, lider_id: int):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"El usuario con código {usuario_id} no pertenece a la misma colonia que el lider del grupo {lider_id}."
+        )
+
+class UsuarioNoEstaEnUnGrupo(HTTPException):
+    def __init__(self, usuario_id: int, retorno_id: int):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"El usuario con código {usuario_id} no está en ningún grupo para el retorno con código {retorno_id}."
+        )
+
+class GrupoNoEncontrado(HTTPException):
+    def __init__(self, gr_codigo: int):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"El grupo con código {gr_codigo} no existe."
+        )

@@ -1,0 +1,268 @@
+"""
+Este módulo define los esquemas Pydantic para la validación de datos de la entidad Usuario.
+Estos esquemas se utilizan en la API para validar la entrada de datos,
+serializar la salida y generar la documentación automática de los endpoints.
+"""
+
+
+
+from pydantic import BaseModel, field_validator, Field, model_validator
+from datetime import date, datetime
+from typing import Optional
+
+from app.usuarios.models.usuario import TipoDoc, Genero
+
+import re
+
+EMAIL_REGEX = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+INVALID_EMAIL_MESSAGE = "El correo ingresado no es válido."
+
+class UsuarioCrear(BaseModel):
+    tipo_doc: TipoDoc
+    documento: str
+    celular: str
+    codigo_colonia: Optional[int] = None
+    codigo_rol: int = 1
+    nombre: str
+    apellido: str
+    genero: Genero
+    fecha_nacimiento: date
+    pais: str
+    departamento: Optional[str] = None
+    ciudad: Optional[str] = None
+    correo: str
+    contrasenia: str
+
+    @field_validator("documento")
+    @classmethod
+    def documento_no_vacio(cls, v: str) -> str:
+        """Valida que el documento no esté vacío."""
+        if not v.strip():
+            raise ValueError("El documento no puede estar vacío.")
+        return v
+
+    @field_validator("celular")
+    @classmethod
+    def celular_valido(cls, v: str) -> str:
+        """
+        Valida el formato del número de celular.
+        Permite solo dígitos, espacios y el símbolo '+' al inicio.
+        La longitud debe estar entre 7 y 15 dígitos.
+        """
+        digits = v.replace("+", "").replace(" ", "")
+        if not digits.isdigit():
+            raise ValueError("El celular solo puede contener números, espacios y '+'.")
+        if not (7 <= len(digits) <= 15):
+            raise ValueError("El celular debe tener entre 7 y 15 dígitos.")
+        return v
+
+    @field_validator("nombre", "apellido")
+    @classmethod
+    def solo_letras(cls, v: str) -> str:
+        """Valida que los nombres y apellidos contengan solo letras y espacios."""
+        if not v.replace(" ", "").isalpha():
+            raise ValueError("El campo solo puede contener letras.")
+        return v.strip()
+
+   
+
+    @field_validator("correo")
+    @classmethod
+    def correo_valido(cls, v: str) -> str:
+        if not re.match(EMAIL_REGEX, v):
+            raise ValueError(INVALID_EMAIL_MESSAGE)
+        return v.strip().lower()
+
+class UsuarioSalida(BaseModel):
+    """Esquema para la salida de datos básicos de un usuario."""
+    id: int = Field(..., validation_alias="us_codigo", description="ID único del usuario.")
+    nombre: str = Field(..., validation_alias="us_nombre", description="Nombre completo del usuario.")
+    apellido: str = Field(..., validation_alias="us_apellido", description="Apellidos del usuario.")
+    correo: str = Field(..., validation_alias="us_correo", description="Correo electrónico del usuario.")
+    documento: str = Field(..., validation_alias="us_documento", description="Número de documento del usuario.")
+
+    model_config = {"from_attributes": True, "populate_by_name": True}
+
+
+class UsuarioNombre(BaseModel):
+    """Esquema para mostrar únicamente el nombre y apellido de un usuario."""
+    nombre: str = Field(..., validation_alias="us_nombre", description="Nombre del usuario.")
+    apellido: str = Field(..., validation_alias="us_apellido", description="Apellido del usuario.")
+
+    model_config = {"from_attributes": True, "populate_by_name": True}
+
+
+class UsuarioDetallado(BaseModel):
+    """Esquema para la salida de datos detallados de un usuario, ideal para vistas de administrador."""
+    id: int = Field(validation_alias="us_codigo")
+    fecha_creacion: datetime = Field(validation_alias="us_fecha_creacion")
+    tipo_doc: TipoDoc = Field(validation_alias="us_tipo_doc")
+    documento: str = Field(validation_alias="us_documento")
+    celular: str = Field(validation_alias="us_celular")
+    correo: str = Field(validation_alias="us_correo")
+    codigo_colonia: Optional[int] = Field(validation_alias="co_codigo")
+    codigo_rol: int = Field(validation_alias="ro_codigo")
+    nombre: str = Field(validation_alias="us_nombre")
+    apellido: str = Field(validation_alias="us_apellido")
+    genero: Genero = Field(validation_alias="us_genero")
+    fecha_nacimiento: date = Field(validation_alias="us_fecha_nacimiento")
+    pais: str = Field(validation_alias="us_pais")
+    departamento: Optional[str] = Field(validation_alias="us_departamento")
+    ciudad: Optional[str] = Field(validation_alias="us_ciudad")
+
+    model_config = {"from_attributes": True, "populate_by_name": True}
+class UsuarioResumen(BaseModel):
+    codigo: int = Field(alias="us_codigo")
+    nombre: str = Field(alias="us_nombre")
+    apellido: str = Field(alias="us_apellido")
+    model_config = {"from_attributes": True, "populate_by_name": True}
+
+
+class UsuarioConsultaColonia(BaseModel):
+    id: int 
+    nombre: str
+    apellido: str 
+    codigo_colonia: int
+    documento: str 
+    tipo_doc: str 
+    genero: str 
+    fecha_nacimiento: date 
+    celular: str
+    correo: str
+    role: int 
+
+    model_config = {"from_attributes": True, "populate_by_name": True}
+
+
+class LoginRequest(BaseModel):
+    correo: str = Field(..., description="Correo del usuario registrado")
+    contrasenia: str = Field(..., min_length=8, description="Contrasena en texto plano")
+
+    @field_validator("correo")
+    @classmethod
+    def correo_login_valido(cls, v: str) -> str:
+        if not re.match(EMAIL_REGEX, v):
+            raise ValueError(INVALID_EMAIL_MESSAGE)
+        return v.strip().lower()
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: Optional[str] = Field(
+        default=None,
+        description="Token de refresco opcional; en produccion se usa cookie HttpOnly.",
+    )
+
+
+def _normalizar_correo(v: str) -> str:
+    if not re.match(EMAIL_REGEX, v):
+        raise ValueError(INVALID_EMAIL_MESSAGE)
+    return v.strip().lower()
+
+
+def _validar_contrasenia_segura(v: str) -> str:
+    contrasenia = v.strip()
+    if len(contrasenia) < 8:
+        raise ValueError("La contraseña debe tener al menos 8 caracteres.")
+    if not re.search(r"[A-Z]", contrasenia):
+        raise ValueError("La contraseña debe incluir al menos una letra mayúscula.")
+    if not re.search(r"[a-z]", contrasenia):
+        raise ValueError("La contraseña debe incluir al menos una letra minúscula.")
+    if not re.search(r"\d", contrasenia):
+        raise ValueError("La contraseña debe incluir al menos un número.")
+    if not re.search(r"[^A-Za-z0-9]", contrasenia):
+        raise ValueError("La contraseña debe incluir al menos un carácter especial.")
+    return contrasenia
+
+
+class PasswordRecoveryRequest(BaseModel):
+    correo: str = Field(..., description="Correo del usuario que solicita la recuperación")
+
+    @field_validator("correo")
+    @classmethod
+    def validar_correo(cls, v: str) -> str:
+        return _normalizar_correo(v)
+
+
+class PasswordResetRequest(BaseModel):
+    token: str = Field(..., description="Token de recuperación enviado por correo")
+    nueva_contrasenia: str = Field(..., description="Nueva contraseña del usuario")
+    confirmar_contrasenia: str = Field(..., description="Confirmación de la nueva contraseña")
+
+    @field_validator("token")
+    @classmethod
+    def token_no_vacio(cls, v: str) -> str:
+        token = v.strip()
+        if not token:
+            raise ValueError("El token de recuperación es obligatorio.")
+        return token
+
+    @field_validator("nueva_contrasenia", "confirmar_contrasenia")
+    @classmethod
+    def validar_contrasenia(cls, v: str) -> str:
+        return _validar_contrasenia_segura(v)
+
+    @model_validator(mode="after")
+    def validar_confirmacion(self):
+        if self.nueva_contrasenia != self.confirmar_contrasenia:
+            raise ValueError("La confirmación de la contraseña no coincide.")
+        return self
+
+
+class UsuarioSesion(BaseModel):
+    id: int
+    documento: str
+    correo: str
+    nombre: str
+    apellido: str
+    codigo_rol: int
+    role_name: str
+    codigo_colonia: Optional[int] = None
+
+
+class AuthResponse(BaseModel):
+    access_token: str
+    refresh_token: Optional[str] = Field(
+        default=None,
+        description="Solo en entornos de desarrollo para pruebas manuales.",
+    )
+    token_type: str = "bearer"
+    expires_in: int = Field(..., description="Segundos restantes de vigencia del access token")
+    usuario: UsuarioSesion
+
+
+class MensajeRespuesta(BaseModel):
+    mensaje: str
+
+
+class GoogleLinkRequest(BaseModel):
+    google_token: str = Field(..., description="ID token de Google Identity Services")
+
+    @field_validator("google_token")
+    @classmethod
+    def token_no_vacio(cls, v: str) -> str:
+        token = v.strip()
+        if not token:
+            raise ValueError("El token de Google es obligatorio.")
+        return token
+
+
+class GoogleUnlinkRequest(BaseModel):
+    password: str = Field(..., min_length=8, description="Contraseña del usuario para confirmar desvinculación")
+
+
+class GoogleStatusResponse(BaseModel):
+    is_linked: bool
+    google_email: str | None = None
+    linked_at: datetime | None = None
+
+
+class GoogleLoginRequest(BaseModel):
+    google_token: str = Field(..., description="ID token de Google Identity Services")
+
+    @field_validator("google_token")
+    @classmethod
+    def token_no_vacio(cls, v: str) -> str:
+        token = v.strip()
+        if not token:
+            raise ValueError("El token de Google es obligatorio.")
+        return token

@@ -1,0 +1,29 @@
+# Ejecutar todas las pruebas del proyecto
+pytest
+
+# Ejecutar pruebas en una carpeta específica
+pytest tests/
+
+# Ejecutar un archivo de pruebas concreto
+pytest tests/test_usuario.py
+
+# Ejecutar una función de prueba dentro de un archivo
+pytest tests/test_usuario.py::test_crear_usuario
+
+# Mostrar resultados detallados (verbose)
+pytest -v
+
+# Mostrar prints y logs en consola
+pytest -s
+
+# Detenerse en el primer error
+pytest -x
+
+# Filtrar pruebas por nombre (pattern matching)
+pytest -k "usuario"
+
+# Generar reporte en formato JUnit XML (para CI/CD)
+pytest --junitxml=report.xml
+
+# Medir cobertura de código (requiere pytest-cov)
+pytest --cov=mi_paquete --cov-report=term-missing

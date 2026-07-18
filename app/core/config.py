@@ -1,6 +1,9 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
+from pathlib import Path
 
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 class Settings(BaseSettings):
     # ─────────────────────────────────────────
@@ -17,14 +20,34 @@ class Settings(BaseSettings):
     # ─────────────────────────────────────────
     DATABASE_URL: str
 
+    SUPABASE_URL: str = ""
+    SUPABASE_KEY: str = ""
+    SUPABASE_BUCKET: str = "multimedia-retornos"
+
     # ─────────────────────────────────────────
     #  Security
     # ─────────────────────────────────────────
-    SECRET_KEY: str = "supersecretkey"
-    ALLOWED_HOSTS: list[str] = ["*"]
+    SECRET_KEY: str
+    JWT_SECRET_KEY: str
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    PASSWORD_RECOVERY_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_COOKIE_NAME: str = "refresh_token"
+    REFRESH_COOKIE_SECURE: bool = True
+    REFRESH_COOKIE_SAMESITE: str = "lax"
+    FRONTEND_URL: str = "http://localhost:3000"
+    ALLOWED_HOSTS: list[str] = ["http://localhost:3000"]
+
+    # ─────────────────────────────────────────
+    #  Google OAuth
+    # ─────────────────────────────────────────
+
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file = BASE_DIR / ".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore",
