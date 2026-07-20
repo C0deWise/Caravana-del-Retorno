@@ -392,3 +392,27 @@ async def buscar_usuario_por_colonia(
 ):
     """Busca y devuelve una lista de usuarios miembros  en una colonia específica."""
     return await servicio.buscar_por_colonia(colonia)
+
+
+@router.delete("/parentesco/{parentesco_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Eliminar una relación de parentesco por ID")
+async def eliminar_parentesco(
+    parentesco_id: int,
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
+    _: Usuario = Depends(require_roles(1, 2)),
+):
+    """
+    Elimina una relación de parentesco existente por su ID.
+
+    **Acceso:** Requiere autenticación y rol de **Administrador** o **Líder**.
+
+    Raises:
+        HTTPException: 404 si la relación de parentesco no es encontrada.
+    """
+    try:
+        await servicio.eliminar_parentesco(parentesco_id)
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )

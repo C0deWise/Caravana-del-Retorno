@@ -6,6 +6,7 @@ de datos requeridas antes de interactuar con la capa de repositorio.
 
 from passlib.context import CryptContext
 from sqlalchemy import select
+import logging
 
 from app.notificaciones.events.events import EventoBase, TipoEvento
 from app.notificaciones.events.patron_observer import Publicador
@@ -18,6 +19,11 @@ from app.usuarios.schemas.usuario_esquemas import UsuarioConsultaColonia, Usuari
 from app.usuarios.security import create_access_token, create_refresh_token, role_name_from_code
 from app.usuarios.schemas.parentesco_esquemas import ParentescoCrear, ParentescoRespuesta, ParentescoRespuestaDetallada
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s — %(name)s — %(levelname)s — %(message)s",
+)
+logger = logging.getLogger(__name__)
 # Contexto para el cifrado y verificación de contraseñas utilizando el algoritmo bcrypt.
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 ERROR_PARENTESCO_REPO_NO_INICIALIZADO = "Repositorio de parentesco no inicializado."
@@ -259,6 +265,27 @@ class UsuarioServicio:
             estado=parentesco.estado
         )
 
+    async def eliminar_parentesco(self, codigo_parentesco:int):
+        """Elimina una relación de parentesco existente."""
+        parentesco = await self.repositorio_parentesco.obtener_parentesco_por_id_detallado(codigo_parentesco)
+        if not parentesco:
+            raise ValueError("La relación de parentesco no existe.")
+        estados_permitidos = [EstadoSolicitudParentesco.aceptada, EstadoSolicitudParentesco.pendiente]
+        if parentesco.estado not in estados_permitidos:
+            raise ValueError("Solo se pueden eliminar relaciones de parentesco en estado aceptada o pendiente.")
+        await self.repositorio_parentesco.eliminar_parentesco(codigo_parentesco)
+        if parentesco.estado == EstadoSolicitudParentesco.aceptada:
+            logger.info(f"Notificando al usuario de la eliminacion del parentesco")    
+            evento = EventoBase(
+                tipo_evento=TipoEvento.ELIMINAR_PARENTESCO,
+                datos={"parentesco": parentesco.tipo_parentesco.value, "nombre_usuario": parentesco.solicitante.us_nombre, "apellido_usuario": parentesco.solicitante.us_apellido},
+                receptores=[parentesco.codigo_destinatario])
+            await self.publicador.notificar(
+                evento=evento)
+        else:
+            logger.info(f"Eliminando notificacion de solicitud de parentesco pendiente")
+            await self.publicador.eliminar_notificacion(receptor=parentesco.codigo_destinatario, tipo_evento=TipoEvento.SOLICITAR_PARENTESCO)
+        
     async def obtener_parentesco_por_id(self, id_parentesco: int):
         """Obtiene un parentesco por su ID."""
         return await self.repositorio_parentesco.obtener_parentesco_por_id_detallado(id_parentesco)

@@ -2,6 +2,8 @@
 
 from enum import Enum
 
+from app.usuarios.auth_dependencies import get_current_user
+
 
 class TipoEvento(Enum):
     """Enumeración para los tipos de eventos de notificaciones."""
@@ -18,9 +20,10 @@ class TipoEvento(Enum):
     ELIMINAR_GRUPO_RETORNO = "eliminar_grupo_retorno"
 
     DARSE_BAJA_RETORNO = "darse_baja_retorno"
-    SOLICITAR_PARENTESCO = "solicitar_parentesco"
+    SOLICITAR_PARENTESCO = "Solicitud de parentesco"
     ACEPTAR_PARENTESCO = "aceptar_parentesco"
     RECHAZAR_PARENTESCO = "rechazar_parentesco"
+    ELIMINAR_PARENTESCO = "eliminar_parentesco"
 
 
 class MapeoEventosIds:
@@ -45,7 +48,8 @@ class MapeoEventosIds:
         TipoEvento.CREAR_SOLICITUD_INGRESO_COLONIA: 11,
         TipoEvento.SOLICITAR_PARENTESCO: 12,
         TipoEvento.ACEPTAR_PARENTESCO: 13,
-        TipoEvento.RECHAZAR_PARENTESCO: 14
+        TipoEvento.RECHAZAR_PARENTESCO: 14,
+        TipoEvento.ELIMINAR_PARENTESCO: 15
     }
     
     @classmethod
@@ -220,3 +224,15 @@ class EventoRechazarParentesco(EventoBase):
         nombre_completo = f"{nombre_usuario} {apellido_usuario}".strip()
         parentesco = self.datos.get("parentesco", "")
         self.mensaje = f"El usuario {nombre_completo} ha rechazado establecer parentesco {parentesco} contigo."
+
+class EventoEliminarParentesco(EventoBase):
+    def __init__(self, datos, receptores):
+        super().__init__(TipoEvento.ELIMINAR_PARENTESCO, datos, receptores)
+
+    def construir_mensaje(self) -> str:
+        usuario_actual = get_current_user()
+        nombre_usuario = usuario_actual.nombre if usuario_actual else "El usuario"
+        apellido_usuario = usuario_actual.apellido if usuario_actual else ""
+        nombre_completo = f"{nombre_usuario} {apellido_usuario}".strip()
+        parentesco = self.datos.get("parentesco", "")
+        self.mensaje = f"El usuario {nombre_completo} ha eliminado la relación de parentesco {parentesco} contigo."
