@@ -265,7 +265,7 @@ class UsuarioServicio:
             estado=parentesco.estado
         )
 
-    async def eliminar_parentesco(self, codigo_parentesco:int):
+    async def eliminar_parentesco(self, codigo_parentesco:int, usuario_actual: Usuario):
         """Elimina una relación de parentesco existente."""
         parentesco = await self.repositorio_parentesco.obtener_parentesco_por_id_detallado(codigo_parentesco)
         if not parentesco:
@@ -274,12 +274,16 @@ class UsuarioServicio:
         if parentesco.estado not in estados_permitidos:
             raise ValueError("Solo se pueden eliminar relaciones de parentesco en estado aceptada o pendiente.")
         await self.repositorio_parentesco.eliminar_parentesco(codigo_parentesco)
+        if parentesco.codigo_solicitante == usuario_actual.us_codigo:
+            receptor = parentesco.codigo_destinatario
+        else:
+            receptor = parentesco.codigo_solicitante
         if parentesco.estado == EstadoSolicitudParentesco.aceptada:
             logger.info(f"Notificando al usuario de la eliminacion del parentesco")    
             evento = EventoBase(
                 tipo_evento=TipoEvento.ELIMINAR_PARENTESCO,
-                datos={"parentesco": parentesco.tipo_parentesco.value, "nombre_usuario": parentesco.solicitante.us_nombre, "apellido_usuario": parentesco.solicitante.us_apellido},
-                receptores=[parentesco.codigo_destinatario])
+                datos={"parentesco": parentesco.tipo_parentesco.value, "nombre_usuario": usuario_actual.us_nombre, "apellido_usuario": usuario_actual.us_apellido},
+                receptores=[receptor])
             await self.publicador.notificar(
                 evento=evento)
         else:

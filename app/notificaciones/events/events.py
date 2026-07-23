@@ -2,7 +2,6 @@
 
 from enum import Enum
 
-from app.usuarios.auth_dependencies import get_current_user
 
 
 class TipoEvento(Enum):
@@ -230,9 +229,8 @@ class EventoEliminarParentesco(EventoBase):
         super().__init__(TipoEvento.ELIMINAR_PARENTESCO, datos, receptores)
 
     def construir_mensaje(self) -> str:
-        usuario_actual = get_current_user()
-        nombre_usuario = usuario_actual.nombre if usuario_actual else "El usuario"
-        apellido_usuario = usuario_actual.apellido if usuario_actual else ""
+        nombre_usuario = self.datos.get("nombre_usuario", "")
+        apellido_usuario = self.datos.get("apellido_usuario", "")
         nombre_completo = f"{nombre_usuario} {apellido_usuario}".strip()
         parentesco = self.datos.get("parentesco", "")
         self.mensaje = f"El usuario {nombre_completo} ha eliminado la relación de parentesco {parentesco} contigo."

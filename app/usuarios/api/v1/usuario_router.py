@@ -398,7 +398,7 @@ async def buscar_usuario_por_colonia(
 async def eliminar_parentesco(
     parentesco_id: int,
     servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
-    _: Usuario = Depends(require_roles(1, 2)),
+    _: Usuario = Depends(require_roles(1, 2)), usuario_actual: Usuario = Depends(get_current_user)
 ):
     """
     Elimina una relación de parentesco existente por su ID.
@@ -409,7 +409,7 @@ async def eliminar_parentesco(
         HTTPException: 404 si la relación de parentesco no es encontrada.
     """
     try:
-        await servicio.eliminar_parentesco(parentesco_id)
+        await servicio.eliminar_parentesco(parentesco_id,usuario_actual)
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     except ValueError as e:
         raise HTTPException(
