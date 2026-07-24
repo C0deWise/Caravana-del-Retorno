@@ -51,3 +51,19 @@ class PublicacionRepositorio:
         )
         resultado = await self.db.execute(query)
         return resultado.unique().scalars().all()
+
+    async def editar_publicacion(self, codigo: int, datos: PublicacionCrear) -> Publicacion:
+        """Edita una publicación existente en la base de datos."""
+        publicacion_existente = await self.consultar_publicacion_por_codigo(codigo)
+        if not publicacion_existente:
+            return None
+        
+        publicacion_existente.retorno = datos.retorno
+        publicacion_existente.autor = datos.autor
+        publicacion_existente.resena = datos.resena
+        publicacion_existente.titulo = datos.titulo
+        
+        self.db.add(publicacion_existente)
+        await self.db.commit()
+        await self.db.refresh(publicacion_existente)
+        return publicacion_existente

@@ -31,3 +31,12 @@ class PublicacionRespuesta(BaseModel):
     resena: str
     fecha_creacion: datetime
     multimedia_lista: list[MultimediaRespuesta] = []
+
+class PublicacionEditar(BaseModel):
+    """Esquema para la edición de una publicación existente."""
+    retorno: int | None = Field(None, gt=0, description="Nuevo código del retorno asociado a la publicación")
+    titulo: str | None = Field(None, description="Nuevo título de la publicación")
+    resena: str | None = Field(None, description="Nueva reseña de la publicación")
+    archivos_eliminar: list[int] | None = None
+
+    model_config = ConfigDict(from_attributes=True)

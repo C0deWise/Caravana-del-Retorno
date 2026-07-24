@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.publicacion.servicios.publicacion_servicio import PublicacionServicio
-from app.publicacion.esquemas.publicacion_esquema import PublicacionRespuesta, PublicacionCrear
+from app.publicacion.esquemas.publicacion_esquema import PublicacionRespuesta, PublicacionCrear, PublicacionEditar
 from app.publicacion.repositorios.publicacion_repositorio import PublicacionRepositorio
 from app.multimedia.repositorios.multimedia_repositorio import MultimediaRepositorio
 from app.multimedia.servicios.multimedia_servicio import MultimediaServicio
@@ -60,3 +60,26 @@ async def consultar_publicaciones_por_retorno(
     servicio: Annotated[PublicacionServicio, Depends(get_publicacion_servicio)],
 ):
     return await servicio.consultar_publicacion_por_retorno(retorno_id)
+@router.put(
+    "/editar-publicacion/{codigo}/",
+    response_model=PublicacionRespuesta
+)
+async def editar_publicacion(
+    codigo: int,
+    retorno_id: Annotated[int, Form(...)],
+    autor: Annotated[int, Form(...)],
+    titulo: Annotated[str, Form(...)],
+    resena: Annotated[str, Form(...)],
+    servicio: Annotated[PublicacionServicio, Depends(get_publicacion_servicio)],
+    _: Usuario = Depends(require_roles(2, 3)),
+    archivos_nuevos: Annotated[List[UploadFile], File(...)] | None = None,
+    archivos_eliminar: Annotated[List[int], Form(...)] | None = None,
+):
+    datos_publicacion = PublicacionEditar(
+        retorno=retorno_id,
+        autor=autor,
+        titulo=titulo,
+        resena=resena,
+        archivos_eliminar=archivos_eliminar
+    )
+    return await servicio.editar_publicacion(codigo, datos_publicacion, archivos_nuevos)
