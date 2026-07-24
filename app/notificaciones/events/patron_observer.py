@@ -9,6 +9,7 @@ from fastapi import Depends
 
 from app.notificaciones.events.events import (
     EventoBase,
+    EventoEliminarParentesco,
     EventoSolicitarIngresoColonia, 
     TipoEvento,
     EventoSolicitudColoniaAceptada,
@@ -20,7 +21,10 @@ from app.notificaciones.events.events import (
     EventoActualizacionRegistroGrupo,
     EventoDarseBajaGrupo,
     EventoEliminarGrupoRetorno,
-    EventoDarseBajaRetorno
+    EventoDarseBajaRetorno,
+    EventoSolicitarParentesco,
+    EventoAceptarParentesco,
+    EventoRechazarParentesco
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
@@ -48,7 +52,11 @@ class FabricaEventos:
         TipoEvento.DARSE_BAJA_GRUPO: EventoDarseBajaGrupo,
         TipoEvento.ELIMINAR_GRUPO_RETORNO: EventoEliminarGrupoRetorno,
         TipoEvento.DARSE_BAJA_RETORNO: EventoDarseBajaRetorno,
-        TipoEvento.CREAR_SOLICITUD_INGRESO_COLONIA: EventoSolicitarIngresoColonia
+        TipoEvento.CREAR_SOLICITUD_INGRESO_COLONIA: EventoSolicitarIngresoColonia,
+        TipoEvento.SOLICITAR_PARENTESCO: EventoSolicitarParentesco,
+        TipoEvento.ACEPTAR_PARENTESCO: EventoAceptarParentesco,
+        TipoEvento.RECHAZAR_PARENTESCO: EventoRechazarParentesco,
+        TipoEvento.ELIMINAR_PARENTESCO: EventoEliminarParentesco
     }
     
     @classmethod
@@ -75,7 +83,7 @@ class FabricaEventos:
         return clase_evento(datos, receptores)
 
 class Publicador:
-    """Servicio publicador de notificaciones usando el patrón Observer."""
+    
     
     def __init__(self, servicio_notificaciones: NotificacionCrearService):
         self.servicio = servicio_notificaciones
@@ -98,5 +106,9 @@ class Publicador:
         )
         # Crear la notificación en lote
         await self.servicio.crear_notificacion_lote(notificacion)
+    
+    async def eliminar_notificacion(self, receptor: int, tipo_evento: TipoEvento):
+        
+        await self.servicio.eliminar_notificacion(tipo_evento=tipo_evento, receptor=receptor)
 
         

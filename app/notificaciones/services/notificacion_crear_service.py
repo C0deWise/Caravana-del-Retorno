@@ -1,8 +1,17 @@
 
 
 
+import logging
+
+from app.notificaciones.events.events import TipoEvento
 from app.notificaciones.repositories.notificacion_repositorio import NotificacionRepository
 from app.notificaciones.schemas.notificacion_esquema import Evento, NotificacionCrear, NotificacionCrearLote, NotificacionRespuesta
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s — %(name)s — %(levelname)s — %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 class NotificacionCrearService:
     def __init__(self, repositorio_notificacion: NotificacionRepository):
@@ -34,3 +43,12 @@ class NotificacionCrearService:
         for notificacion in notificaciones_creadas:
             notificaciones_respuesta.append(self._mapear_notificacion(notificacion))
         return notificaciones_respuesta
+    
+    async def eliminar_notificacion(self, tipo_evento: TipoEvento, receptor: int) -> None:
+        
+        notificacion = await self.repositorio_notificacion.obtener_notificacion_no_leida_por_receptor_evento(receptor, tipo_evento.value)
+        
+        if notificacion:
+            logger.info(f"Eliminando notificacion de tipo {tipo_evento} para el receptor {receptor}")
+            await self.repositorio_notificacion.eliminar_notificacion(notificacion.no_codigo)
+        

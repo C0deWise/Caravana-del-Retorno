@@ -92,3 +92,13 @@ class ParentescoRepositorio:
         await self.db.commit()
         await self.db.refresh(parentesco)
         return parentesco
+    
+    async def eliminar_parentesco(self, id_parentesco: int) -> None:
+        """Elimina una relación de parentesco existente."""
+        parentesco = await self.obtener_parentesco_por_id(id_parentesco)
+        if not parentesco:
+            raise ValueError("La relación de parentesco no existe.")
+        await self.db.delete(parentesco)
+        await self.db.commit()
+
+        

@@ -10,6 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.database import get_db
+from app.notificaciones.repositories.notificacion_repositorio import NotificacionRepository
+from app.notificaciones.services.notificacion_crear_service import NotificacionCrearService
 from app.usuarios.auth_dependencies import get_current_user, require_roles
 from app.usuarios.models.usuario import Usuario
 from app.usuarios.repository.parentesco_repositorio import ParentescoRepositorio
@@ -63,7 +65,9 @@ def get_usuario_servicio(db: Annotated[AsyncSession, Depends(get_db)]) -> Usuari
     """
     repositorio = UsuarioRepositorio(db)
     repositorio_parentesco = ParentescoRepositorio(db)
-    return UsuarioServicio(repositorio, repositorio_parentesco)
+    repositorio_notificacion = NotificacionRepository(db)
+    servicio_notificaciones = NotificacionCrearService(repositorio_notificacion)
+    return UsuarioServicio(repositorio, repositorio_parentesco, servicio_notificaciones)
 
 
 @router.post(
@@ -388,3 +392,27 @@ async def buscar_usuario_por_colonia(
 ):
     """Busca y devuelve una lista de usuarios miembros  en una colonia específica."""
     return await servicio.buscar_por_colonia(colonia)
+
+
+@router.delete("/parentesco/{parentesco_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Eliminar una relación de parentesco por ID")
+async def eliminar_parentesco(
+    parentesco_id: int,
+    servicio: Annotated[UsuarioServicio, Depends(get_usuario_servicio)],
+    _: Usuario = Depends(require_roles(1, 2)), usuario_actual: Usuario = Depends(get_current_user)
+):
+    """
+    Elimina una relación de parentesco existente por su ID.
+
+    **Acceso:** Requiere autenticación y rol de **Administrador** o **Líder**.
+
+    Raises:
+        HTTPException: 404 si la relación de parentesco no es encontrada.
+    """
+    try:
+        await servicio.eliminar_parentesco(parentesco_id,usuario_actual)
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )

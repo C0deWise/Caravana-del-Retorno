@@ -3,6 +3,7 @@
 from enum import Enum
 
 
+
 class TipoEvento(Enum):
     """Enumeración para los tipos de eventos de notificaciones."""
     SOLICITUD_COLONIA_ACEPTADA = "solicitud_colonia_aceptada"
@@ -18,6 +19,10 @@ class TipoEvento(Enum):
     ELIMINAR_GRUPO_RETORNO = "eliminar_grupo_retorno"
 
     DARSE_BAJA_RETORNO = "darse_baja_retorno"
+    SOLICITAR_PARENTESCO = "Solicitud de parentesco"
+    ACEPTAR_PARENTESCO = "aceptar_parentesco"
+    RECHAZAR_PARENTESCO = "rechazar_parentesco"
+    ELIMINAR_PARENTESCO = "eliminar_parentesco"
 
 
 class MapeoEventosIds:
@@ -39,7 +44,11 @@ class MapeoEventosIds:
         TipoEvento.REGISTRO_GRUPO_RETORNO: 8,  # "Registro de grupo a retorno"
         TipoEvento.ACTUALIZACION_REGISTRO_GRUPO: 9,  # "Edición de registro de grupo"
         TipoEvento.DESACTIVAR_COLONIA: 10,  # "Desactivación de colonia"
-        TipoEvento.CREAR_SOLICITUD_INGRESO_COLONIA: 11
+        TipoEvento.CREAR_SOLICITUD_INGRESO_COLONIA: 11,
+        TipoEvento.SOLICITAR_PARENTESCO: 12,
+        TipoEvento.ACEPTAR_PARENTESCO: 13,
+        TipoEvento.RECHAZAR_PARENTESCO: 14,
+        TipoEvento.ELIMINAR_PARENTESCO: 15
     }
     
     @classmethod
@@ -180,3 +189,48 @@ class EventoSolicitarIngresoColonia(EventoBase):
         nombre_completo = f"{nombre_usuario} {apellido_usuario}".strip()
         ubicacion = self.datos.get("colonia_ciudad") or self.datos.get("colonia_pais") or "la colonia"
         self.mensaje = f"El usuario {nombre_completo} solicita ingresar a la colonia {ubicacion}."
+
+
+class EventoSolicitarParentesco(EventoBase):
+    def __init__(self, datos, receptores):
+        super().__init__(TipoEvento.SOLICITAR_PARENTESCO, datos, receptores)
+
+    def construir_mensaje(self) -> str:
+        nombre_usuario = self.datos.get("nombre_usuario", "")
+        apellido_usuario = self.datos.get("apellido_usuario", "")
+        nombre_completo = f"{nombre_usuario} {apellido_usuario}".strip()
+        parentesco = self.datos.get("parentesco", "")
+        self.mensaje = f"El usuario {nombre_completo} solicita establecer parentesco {parentesco} contigo."
+
+class EventoAceptarParentesco(EventoBase):
+    def __init__(self, datos, receptores):
+        super().__init__(TipoEvento.ACEPTAR_PARENTESCO, datos, receptores)
+
+    def construir_mensaje(self) -> str:
+        nombre_usuario = self.datos.get("nombre_usuario", "")
+        apellido_usuario = self.datos.get("apellido_usuario", "")
+        nombre_completo = f"{nombre_usuario} {apellido_usuario}".strip()
+        parentesco = self.datos.get("parentesco", "")
+        self.mensaje = f"El usuario {nombre_completo} ha aceptado establecer parentesco {parentesco} contigo."
+
+class EventoRechazarParentesco(EventoBase):
+    def __init__(self, datos, receptores):
+        super().__init__(TipoEvento.RECHAZAR_PARENTESCO, datos, receptores)
+
+    def construir_mensaje(self) -> str:
+        nombre_usuario = self.datos.get("nombre_usuario", "")
+        apellido_usuario = self.datos.get("apellido_usuario", "")
+        nombre_completo = f"{nombre_usuario} {apellido_usuario}".strip()
+        parentesco = self.datos.get("parentesco", "")
+        self.mensaje = f"El usuario {nombre_completo} ha rechazado establecer parentesco {parentesco} contigo."
+
+class EventoEliminarParentesco(EventoBase):
+    def __init__(self, datos, receptores):
+        super().__init__(TipoEvento.ELIMINAR_PARENTESCO, datos, receptores)
+
+    def construir_mensaje(self) -> str:
+        nombre_usuario = self.datos.get("nombre_usuario", "")
+        apellido_usuario = self.datos.get("apellido_usuario", "")
+        nombre_completo = f"{nombre_usuario} {apellido_usuario}".strip()
+        parentesco = self.datos.get("parentesco", "")
+        self.mensaje = f"El usuario {nombre_completo} ha eliminado la relación de parentesco {parentesco} contigo."
