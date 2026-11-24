@@ -49,7 +49,7 @@ COPY . .
 
 # Set ownership
 RUN chown -R appuser:appgroup /app
-
+RUN sed -i 's/\r$//' /app/scripts/entrypoint.sh
 USER appuser
 
 # Runtime environment variables

@@ -1,5 +1,6 @@
 # Python
 __pycache__/
+**/__pycache__/ 
 *.py[cod]
 *.pyo
 *.pyd
@@ -14,10 +15,16 @@ venv/
 .venv/
 
 # Environment variables
+.env 
+.env.*
+.sops.yaml  
+enncriptar.txt
 .env.example
 .env.encrypted
 
 # Tests
+tests/
+pytest.ini
 .pytest_cache/
 htmlcov/
 .coverage
@@ -27,12 +34,14 @@ coverage.xml
 # IDE / editors
 .vscode/
 .idea/
+.sonarlint/
 *.swp
 *.swo
 
 # Version control
 .git/
 .gitignore
+.github/
 
 # Docker
 Dockerfile*
@@ -43,3 +52,4 @@ docker-compose*
 *.log
 *.tmp
 .DS_Store
+repomix-output*.xml
