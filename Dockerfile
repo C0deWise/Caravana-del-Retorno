@@ -17,8 +17,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install dependencies in an isolated layer
 COPY requirements.txt .
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir --prefix=/install -r requirements.txt
+# Versiones fijadas en requirements.txt; solo wheels (sin ejecutar setup.py).
+RUN pip install --no-cache-dir --only-binary :all: --prefix=/install -r requirements.txt
 
 
 # ─────────────────────────────────────────

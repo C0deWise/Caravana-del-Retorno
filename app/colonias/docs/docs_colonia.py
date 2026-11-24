@@ -7,6 +7,8 @@ from typing import Annotated
 
 from app.colonias.schemas.colonia_schemas import ColoniaCrear
 
+APPLICATION_JSON = "application/json"
+
 toggle_estado_colonia_docs = dict(
     status_code=status.HTTP_200_OK,
     summary="Activar y desactivar una colonia",
@@ -23,7 +25,7 @@ toggle_estado_colonia_docs = dict(
         200: {
             "description": "Colonia toggled exitosamente.",
             "content": {
-                "application/json": {
+                APPLICATION_JSON: {
                     "examples": {
                         "desactivada": {
                             "summary": "Colonia desactivada exitosamente",
@@ -55,7 +57,7 @@ toggle_estado_colonia_docs = dict(
         404: {
             "description": "Colonia no encontrada.",
             "content": {
-                "application/json": {
+                APPLICATION_JSON: {
                     "example": {
                         "detail": "Colonia con código 999 no encontrada"
                     }
@@ -73,7 +75,7 @@ obtener_colonias_activas_docs = dict(
         200: {
             "description": "Lista de colonias activas obtenida exitosamente.",
             "content": {
-                "application/json": {
+                APPLICATION_JSON: {
                     "example": [
                         {
                             "codigo": 1,
@@ -111,7 +113,7 @@ obtener_colonias_publicas_docs = dict(
         200: {
             "description": "Lista pública de colonias activas.",
             "content": {
-                "application/json": {
+                APPLICATION_JSON: {
                     "example": [
                         {
                             "codigo": 1,
@@ -149,7 +151,7 @@ cambiar_lider_colonia_docs = dict(
         200: {
             "description": "El líder de la colonia ha sido actualizado exitosamente.",
             "content": {
-                "application/json": {
+                APPLICATION_JSON: {
                     "example": {
                         "codigo": 1,
                         "pais": "Colombia",
@@ -164,7 +166,7 @@ cambiar_lider_colonia_docs = dict(
         404: {
             "description": "Colonia o usuario no encontrado.",
             "content": {
-                "application/json": {
+                APPLICATION_JSON: {
                     "examples": {
                         "colonia_no_encontrada": {
                             "summary": "Colonia no encontrada",
@@ -181,7 +183,7 @@ cambiar_lider_colonia_docs = dict(
         409: {
             "description": "Conflicto de negocio (colonia sin líder, usuario ya es líder o usuario no es miembro).",
             "content": {
-                "application/json": {
+                APPLICATION_JSON: {
                     "examples": {
                         "colonia_sin_lider": {
                             "summary": "La colonia no tiene líder",
@@ -202,7 +204,7 @@ cambiar_lider_colonia_docs = dict(
         422: {
             "description": "Body inválido (por ejemplo, no se envió el campo `lider`).",
             "content": {
-                "application/json": {
+                APPLICATION_JSON: {
                     "example": {
                         "detail": [
                             {
@@ -286,7 +288,7 @@ sacar_miembro_colonia_docs = dict(
         200: {
             "description": "Miembro removido exitosamente de la colonia.",
             "content": {
-                "application/json": {
+                APPLICATION_JSON: {
                     "example": {
                         "mensaje": "El usuario Ana Quira ha sido removido exitosamente de la colonia.",
                         "usuario": {
@@ -310,7 +312,7 @@ sacar_miembro_colonia_docs = dict(
         404: {
             "description": "Colonia o usuario no encontrado.",
             "content": {
-                "application/json": {
+                APPLICATION_JSON: {
                     "examples": {
                         "colonia_no_encontrada": {
                             "summary": "Colonia no encontrada",
@@ -327,7 +329,7 @@ sacar_miembro_colonia_docs = dict(
         409: {
             "description": "Conflicto de negocio - No se puede remover al usuario.",
             "content": {
-                "application/json": {
+                APPLICATION_JSON: {
                     "examples": {
                         "usuario_no_es_miembro": {
                             "summary": "Usuario no pertenece a la colonia",
@@ -351,7 +353,7 @@ sacar_miembro_colonia_docs = dict(
         422: {
             "description": "Body inválido o campos faltantes.",
             "content": {
-                "application/json": {
+                APPLICATION_JSON: {
                     "example": {
                         "detail": [
                             {
