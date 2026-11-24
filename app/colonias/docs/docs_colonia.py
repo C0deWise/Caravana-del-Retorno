@@ -98,6 +98,34 @@ obtener_colonias_activas_docs = dict(
     }
 )    
 
+obtener_colonias_publicas_docs = dict(
+    summary="Obtener colonias activas (público)",
+    description="""
+    Lista las colonias activas para el portal público.
+
+    **Autenticación:** no requiere. Por eso solo expone código y ubicación
+    (país, departamento, ciudad); no incluye el líder ni el estado.
+    """,
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {
+            "description": "Lista pública de colonias activas.",
+            "content": {
+                "application/json": {
+                    "example": [
+                        {
+                            "codigo": 1,
+                            "pais": "Colombia",
+                            "departamento": "Antioquia",
+                            "ciudad": "Medellín"
+                        }
+                    ]
+                }
+            },
+        }
+    }
+)
+
 cambiar_lider_colonia_docs = dict(
     status_code=status.HTTP_200_OK,
     summary="Cambiar líder de una colonia",

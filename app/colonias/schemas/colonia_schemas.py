@@ -96,6 +96,20 @@ class ColoniaRespuesta (BaseModel):
 
     model_config = {"from_attributes": True}
 
+class ColoniaPublica (BaseModel):
+    """
+    Esquema de respuesta pública (sin autenticación) de una colonia.
+    Expone solo la ubicación para el portal público; omite a propósito
+    el líder (dato de un usuario) y el estado (siempre activa en este uso).
+    """
+
+    codigo: int
+    pais: str
+    departamento: Optional[str] = None
+    ciudad: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
 class ColoniaEstablecerLider (BaseModel):
     """Esquema de entrada para establecer un líder a una colonia."""
 
