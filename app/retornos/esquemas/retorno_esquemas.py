@@ -18,7 +18,7 @@ class RetornoEstado(str, Enum):
 
 class RetornoCreate(BaseModel):
     """Datos requeridos para crear un nuevo retorno."""
-    anio: int = Field(..., examples=[datetime.date.today().year], description="Año del retorno. No puede ser anterior al año actual.")
+    anio: int = Field(..., examples=[2028], description="Año del retorno. No puede ser anterior al año actual.")
     estado: RetornoEstado = Field(default=RetornoEstado.ACTIVO, examples=[RetornoEstado.ACTIVO], description="Estado del retorno")
 
 class CambiarEstadoRetorno(BaseModel):

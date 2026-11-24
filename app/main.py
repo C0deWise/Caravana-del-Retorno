@@ -63,11 +63,12 @@ async def lifespan(app: FastAPI):
 
     logger.info("Application ready.")
 
-    yield
-
-    # Shutdown
-    logger.info("Shutting down %s...", settings.APP_NAME)
-    scheduler.shutdown()
+    try:
+        yield
+    finally:
+        # Shutdown
+        logger.info("Shutting down %s...", settings.APP_NAME)
+        scheduler.shutdown()
 
 
 # ─────────────────────────────────────────

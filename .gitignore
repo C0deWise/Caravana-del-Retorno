@@ -6,7 +6,7 @@ __pycache__/
 # Entorno virtual
 .env
 .env.*
-!.env.example.
+!.env.example
 .venv
 venv/
 env/
