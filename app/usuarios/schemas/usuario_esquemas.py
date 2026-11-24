@@ -160,7 +160,7 @@ class UsuarioSesion(BaseModel):
     apellido: str
     codigo_rol: int
     role_name: str
-    codigo_colonia: Optional[int]
+    codigo_colonia: Optional[int] = None
 
 
 class AuthResponse(BaseModel):

@@ -26,7 +26,7 @@ from app.colonias.repositories.solicitud_colonia_repository import SolicitudColo
 from app.colonias.repositories.colonia_repository import ColoniaRepository
 from app.core.database import get_db
 from app.usuarios.api.v1.usuario_router import get_usuario_servicio
-from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta, ColoniaEstablecerLider, ColoniaSacarMiembro, UsuarioRemovidoColoniaRespuesta
+from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaPublica, ColoniaRespuesta, ColoniaEstablecerLider, ColoniaSacarMiembro, UsuarioRemovidoColoniaRespuesta
 from app.colonias.schemas.colonia_solicitud_schemas import SolicitudColoniaCrear, SolicitudColoniaRespuesta, MiembroRegistradoColoniaRespuesta
 from app.colonias.services.colonia_services import ColoniaService
 from app.colonias.services.solicitud_colonias_services import SolicitudColoniaService
@@ -34,7 +34,7 @@ from app.usuarios.services.usuario_servicio import UsuarioServicio
 from app.retornos.repositorios.retorno_repositorio import RetornoRepository
 from app.retornos.repositorios.registro_retorno_repositorio import RegistroRetornoRepositorio
 from app.retornos.servicios.registro_retorno_servicio import RegistroRetornoServicio
-from app.colonias.docs.docs_colonia import toggle_estado_colonia_docs, cambiar_lider_colonia_docs, sacar_miembro_colonia_docs, obtener_colonias_activas_docs,  crear_colonia_body
+from app.colonias.docs.docs_colonia import toggle_estado_colonia_docs, cambiar_lider_colonia_docs, sacar_miembro_colonia_docs, obtener_colonias_activas_docs, obtener_colonias_publicas_docs, crear_colonia_body
 from json import dumps
 
 from app.colonias.docs.docs_solicitud_colonia import (
@@ -373,6 +373,18 @@ async def obtener_colonias_activas(
 ) -> list[ColoniaRespuesta]:
     """Endpoint para obtener la lista de colonias activas"""
     return await servicio.obtener_colonias_activas()
+
+@router.get(
+    "/publicas/", **obtener_colonias_publicas_docs
+)
+async def obtener_colonias_publicas(
+    servicio: ColoniaService = Depends(get_colonia_service),
+) -> list[ColoniaPublica]:
+    """
+    Endpoint público (sin autenticación) para la landing:
+    colonias activas con solo su ubicación.
+    """
+    return await servicio.obtener_colonias_publicas()
 @router.patch(
     "/cambiar-lider/{colonia_codigo}/",
     **cambiar_lider_colonia_docs

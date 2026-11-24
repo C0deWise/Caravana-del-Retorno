@@ -1,0 +1,119 @@
+name: Deploy caravana-api
+
+on:
+  workflow_run:
+    workflows: ["Build and push caravana-api"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag a desplegar (ej. sha-b5a83a8 o latest)"
+        required: true
+        default: latest
+
+concurrency:
+  group: deploy-caravana-api
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Resolver tag
+        id: tag
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            TAG="$INPUT_TAG"
+          else
+            TAG="sha-${HEAD_SHA:0:7}"
+          fi
+          if ! printf '%s' "$TAG" | grep -Eq '^[A-Za-z0-9_.-]{1,64}$'; then
+            echo "Tag inválido: $TAG" >&2
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Desplegando tag: $TAG"
+
+      - name: Configurar SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/known_hosts
+          echo "Huella(s) cargadas en known_hosts:"
+          ssh-keygen -lf ~/.ssh/known_hosts
+
+      - name: Desplegar en el servidor
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        run: |
+          SERVER_USER="$(printf '%s' "$SERVER_USER" | tr -d '[:space:]')"
+          SERVER_HOST="$(printf '%s' "$SERVER_HOST" | tr -d '[:space:]')"
+          ssh -o StrictHostKeyChecking=yes -o ConnectTimeout=15 \
+            "$SERVER_USER@$SERVER_HOST" 'bash -s' -- "$TAG" <<'REMOTE'
+          set -euo pipefail
+          NEW_TAG="$1"
+          cd /srv/caravana-api
+
+          OLD_TAG=$(grep -E '^IMAGE_TAG=' .env | cut -d= -f2 || true)
+          OLD_TAG=${OLD_TAG:-latest}
+          echo "Versión actual: $OLD_TAG -> nueva: $NEW_TAG"
+
+          set_tag() {
+            if grep -q '^IMAGE_TAG=' .env; then
+              sed -i "s|^IMAGE_TAG=.*|IMAGE_TAG=$1|" .env
+            else
+              echo "IMAGE_TAG=$1" >> .env
+            fi
+          }
+
+          wait_healthy() {
+            for i in $(seq 1 30); do
+              STATUS=$(docker inspect -f '{{.State.Health.Status}}' caravana-api 2>/dev/null || echo "missing")
+              echo "  healthcheck: $STATUS ($i/30)"
+              [ "$STATUS" = "healthy" ] && return 0
+              sleep 3
+            done
+            return 1
+          }
+
+          if ! IMAGE_TAG="$NEW_TAG" docker compose pull app; then
+            echo "No se pudo descargar la imagen $NEW_TAG. No se cambió nada."
+            exit 1
+          fi
+
+          set_tag "$NEW_TAG"
+          docker compose up -d
+
+          if wait_healthy; then
+            echo "Despliegue correcto."
+          else
+            echo "Healthcheck falló. Últimos logs:"
+            docker compose logs --tail 30 app || true
+            echo "Volviendo a $OLD_TAG..."
+            set_tag "$OLD_TAG"
+            docker compose up -d
+            wait_healthy || true
+            exit 1
+          fi
+          REMOTE
+
+      - name: Verificar API pública
+        run: |
+          curl -fsS -o /dev/null -w 'HTTP %{http_code}\n' \
+            --retry 5 --retry-delay 3 https://api-caravana.ourmenta.com/health

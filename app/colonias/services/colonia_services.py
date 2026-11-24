@@ -17,7 +17,7 @@ UsuarioYaEsLider,
 UsuarioNoEsMiembroColonia,
 UsuarioInscritoRetornoActivo)
 from app.colonias.models.colonia_model import ColoniaEstado
-from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaRespuesta, UsuarioRemovidoColonia, UsuarioRemovidoColoniaRespuesta
+from app.colonias.schemas.colonia_schemas import ColoniaCrear, ColoniaPublica, ColoniaRespuesta, UsuarioRemovidoColonia, UsuarioRemovidoColoniaRespuesta
 from app.colonias.repositories.colonia_repository import ColoniaRepository
 from app.notificaciones.events.events import EventoBase, TipoEvento
 from app.notificaciones.events.patron_observer import Publicador
@@ -170,6 +170,16 @@ class ColoniaService:
         """
         colonias_activas = await self.repositorio.obtener_colonias_activas()
         return [ColoniaRespuesta.model_validate(colonia, from_attributes=True) for colonia in colonias_activas]
+
+    async def obtener_colonias_publicas(self) -> list[ColoniaPublica]:
+        """
+        Obtiene las colonias activas con solo los datos aptos para el portal público.
+        Reutiliza la misma consulta de colonias activas del repositorio.
+        Retorna:
+            list[ColoniaPublica]: Colonias activas sin líder ni estado.
+        """
+        colonias_activas = await self.repositorio.obtener_colonias_activas()
+        return [ColoniaPublica.model_validate(colonia, from_attributes=True) for colonia in colonias_activas]
       
     async def cambiar_lider_colonia(self, colonia_codigo: int, nuevo_lider_id: int) -> ColoniaRespuesta:
         """

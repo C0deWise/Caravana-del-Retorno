@@ -319,7 +319,7 @@
       <div class="section-title">Distribución por Género</div>
       {% if asistencia_genero %}
       <div class="donut-section">
-        <svg class="donut-chart" width="110" height="110" viewBox="0 0 110 110">
+        <svg class="donut-chart" role="img" aria-label="Asistencia por género" width="110" height="110" viewBox="0 0 110 110">
           {% set cx = 55 %}{% set cy = 55 %}{% set r = 40 %}{% set stroke_w = 20 %}
           {% set circum = 2 * 3.14159 * r %}
           {% set ns = namespace(offset=0) %}
